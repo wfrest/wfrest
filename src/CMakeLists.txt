@@ -2,7 +2,7 @@ set(SRCS
         WFHttpMsg.cc
         WFWebServerTask.cc
         WFWebServer.cc
-        RouteTable.h RouteTable.cc Router.cc Router.h StringPiece.h UniquePtr.h)
+        RouteTable.h Router.cc Router.h StringPiece.h UniquePtr.h)
 
 add_library(wfrest ${SRCS})
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt spdlog)

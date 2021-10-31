@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include "WFHttpMsg.h"
+#include "Router.h"
 
 namespace wfrest
 {
@@ -16,8 +17,7 @@ public:
 	enum { ANY, GET, POST, PUT, HTTP_DELETE };
 public:
 	WFWebServer(): 
-		WFServer(std::bind(&WFWebServer::proc, this, std::placeholders::_1)),
-        is_ssl_(false)
+		WFServer(std::bind(&WFWebServer::proc, this, std::placeholders::_1))
 	{}
 
 	WFWebServer &Get(const std::string &path, Handler handler);
@@ -46,7 +46,8 @@ private:
 private:
 	Handlers get_handlers_;
 	Handlers post_handlers_;
-	bool is_ssl_;
+    Router router_;
+	bool is_ssl_ = false;
 };
 
 

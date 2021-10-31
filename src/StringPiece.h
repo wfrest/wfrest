@@ -190,5 +190,20 @@ template<> struct __type_traits<wfrest::StringPiece> {
 // allow StringPiece to be logged
 std::ostream& operator<<(std::ostream& o, const wfrest::StringPiece& piece);
 
+// Stand-ins for the STL's std::hash<> specializations.
+template <typename StringPieceType>
+struct StringPieceHashImpl {
+    // This is a custom hash function. We don't use the ones already defined for
+    // string and std::u16string directly because it would require the string
+    // constructors to be called, which we don't want.
+    std::size_t operator()(StringPieceType sp) const {
+        std::size_t result = 0;
+        for (auto c : sp)
+            result = (result * 131) + c;
+        return result;
+    }
+};
+
+using StringPieceHash = StringPieceHashImpl<wfrest::StringPiece>;
 
 #endif // _STRINGPIECE_H_

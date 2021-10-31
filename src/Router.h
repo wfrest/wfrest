@@ -6,24 +6,35 @@
 #define _ROUTER_H_
 
 #include "RouteTable.h"
+#include "WFHttpMsg.h"
 #include <functional>
 
-template <typename Req, typename Resp>
-class Router
+namespace wfrest
 {
-public:
-    enum { ANY, GET, POST, PUT, HTTP_DELETE };
-    using Handler = std::function<void(Req&, Resp&)>;
 
-    struct VerbHandler {
-        int verb = ANY;
-        Handler handler;
-        std::string path;
+    class Router
+    {
+    public:
+        Router() = default;
+        enum { ANY, GET, POST, PUT, HTTP_DELETE };
+        using Handler = std::function<void(HttpReq *, HttpResp *)>;
+
+        struct VerbHandler
+        {
+            int verb = GET;
+            Handler handler;
+            std::string path;
+        };
+
+        void handle(std::string& route, const Handler& handler, int verb = GET);
+
+    private:
+        RouteTable<VerbHandler> routes_map_;
     };
 
-private:
-//    RouteTable<VerbHandler> routes_map_;
-};
+
+}  // wfrest
+
 
 
 #endif //_ROUTER_H_

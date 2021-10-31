@@ -55,4 +55,32 @@ svr.Get("/json", [](const HttpReq* req, HttpResp* resp) {
 svr.Get("/html/index.html", [](const HttpReq* req, HttpResp* resp) {
     resp->File("html/index.html");
 });
+
+svr.Post("/post", [](const HttpReq* req, HttpResp* resp){
+    const char *body;
+    size_t body_len = 0;
+    req->Body(&body, &body_len);
+    fprintf(stderr, "post data : %s\n", body);
+});
+
+svr.Post("/enlen", [](const HttpReq* req, HttpResp* resp){
+    protocol::HttpHeaderCursor cursor(req);
+    std::string content_type;
+    cursor.find("Content-Type", content_type);
+    if(content_type != "application/x-www-form-urlencoded")
+    {
+        resp->set_status(HttpStatusBadRequest);
+        return;
+    }
+    const char *body;
+    size_t body_len = 0;
+    req->Body(&body, &body_len);
+    fprintf(stderr, "post data : %s\n", body);
+});
 ```
+
+## ✨ Dicssussion
+
+For more information, you can first see discussions:
+
+**https://github.com/chanchann/wfrest/discussions**
