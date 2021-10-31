@@ -3,17 +3,19 @@
 //
 
 #include "Router.h"
+
 using namespace wfrest;
 
-void wfrest::Router::handle(std::string&& route, const Router::Handler &handler, int verb)
+void wfrest::Router::handle(std::string &&route, const Router::Handler &handler, int verb)
 {
-    auto& vh = routes_map_[route];
+    auto &vh = routes_map_[route];
     vh.verb = verb;
     vh.path = std::move(route);
     vh.handler = handler;
 }
 
-void Router::call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const {
+void Router::call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const
+{
     // skip the last / of the url.
     StringPiece route2(route);
     if (!route2.empty() and route2[route2.size() - 1] == '/')
@@ -26,22 +28,21 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
         if (it->second.verb == ANY or parse_verb(verb) == it->second.verb)
         {
             it->second.handler(req, resp);
-        }
-        else
+        } else
         {
             resp->set_status(HttpStatusNotFound);
             fprintf(stderr, "verb %s not implemented on route %s\n", verb.c_str(), route2.data());
         }
-    }
-    else
+    } else
     {
         resp->set_status(HttpStatusNotFound);
         fprintf(stderr, "Route dose not exist");
     }
 }
 
-int Router::parse_verb(const std::string &verb) {
-    if(strcasecmp(verb.c_str(), "GET") == 0)
+int Router::parse_verb(const std::string &verb)
+{
+    if (strcasecmp(verb.c_str(), "GET") == 0)
         return GET;
     if (strcasecmp(verb.c_str(), "PUT") == 0)
         return PUT;

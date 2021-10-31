@@ -5,36 +5,38 @@
 #include "workflow/WFTaskFactory.h"
 #include <fcntl.h>
 
-namespace wfrest 
+namespace wfrest
 {
 
-class HttpReq : public protocol::HttpRequest
-{
-public:
-    void Body(const char** body, size_t *size) const;
-    
-    void test() { fprintf(stderr, "req test : %s\n", get_request_uri()); }
+    class HttpReq : public protocol::HttpRequest
+    {
+    public:
+        void Body(const char **body, size_t *size) const;
 
-    // for regex ? 
-};
+        void test()
+        { fprintf(stderr, "req test : %s\n", get_request_uri()); }
 
-class HttpResp : public protocol::HttpResponse
-{
-public:
-    void String(const std::string& str);
+        // for regex ?
+    };
 
-    void Data(const void* data, size_t len, bool nocopy = true);
+    class HttpResp : public protocol::HttpResponse
+    {
+    public:
+        void String(const std::string &str);
 
-    void File(const std::string& path);
+        void Data(const void *data, size_t len, bool nocopy = true);
 
-    // void Write(const std::string& content, const std::string& path);
+        void File(const std::string &path);
 
-    void set_status(int status_code);
+        // void Write(const std::string& content, const std::string& path);
 
-    void test() { fprintf(stderr, "resp test : %s\n", get_status_code()); }
-};   
+        void set_status(int status_code);
 
-using WFWebTask = WFNetworkTask<HttpReq, HttpResp>;
+        void test()
+        { fprintf(stderr, "resp test : %s\n", get_status_code()); }
+    };
+
+    using WFWebTask = WFNetworkTask<HttpReq, HttpResp>;
 
 } // namespace wfrest
 

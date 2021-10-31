@@ -18,6 +18,7 @@ void test01()
     StringPiece strp2(strp1.data() + cursor, 2);
     std::cout << strp2.as_string() << std::endl;
 }
+
 int main()
 {
     test01();

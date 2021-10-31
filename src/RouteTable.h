@@ -20,26 +20,36 @@ namespace wfrest
     namespace detail
     {
 
-        template <typename VerbHandler>
-        class RouteTableNode {
+        template<typename VerbHandler>
+        class RouteTableNode
+        {
         public:
             RouteTableNode() = default;
+
             struct iterator
             {
-                const RouteTableNode<VerbHandler>* ptr;
+                const RouteTableNode<VerbHandler> *ptr;
                 StringPiece first;
                 VerbHandler second;
 
-                iterator* operator->() { return this; }
-                bool operator==(const iterator& other) { return this->ptr == other.ptr; }
-                bool operator!=(const iterator& other) { return this->ptr != other.ptr; }
+                iterator *operator->()
+                { return this; }
+
+                bool operator==(const iterator &other)
+                { return this->ptr == other.ptr; }
+
+                bool operator!=(const iterator &other)
+                { return this->ptr != other.ptr; }
             };
 
-            VerbHandler& find_or_create(const StringPiece& route, int cursor);
-            iterator end() const { return iterator{nullptr, StringPiece(), VerbHandler()}; }
-            auto find(const StringPiece& route, int cursor) const -> iterator;
+            VerbHandler &find_or_create(const StringPiece &route, int cursor);
 
-            template <typename F>
+            iterator end() const
+            { return iterator{nullptr, StringPiece(), VerbHandler()}; }
+
+            auto find(const StringPiece &route, int cursor) const -> iterator;
+
+            template<typename F>
             void for_all_routes(F f, std::string prefix = "") const;
 
         private:
@@ -49,20 +59,23 @@ namespace wfrest
 
         template<typename VerbHandler>
         template<typename F>
-        void RouteTableNode<VerbHandler>::for_all_routes(F f, std::string prefix) const {
+        void RouteTableNode<VerbHandler>::for_all_routes(F f, std::string prefix) const
+        {
             if (children_.size() == 0)
                 f(prefix, verb_handler_);
-            else {
+            else
+            {
                 if (!prefix.empty() && prefix.back() != '/')
                     prefix += '/';
-                for (auto pair : children_)
+                for (auto pair: children_)
                     pair.second->for_all_routes(f, prefix + std::string(pair.first));
             }
         }
 
         // todo : optimize here
         template<typename VerbHandler>
-        VerbHandler &RouteTableNode<VerbHandler>::find_or_create(const StringPiece& route, int cursor) {
+        VerbHandler &RouteTableNode<VerbHandler>::find_or_create(const StringPiece &route, int cursor)
+        {
             if (cursor == route.size())
                 return verb_handler_;
 
@@ -116,7 +129,8 @@ namespace wfrest
             }
 
             // if one child is an url param <param_name>, choose it
-            for (auto& kv : children_) {
+            for (auto &kv: children_)
+            {
                 auto name = kv.first;
                 if (name.size() > 2 and name[0] == '<' and
                     name[name.size() - 1] == '>')
@@ -129,13 +143,14 @@ namespace wfrest
     } // namespace detail
 
 
-    template <typename VerbHandler>
+    template<typename VerbHandler>
     class RouteTable
     {
     public:
         // Find a route and return reference to a procedure.
-        VerbHandler& operator[](const StringPiece& route);
-        VerbHandler& operator[](const std::string& route);
+        VerbHandler &operator[](const StringPiece &route);
+
+        VerbHandler &operator[](const std::string &route);
 
         // Find a route and return an iterator.
         // c++14
@@ -143,16 +158,17 @@ namespace wfrest
         // auto find(const StringPiece& r) const { return root.find(r, 0); }
         // c++11
         // use typename when refers to Out<T>::Inner, to indicates that this is a type, not a variable
-        auto find(const StringPiece& route) const
-            -> typename detail::RouteTableNode<VerbHandler>::iterator
-            { return root_.find(route, 0); }
+        auto find(const StringPiece &route) const
+        -> typename detail::RouteTableNode<VerbHandler>::iterator
+        { return root_.find(route, 0); }
 
-        template <typename F>
-        void for_all_routes(F f) const { root_.for_all_routes(f); }
+        template<typename F>
+        void for_all_routes(F f) const
+        { root_.for_all_routes(f); }
 
         auto end() const
-            -> typename detail::RouteTableNode<VerbHandler>::iterator
-            { return root_.end(); }
+        -> typename detail::RouteTableNode<VerbHandler>::iterator
+        { return root_.end(); }
 
     private:
         std::vector<std::unique_ptr<std::string> > strings_;

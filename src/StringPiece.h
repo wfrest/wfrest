@@ -49,47 +49,48 @@
 
 #include <string>
 
-namespace wfrest
-{
+namespace wfrest {
 
 // For passing C-style std::string argument to a function.
     class StringArg // copyable
     {
     public:
-        explicit StringArg(const char* str)
-                : str_(str)
-        { }
+        explicit StringArg(const char *str)
+                : str_(str) {}
 
-        explicit StringArg(const std::string& str)
-                : str_(str.c_str())
-        { }
+        explicit StringArg(const std::string &str)
+                : str_(str.c_str()) {}
 
-        const char* c_str() const { return str_; }
+        const char *c_str() const { return str_; }
 
     private:
-        const char* str_;
+        const char *str_;
     };
 
     class StringPiece {
     private:
-        const char*   ptr_;
-        int           length_;
+        const char *ptr_;
+        int length_;
 
     public:
         // We provide non-explicit singleton constructors so users can pass
         // in a "const char*" or a "std::string" wherever a "StringPiece" is
         // expected.
         StringPiece()
-                : ptr_(nullptr), length_(0) { }
-        explicit StringPiece(const char* str)
-                : ptr_(str), length_(static_cast<int>(strlen(ptr_))) { }
-        explicit StringPiece(const unsigned char* str)
-                : ptr_(reinterpret_cast<const char*>(str)),
-                  length_(static_cast<int>(strlen(ptr_))) { }
-        explicit StringPiece(const std::string& str)
-                : ptr_(str.data()), length_(static_cast<int>(str.size())) { }
-        StringPiece(const char* offset, int len)
-                : ptr_(offset), length_(len) { }
+                : ptr_(nullptr), length_(0) {}
+
+        explicit StringPiece(const char *str)
+                : ptr_(str), length_(static_cast<int>(strlen(ptr_))) {}
+
+        explicit StringPiece(const unsigned char *str)
+                : ptr_(reinterpret_cast<const char *>(str)),
+                  length_(static_cast<int>(strlen(ptr_))) {}
+
+        explicit StringPiece(const std::string &str)
+                : ptr_(str.data()), length_(static_cast<int>(str.size())) {}
+
+        StringPiece(const char *offset, int len)
+                : ptr_(offset), length_(len) {}
 
         // data() may return a pointer to a buffer with embedded NULs, and the
         // returned buffer may or may not be null terminated.  Therefore it is
@@ -97,20 +98,33 @@ namespace wfrest
         // terminated std::string.  Use "as_string().c_str()" if you really need to do
         // this.  Or better yet, change your routine so it does not rely on NUL
         // termination.
-        const char* data() const { return ptr_; }
-        int size() const { return length_; }
-        bool empty() const { return length_ == 0; }
-        const char* begin() const { return ptr_; }
-        const char* end() const { return ptr_ + length_; }
+        const char *data() const { return ptr_; }
 
-        void clear() { ptr_ = nullptr; length_ = 0; }
-        void set(const char* buffer, int len) { ptr_ = buffer; length_ = len; }
-        void set(const char* str) {
+        int size() const { return length_; }
+
+        bool empty() const { return length_ == 0; }
+
+        const char *begin() const { return ptr_; }
+
+        const char *end() const { return ptr_ + length_; }
+
+        void clear() {
+            ptr_ = nullptr;
+            length_ = 0;
+        }
+
+        void set(const char *buffer, int len) {
+            ptr_ = buffer;
+            length_ = len;
+        }
+
+        void set(const char *str) {
             ptr_ = str;
             length_ = static_cast<int>(strlen(str));
         }
-        void set(const void* buffer, int len) {
-            ptr_ = reinterpret_cast<const char*>(buffer);
+
+        void set(const void *buffer, int len) {
+            ptr_ = reinterpret_cast<const char *>(buffer);
             length_ = len;
         }
 
@@ -125,11 +139,12 @@ namespace wfrest
             length_ -= n;
         }
 
-        bool operator==(const StringPiece& x) const {
+        bool operator==(const StringPiece &x) const {
             return ((length_ == x.length_) &&
                     (memcmp(ptr_, x.ptr_, length_) == 0));
         }
-        bool operator!=(const StringPiece& x) const {
+
+        bool operator!=(const StringPiece &x) const {
             return !(*this == x);
         }
 
@@ -138,13 +153,17 @@ namespace wfrest
         int r = memcmp(ptr_, x.ptr_, length_ < x.length_ ? length_ : x.length_); \
         return ((r auxcmp 0) || ((r == 0) && (length_ cmp x.length_)));          \
     }
-        STRINGPIECE_BINARY_PREDICATE(<,  <);
+
+        STRINGPIECE_BINARY_PREDICATE(<, <);
+
         STRINGPIECE_BINARY_PREDICATE(<=, <);
+
         STRINGPIECE_BINARY_PREDICATE(>=, >);
-        STRINGPIECE_BINARY_PREDICATE(>,  >);
+
+        STRINGPIECE_BINARY_PREDICATE(>, >);
 #undef STRINGPIECE_BINARY_PREDICATE
 
-        int compare(const StringPiece& x) const {
+        int compare(const StringPiece &x) const {
             int r = memcmp(ptr_, x.ptr_, length_ < x.length_ ? length_ : x.length_);
             if (r == 0) {
                 if (length_ < x.length_) r = -1;
@@ -157,12 +176,12 @@ namespace wfrest
             return std::string(data(), size());
         }
 
-        void CopyToString(std::string* target) const {
+        void CopyToString(std::string *target) const {
             target->assign(ptr_, length_);
         }
 
         // Does "this" start with "x"
-        bool starts_with(const StringPiece& x) const {
+        bool starts_with(const StringPiece &x) const {
             return ((length_ >= x.length_) && (memcmp(ptr_, x.ptr_, x.length_) == 0));
         }
     };
@@ -188,17 +207,19 @@ template<> struct __type_traits<wfrest::StringPiece> {
 #endif
 
 // allow StringPiece to be logged
-std::ostream& operator<<(std::ostream& o, const wfrest::StringPiece& piece);
+std::ostream &operator<<(std::ostream &o, const wfrest::StringPiece &piece);
 
 // Stand-ins for the STL's std::hash<> specializations.
-template <typename StringPieceType>
-struct StringPieceHashImpl {
+template<typename StringPieceType>
+struct StringPieceHashImpl
+{
     // This is a custom hash function. We don't use the ones already defined for
     // string and std::u16string directly because it would require the string
     // constructors to be called, which we don't want.
-    std::size_t operator()(StringPieceType sp) const {
+    std::size_t operator()(StringPieceType sp) const
+    {
         std::size_t result = 0;
-        for (auto c : sp)
+        for (auto c: sp)
             result = (result * 131) + c;
         return result;
     }
