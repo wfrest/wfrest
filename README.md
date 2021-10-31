@@ -5,10 +5,33 @@ The c++ micro framework for building web applications based on workflow
 ## ⌛️ Build
 
 ```
-git clone https://github.com/chanchann/wfrest.git
+Step 1 : install workflow
+git clne git@github.com:sogou/workflow.git
+cd workflow
 make
-cd tutorial
-make
+make install
+```
+
+```
+Step 2 : install spdlog
+
+git clone git@github.com:gabime/spdlog.git
+cd spdlog 
+mkdir build && cd build
+cmake ..
+make -j
+make install
+```
+
+```
+Step 3 : install wfrest
+
+git clone git@github.com:chanchann/wfrest.git
+cd wfrest
+mkdir build && cd build
+cmake ..
+make -j 
+make install
 ```
 
 ## ⚡️ Simple examples
@@ -32,7 +55,4 @@ svr.Get("/json", [](const HttpReq* req, HttpResp* resp) {
 svr.Get("/html/index.html", [](const HttpReq* req, HttpResp* resp) {
     resp->File("html/index.html");
 });
-
-
-
 ```

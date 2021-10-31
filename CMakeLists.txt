@@ -47,4 +47,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 #if(WFREST_BUILD_EXAMPLES)
 add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
+
 #endif()

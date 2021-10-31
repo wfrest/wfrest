@@ -1,0 +1,2 @@
+add_executable(string_piece_test string_piece_test.cc)
+target_link_libraries(string_piece_test wfrest)
