@@ -20,8 +20,8 @@ public:
 		WFServer(std::bind(&WFWebServer::proc, this, std::placeholders::_1))
 	{}
 
-	WFWebServer &Get(const std::string &path, Handler handler);
-	WFWebServer &Post(const std::string &path, Handler handler);
+    void Get(std::string &&route, const Handler& handler);
+    void Post(std::string &&route, const Handler& handler);
 
 	void start_ssl(bool is_ssl)
 	{
@@ -35,17 +35,9 @@ protected:
 	CommSession *new_session(long long seq, CommConnection *conn) override;
 
 private:
-	using Handlers = std::unordered_map<std::string, Handler>;
-	
 	void proc(WFWebTask *server_task);
-	
-	static void dispatch_request(const HttpReq *req, 
-								HttpResp *resp,
-								const Handlers &handlers,
-								bool is_ssl);
+    void dispatch_request(HttpReq *req, HttpResp *resp) const;
 private:
-	Handlers get_handlers_;
-	Handlers post_handlers_;
     Router router_;
 	bool is_ssl_ = false;
 };

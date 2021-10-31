@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include "StringPiece.h"
 #include "UniquePtr.h"
+#include "Router.h"
 
 namespace wfrest
 {
@@ -35,7 +36,7 @@ namespace wfrest
             };
 
             VerbHandler& find_or_create(const StringPiece& route, int cursor);
-            iterator end() { return iterator(nullptr, StringPiece(), VerbHandler()); }
+            iterator end() const { return iterator{nullptr, StringPiece(), VerbHandler()}; }
             auto find(const StringPiece& route, int cursor) const -> iterator;
 
             template <typename F>
