@@ -1,0 +1,90 @@
+# Ignore all
+depre/wfrest/docs
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+
+.DS_Store
+*/.DS_Store
+
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+
+**/cmake-build-debug
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/install_manifest.txt
+**/CMakeFiles/
+**/CTestTestfile.cmake
+**/Makefile
+**/*.cbp
+**/CMakeScripts
+**/compile_commands.json
+
+include/divisible/*
+bin/*
+lib/*
+test/test_runner
+
+## Local 
+
+.idea/workspace.xml
+
+*/build/*
+build/*
+build/release/*
+build/release-cpp11/*
+build/debug-cpp11/*
+build/debug/*
+build/run/*
+build/logs/&
+
+
+include/*
+lib/*
+bin/*
+.bash/
+bin/bootstrap
+bin/lib-bash
+
+.idea
+
+.vscode
+
+# Ignore log
+*.log 
+*/logs/*
+*/*log*
+
+_include/*
