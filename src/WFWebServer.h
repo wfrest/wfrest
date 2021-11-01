@@ -42,8 +42,6 @@ namespace wfrest
     private:
         void proc(WFWebTask *server_task);
 
-        void dispatch_request(HttpReq *req, HttpResp *resp) const;
-
     private:
         Router router_;
         bool is_ssl_ = false;

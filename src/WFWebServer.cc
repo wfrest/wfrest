@@ -13,18 +13,47 @@ void WFWebServer::proc(WFWebTask *server_task)
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
 
-    resp->set_http_version("HTTP/1.1");
+    std::string host;
+    protocol::HttpHeaderCursor cursor(req);
+    cursor.find("Host", host);
 
-    dispatch_request(req, resp);
+    if (host.empty())
+    {
+        //header Host not found
+        resp->set_status(HttpStatusBadRequest);
+        return;
+    }
 
-    server_task->set_callback([](WFWebTask *)
-                              {
-                                  fprintf(stderr, "web task done");
-                              });
+    std::string request_uri;
+
+    if (is_ssl_)
+        request_uri = "https://";
+    else
+        request_uri = "http://";
+
+    request_uri += host;
+    request_uri += req->get_request_uri();
+
+    ParsedURI uri;
+
+    if (URIParser::parse(request_uri, uri) < 0)
+    {
+        resp->set_status(HttpStatusBadRequest);
+        return;
+    }
+
+    std::string route;
+
+    if (uri.path && uri.path[0])
+        route = uri.path;
+    else
+        route = "/";
+
+    router_.call(req->get_method(), route, req, resp);
 }
 
 
-class __WFHttpTask : public WFServerTask<HttpReq, HttpResp>
+class __WFHttpTask : public WFNetworkTask<HttpReq, HttpResp>
 {
 public:
     static size_t get_req_offset()
@@ -40,10 +69,13 @@ public:
 
         return task.resp_offset();
     }
-
+    // Just for get rid of abtract
+    WFConnection *get_connection() const override { return nullptr; }
+    CommMessageOut *message_out() override { return &this->req;};
+    CommMessageIn *message_in() override { return &this->resp; };
 private:
     explicit __WFHttpTask(std::function<void(WFWebTask *)> proc) :
-            WFServerTask(nullptr, nullptr, proc)
+            WFNetworkTask(nullptr, nullptr, std::move(proc))
     {}
 
     size_t req_offset() const
@@ -90,47 +122,6 @@ void WFWebServer::Post(std::string &&route, const WFWebServer::Handler &handler)
     router_.handle(std::move(route), handler, POST);
 }
 
-void WFWebServer::dispatch_request(HttpReq *req, HttpResp *resp) const
-{
-    fprintf(stderr, "dispatch_request");
-    std::string host;
-    protocol::HttpHeaderCursor cursor(req);
-    cursor.find("Host", host);
-
-    if (host.empty())
-    {
-        //header Host not found
-        resp->set_status(HttpStatusBadRequest);
-        return;
-    }
-
-    std::string request_uri;
-
-    if (is_ssl_)
-        request_uri = "https://";
-    else
-        request_uri = "http://";
-
-    request_uri += host;
-    request_uri += req->get_request_uri();
-
-    ParsedURI uri;
-
-    if (URIParser::parse(request_uri, uri) < 0)
-    {
-        resp->set_status(HttpStatusBadRequest);
-        return;
-    }
-
-    std::string route;
-
-    if (uri.path && uri.path[0])
-        route = uri.path;
-    else
-        route = "/";
-
-    router_.call(req->get_method(), route, req, resp);
-}
 
 
 
