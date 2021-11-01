@@ -41,7 +41,29 @@ void test02()
     }
 }
 
+void proc_param(StringPiece& str)
+{
+    int i = 1;
+    int j = str.size() - 2;
+    while(str[i] == ' ') i++;
+    while(str[j] == ' ') j--;
+    str.shrink(i, str.size() - 1 - j);
+}
+void test03()
+{
+    StringPiece str1("<    name   >");
+    proc_param(str1);
+    std::cout << str1.as_string() << std::endl;
+
+    StringPiece str2("<name>");
+    proc_param(str2);
+    std::cout << str2.as_string() << std::endl;
+
+    StringPiece str3("<>");
+    proc_param(str3);
+    std::cout << str3.as_string() << std::endl;
+}
 int main()
 {
-    test02();
+    test03();
 }

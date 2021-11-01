@@ -4,6 +4,7 @@
 #include "workflow/HttpMessage.h"
 #include "workflow/WFTaskFactory.h"
 #include <fcntl.h>
+#include <unordered_map>
 
 namespace wfrest
 {

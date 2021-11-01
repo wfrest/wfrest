@@ -139,6 +139,13 @@ namespace wfrest {
             length_ -= n;
         }
 
+        void shrink(int prefix, int suffix)
+        {
+            ptr_ += prefix;
+            length_ -= prefix;
+            length_ -= suffix;
+        }
+
         bool operator==(const StringPiece &x) const {
             return ((length_ == x.length_) &&
                     (memcmp(ptr_, x.ptr_, length_) == 0));

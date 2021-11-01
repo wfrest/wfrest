@@ -33,6 +33,11 @@ int main()
         resp->Data("Hello world\n", 12 /* true */);
     });
 
+    svr.Get("/api/<name>", [](HttpReq *req, HttpResp *resp)
+    {
+        std::string name = req->query_params["name"];
+        resp->String(name+"\n");
+    });
     // We do not provide a built-in json library,
     // users can choose the json library according to their preferences
     // curl -v http://ip:port/json

@@ -107,7 +107,7 @@ namespace wfrest
         {
             assert(cursor >= 0);
             // We found the route
-            if ((cursor == route.size() and verb_handler_.handler != nullptr) or (children_.size() == 0))
+            if ((cursor == route.size() and verb_handler_.handler != nullptr) or (children_.empty()))
                 return iterator{this, route, verb_handler_};
             // route does not match any.
             if (cursor == route.size() and verb_handler_.handler == nullptr)
@@ -139,14 +139,19 @@ namespace wfrest
             // if one child is an url param <param_name>, choose it
             for (auto &kv: children_)
             {
-                auto name = kv.first;
-                if (name.size() > 2 and name[0] == '<' and
-                    name[name.size() - 1] == '>')
+                StringPiece param(kv.first);
+                if (param.size() > 2 and param[0] == '<' and
+                        param[param.size() - 1] == '>')
                 {
-                    query_params[]
+                    int i = 1;
+                    int j = param.size() - 2;
+                    while(param[i] == ' ') i++;
+                    while(param[j] == ' ') j--;
+
+                    param.shrink(i, param.size() - 1 - j);
+                    query_params[param.as_string()] = mid.as_string();
                     return kv.second->find(route, cursor, query_params);
                 }
-
             }
             return end();
         }

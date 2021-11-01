@@ -13,7 +13,7 @@ namespace wfrest
     class WFWebServer : public WFServer<HttpReq, HttpResp>
     {
     public:
-        using Handler = std::function<void(const HttpReq *, HttpResp *)>;
+        using Handler = std::function<void(HttpReq *, HttpResp *)>;
         enum
         {
             ANY, GET, POST, PUT, HTTP_DELETE
