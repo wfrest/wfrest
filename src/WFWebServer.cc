@@ -112,14 +112,14 @@ CommSession *WFWebServer::new_session(long long seq, CommConnection *conn)
     return task;
 }
 
-void WFWebServer::Get(std::string &&route, const WFWebServer::Handler &handler)
+void WFWebServer::Get(const char *route, const WFWebServer::Handler &handler)
 {
-    router_.handle(std::move(route), handler, GET);
+    router_.handle(route, handler, GET);
 }
 
-void WFWebServer::Post(std::string &&route, const WFWebServer::Handler &handler)
+void WFWebServer::Post(const char *route, const WFWebServer::Handler &handler)
 {
-    router_.handle(std::move(route), handler, POST);
+    router_.handle(route, handler, POST);
 }
 
 

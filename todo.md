@@ -11,3 +11,5 @@
 5. put / delete
 
 6. check StringPiece usage
+
+7. one route ->  multiple verb

@@ -7,6 +7,7 @@
 
 #include "RouteTable.h"
 #include "WFHttpMsg.h"
+#include "Macro.h"
 #include "workflow/HttpUtil.h"
 #include <functional>
 
@@ -29,11 +30,12 @@ namespace wfrest
             std::string path;
         };
 
-        void handle(std::string &&route, const Handler &handler, int verb = GET);
+        void handle(const char *route, const Handler &handler, int verb = GET);
 
         void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
 
         static int parse_verb(const std::string &verb);
+        void print_routes();   // for test
 
     private:
         RouteTable<VerbHandler> routes_map_;

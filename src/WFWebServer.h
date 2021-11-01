@@ -23,9 +23,9 @@ namespace wfrest
                 WFServer(std::bind(&WFWebServer::proc, this, std::placeholders::_1))
         {}
 
-        void Get(std::string &&route, const Handler &handler);
+        void Get(const char *route, const Handler &handler);
 
-        void Post(std::string &&route, const Handler &handler);
+        void Post(const char *route, const Handler &handler);
 
         void start_ssl(bool is_ssl)
         {

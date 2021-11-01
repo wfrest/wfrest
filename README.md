@@ -13,18 +13,7 @@ make install
 ```
 
 ```
-Step 2 : install spdlog
-
-git clone git@github.com:gabime/spdlog.git
-cd spdlog 
-mkdir build && cd build
-cmake ..
-make -j
-make install
-```
-
-```
-Step 3 : install wfrest
+Step 2 : install wfrest
 
 git clone git@github.com:chanchann/wfrest.git
 cd wfrest

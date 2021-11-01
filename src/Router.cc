@@ -6,29 +6,34 @@
 
 using namespace wfrest;
 
-void wfrest::Router::handle(std::string &&route, const Router::Handler &handler, int verb)
+void wfrest::Router::handle(const char *route, const Router::Handler &handler, int verb)
 {
     auto &vh = routes_map_[route];
     vh.verb = verb;
-    vh.path = std::move(route);
+    vh.path = route;
     vh.handler = handler;
 }
 
 void Router::call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const
 {
     // skip the last / of the url.
+    // /hello ==  /hello/
     StringPiece route2(route);
     if (!route2.empty() and route2[route2.size() - 1] == '/')
         route2.remove_suffix(1);
 
-    auto it = routes_map_.find(route2);
+    std::unordered_map<std::string, std::string> query_params;
+    auto it = routes_map_.find(route2, query_params);
     if (it != routes_map_.end())   // has route
     {
         // match verb
+        // it == <StringPiece : path, VerbHandler>
         if (it->second.verb == ANY or parse_verb(verb) == it->second.verb)
         {
+            req->query_params = std::move(query_params);
             it->second.handler(req, resp);
-        } else
+        }
+        else
         {
             resp->set_status(HttpStatusNotFound);
             fprintf(stderr, "verb %s not implemented on route %s\n", verb.c_str(), route2.data());
@@ -53,3 +58,11 @@ int Router::parse_verb(const std::string &verb)
     return ANY;
 }
 
+void Router::print_routes()
+{
+    routes_map_.all_routes([](const std::string& prefix, const VerbHandler& h)
+    {
+        fprintf(stderr, "%s\n", prefix.c_str());
+    });
+//    routes_map_.all_routes([](auto r, auto h) { std::cout << r << '\n'; });
+}

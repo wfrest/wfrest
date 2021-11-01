@@ -16,6 +16,7 @@ namespace wfrest
         void test()
         { fprintf(stderr, "req test : %s\n", get_request_uri()); }
 
+        std::unordered_map<std::string, std::string> query_params;
         // for regex ?
     };
 

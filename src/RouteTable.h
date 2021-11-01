@@ -14,6 +14,7 @@
 #include "StringPiece.h"
 #include "UniquePtr.h"
 #include "Router.h"
+#include "Macro.h"
 
 namespace wfrest
 {
@@ -24,8 +25,6 @@ namespace wfrest
         class RouteTableNode
         {
         public:
-            RouteTableNode() = default;
-
             struct iterator
             {
                 const RouteTableNode<VerbHandler> *ptr;
@@ -47,32 +46,33 @@ namespace wfrest
             iterator end() const
             { return iterator{nullptr, StringPiece(), VerbHandler()}; }
 
-            auto find(const StringPiece &route, int cursor) const -> iterator;
+            auto find(const StringPiece &route, int cursor,
+                      OUT std::unordered_map<std::string, std::string> &query_params) const -> iterator;
 
-            template<typename F>
-            void for_all_routes(F f, std::string prefix = "") const;
+            template<typename Func>
+            void all_routes(Func func, std::string prefix = "") const;
 
         private:
             VerbHandler verb_handler_;
-            std::unordered_map<StringPiece, RouteTableNode *, StringPieceHash> children_;
+            std::unordered_map<StringPiece, std::unique_ptr<RouteTableNode>, StringPieceHash> children_;
         };
 
         template<typename VerbHandler>
-        template<typename F>
-        void RouteTableNode<VerbHandler>::for_all_routes(F f, std::string prefix) const
+        template<typename Func>
+        void RouteTableNode<VerbHandler>::all_routes(Func func, std::string prefix) const
         {
             if (children_.size() == 0)
-                f(prefix, verb_handler_);
-            else
+            {
+                func(prefix, verb_handler_);
+            } else
             {
                 if (!prefix.empty() && prefix.back() != '/')
                     prefix += '/';
-                for (auto pair: children_)
-                    pair.second->for_all_routes(f, prefix + std::string(pair.first));
+                for (auto &pair: children_)
+                    pair.second->all_routes(func, prefix + pair.first.as_string());
             }
         }
 
-        // todo : optimize here
         template<typename VerbHandler>
         VerbHandler &RouteTableNode<VerbHandler>::find_or_create(const StringPiece &route, int cursor)
         {
@@ -85,20 +85,25 @@ namespace wfrest
             while (cursor < route.size() and route[cursor] != '/')
                 cursor++;
 
-            StringPiece mid = StringPiece(route.begin() + anchor, cursor - anchor);
+            // get the '/ {mid} /' part
+            StringPiece mid(route.begin() + anchor, cursor - anchor);
             auto it = children_.find(mid);
             if (it != children_.end())
-                return children_[mid]->find_or_create(route, cursor);
-            else
             {
-                auto new_node = new RouteTableNode();   // todo : delete
-                children_.insert({mid, new_node});
-                return new_node->find_or_create(route, cursor);
+                return children_[mid]->find_or_create(route, cursor);
+            } else
+            {
+                auto ret = children_.insert({mid, make_unique<RouteTableNode>()});
+                // ret -> pair<iterator,bool>
+                // iterator->sencond = std::unique_ptr<RouteTableNode>
+                return ret.first->second->find_or_create(route, cursor);
             }
         }
 
         template<typename VerbHandler>
-        auto RouteTableNode<VerbHandler>::find(const StringPiece &route, int cursor) const -> RouteTableNode::iterator
+        auto RouteTableNode<VerbHandler>::find(const StringPiece &route,
+                                               int cursor, OUT
+                                               std::unordered_map<std::string, std::string> &query_params) const -> RouteTableNode::iterator
         {
             assert(cursor >= 0);
             // We found the route
@@ -117,13 +122,16 @@ namespace wfrest
                 cursor++;
 
             // mid is the string between the 2 /.
+            // / {mid} /
             StringPiece mid(route.begin() + anchor, cursor - anchor);
 
             // look for mid in the children.
             auto it = children_.find(mid);
+            // it == <StringPiece: path level part, unique_ptr<RouteTableNode> >
             if (it != children_.end())
             {
-                auto it2 = it->second->find(route, cursor); // search in the corresponding child.
+                // it2 == RouteTableNode::iterator
+                auto it2 = it->second->find(route, cursor, query_params); // search in the corresponding child.
                 if (it2 != it->second->end())
                     return it2;
             }
@@ -134,11 +142,14 @@ namespace wfrest
                 auto name = kv.first;
                 if (name.size() > 2 and name[0] == '<' and
                     name[name.size() - 1] == '>')
-                    return kv.second->find(route, cursor);
+                {
+                    query_params[]
+                    return kv.second->find(route, cursor, query_params);
+                }
+
             }
             return end();
         }
-
 
     } // namespace detail
 
@@ -147,10 +158,8 @@ namespace wfrest
     class RouteTable
     {
     public:
-        // Find a route and return reference to a procedure.
-        VerbHandler &operator[](const StringPiece &route);
-
-        VerbHandler &operator[](const std::string &route);
+        // Find a route and return reference to the procedure.
+        VerbHandler &operator[](const char *route);
 
         // Find a route and return an iterator.
         // c++14
@@ -158,36 +167,28 @@ namespace wfrest
         // auto find(const StringPiece& r) const { return root.find(r, 0); }
         // c++11
         // use typename when refers to Out<T>::Inner, to indicates that this is a type, not a variable
-        auto find(const StringPiece &route) const
-        -> typename detail::RouteTableNode<VerbHandler>::iterator
-        { return root_.find(route, 0); }
 
-        template<typename F>
-        void for_all_routes(F f) const
-        { root_.for_all_routes(f); }
+        // todo : this interface is not very good
+        auto find(const StringPiece &route, OUT std::unordered_map<std::string, std::string> &query_params) const
+        -> typename detail::RouteTableNode<VerbHandler>::iterator
+        { return root_.find(route, 0, query_params); }
+
+        template<typename Func>
+        void all_routes(Func func) const
+        { root_.all_routes(func); }
 
         auto end() const
         -> typename detail::RouteTableNode<VerbHandler>::iterator
         { return root_.end(); }
 
     private:
-        std::vector<std::unique_ptr<std::string> > strings_;
         detail::RouteTableNode<VerbHandler> root_;
     };
 
     template<typename VerbHandler>
-    VerbHandler &RouteTable<VerbHandler>::operator[](const StringPiece &route)
+    VerbHandler &RouteTable<VerbHandler>::operator[](const char *route)
     {
-        strings_.emplace_back(detail::make_unique<std::string>(route));
-        StringPiece route2(*strings_.back());
-        return root_.find_or_create(route2, 0);
-    }
-
-    template<typename VerbHandler>
-    VerbHandler &RouteTable<VerbHandler>::operator[](const std::string &route)
-    {
-        strings_.emplace_back(detail::make_unique<std::string>(route));
-        StringPiece route2(*strings_.back());
+        StringPiece route2(route);
         return root_.find_or_create(route2, 0);
     }
 
