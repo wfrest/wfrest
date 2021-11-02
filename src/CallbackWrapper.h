@@ -11,7 +11,7 @@ namespace wfrest
     struct Wrapped
     {
 
-        std::function<void(HttpReq *, HttpResp *)> handler_;
+        std::function<void(HttpReq *, HttpResp *)> handler_{};
 
         template <typename ... Args>
         void set(Func f,
@@ -19,11 +19,7 @@ namespace wfrest
             !std::is_same<typename std::tuple_element<0, std::tuple < Args..., void>>::type, HttpReq *>::value,
             int>::type = 0);
         {
-            handler_ =
-            (
-                [f](HttpReq *, HttpResp *)
-                {}
-            };);
+            handler_ = std::move(f);
         }
 
         template <typename ... Args>
@@ -50,7 +46,7 @@ namespace wfrest
     };
 
     template<typename Func>
-    std::function<void(HttpReq * , HttpResp * )>
+    std::function<void(HttpReq * , HttpResp *)>
     wrap(Func f)
     {
         auto ret = Wrapped<Func>();
