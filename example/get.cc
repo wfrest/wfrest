@@ -32,7 +32,7 @@ int main()
     {
         resp->Data("Hello world\n", 12 /* true */);
     });
-
+    // curl -v http://ip:port/api/chanchann
     svr.Get("/api/<name>", [](HttpReq *req, HttpResp *resp)
     {
         std::string name = req->query_params["name"];
