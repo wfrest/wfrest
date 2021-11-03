@@ -42,16 +42,6 @@ struct S
 
     template<typename Fn>
     auto update(Fn &&fn_)
-    -> decltype(fn_(nullptr), void())
-    {
-        update([&fn_](Req *req, Resp *resp)
-               {
-                   fn_(req);
-               });
-    }
-
-    template<typename Fn>
-    auto update(Fn &&fn_)
     -> decltype(fn_(), void())
     {
         update([&fn_](Req *req, Resp *resp)
@@ -71,7 +61,6 @@ int main()
     s.update([](Resp *resp)
              {
                  std::cout << "2" << std::endl;
-                 resp->test();
              });
     s.update([]()
              {

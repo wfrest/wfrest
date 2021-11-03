@@ -6,3 +6,6 @@ target_link_libraries(router_test wfrest)
 
 add_executable(params_test params_test.cc)
 target_link_libraries(params_test wfrest)
+
+add_executable(params_test_02 params_test_02.cc)
+target_link_libraries(params_test_02 wfrest)
