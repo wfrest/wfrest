@@ -34,8 +34,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
         {
             req->set_route_params(std::move(route_params));
             it->second.handler(req, resp);
-        }
-        else
+        } else
         {
             resp->set_status(HttpStatusNotFound);
             fprintf(stderr, "verb %s not implemented on route %s\n", verb.c_str(), route2.data());
@@ -62,9 +61,9 @@ int Router::parse_verb(const std::string &verb)
 
 void Router::print_routes()
 {
-    routes_map_.all_routes([](const std::string& prefix, const VerbHandler& h)
-    {
-        fprintf(stderr, "%s\n", prefix.c_str());
-    });
+    routes_map_.all_routes([](const std::string &prefix, const VerbHandler &h)
+                           {
+                               fprintf(stderr, "%s\n", prefix.c_str());
+                           });
 //    routes_map_.all_routes([](auto r, auto h) { std::cout << r << '\n'; });
 }

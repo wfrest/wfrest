@@ -29,11 +29,16 @@ namespace wfrest
 
         protected:
             // Just for get rid of abstract
-            WFConnection *get_connection() const override { return nullptr; }
-            CommMessageOut *message_out() override { return &this->req;};
-            CommMessageIn *message_in() override { return &this->resp; };
+            WFConnection *get_connection() const override
+            { return nullptr; }
+
+            CommMessageOut *message_out() override
+            { return &this->req; };
+
+            CommMessageIn *message_in() override
+            { return &this->resp; };
         private:
-            explicit WebTaskModel(std::function<void(WebTask *)> proc) :
+            explicit WebTaskModel(std::function<void(WebTask * )> proc) :
                     WFNetworkTask(nullptr, nullptr, std::move(proc))
             {}
 
@@ -50,17 +55,17 @@ namespace wfrest
 
     }    // detauil
 
-static inline WebTask* task_of(const HttpReq *req)
-{
-    size_t http_req_offset = detail::WebTaskModel::get_req_offset();
-    return (WebTask *) ((char *) (req) - http_req_offset);
-}
+    static inline WebTask *task_of(const HttpReq *req)
+    {
+        size_t http_req_offset = detail::WebTaskModel::get_req_offset();
+        return (WebTask *) ((char *) (req) - http_req_offset);
+    }
 
-static inline WebTask *task_of(const HttpResp *resp)
-{
-    size_t http_resp_offset = detail::WebTaskModel::get_resp_offset();
-    return (WebTask *) ((char *) (resp) - http_resp_offset);
-}
+    static inline WebTask *task_of(const HttpResp *resp)
+    {
+        size_t http_resp_offset = detail::WebTaskModel::get_resp_offset();
+        return (WebTask *) ((char *) (resp) - http_resp_offset);
+    }
 
 }   // wftest
 

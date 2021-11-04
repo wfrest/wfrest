@@ -10,7 +10,7 @@ namespace wfrest
     {
         RouteTableNode::~RouteTableNode()
         {
-            for(auto& child : children_)
+            for (auto &child: children_)
             {
                 delete child.second;
             }
@@ -42,8 +42,8 @@ namespace wfrest
         }
 
         RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
-                                  int cursor,
-                                  OUT RouteParams &route_params)const
+                                                      int cursor,
+                                                      OUT RouteParams &route_params) const
         {
             assert(cursor >= 0);
             // We found the route
@@ -85,8 +85,8 @@ namespace wfrest
                 {
                     int i = 1;
                     int j = param.size() - 2;
-                    while(param[i] == ' ') i++;
-                    while(param[j] == ' ') j--;
+                    while (param[i] == ' ') i++;
+                    while (param[j] == ' ') j--;
 
                     param.shrink(i, param.size() - 1 - j);
                     route_params[param.as_string()] = mid.as_string();
@@ -97,7 +97,5 @@ namespace wfrest
         }
 
     }   // detail
-
-
 
 }  // wfrest

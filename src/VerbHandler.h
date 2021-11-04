@@ -10,7 +10,7 @@
 
 namespace wfrest
 {
-    using Handler = std::function<void(HttpReq *, HttpResp *)>;
+    using Handler = std::function<void(HttpReq * , HttpResp * )>;
 
     enum
     {
@@ -24,8 +24,5 @@ namespace wfrest
         std::string path;
     };
 }
-
-
-
 
 #endif //_VERBHANDLER_H_

@@ -23,7 +23,8 @@ namespace wfrest
             route_params = std::move(params);
         }
 
-        std::string get(const std::string& key) { return route_params[key]; };
+        std::string get(const std::string &key)
+        { return route_params[key]; };
     private:
         RouteParams route_params;
     };

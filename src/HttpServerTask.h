@@ -14,7 +14,7 @@ namespace wfrest
     {
     public:
         HttpServerTask(CommService *service,
-                        std::function<void(WebTask *)> &process);
+                       std::function<void(WebTask *)> &process);
 
     protected:
         void handle(int state, int error) override;

@@ -23,15 +23,13 @@ namespace wfrest
         void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
 
         static int parse_verb(const std::string &verb);
+
         void print_routes();   // for test
 
     private:
         RouteTable routes_map_;
     };
 
-
 }  // wfrest
-
-
 
 #endif //_ROUTER_H_
