@@ -42,13 +42,13 @@ svr.Get("/json", [](const HttpReq* req, HttpResp* resp) {
 });
 
 svr.Get("/html/index.html", [](const HttpReq* req, HttpResp* resp) {
-    resp->File("html/index.html");
+    resp->file("html/index.html");
 });
 
 svr.Post("/post", [](const HttpReq* req, HttpResp* resp){
     const char *body;
     size_t body_len = 0;
-    req->Body(&body, &body_len);
+    req->body(&body, &body_len);
     fprintf(stderr, "post data : %s\n", body);
 });
 
@@ -63,7 +63,7 @@ svr.Post("/enlen", [](const HttpReq* req, HttpResp* resp){
     }
     const char *body;
     size_t body_len = 0;
-    req->Body(&body, &body_len);
+    req->body(&body, &body_len);
     fprintf(stderr, "post data : %s\n", body);
 });
 ```

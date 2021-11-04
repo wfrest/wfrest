@@ -1,5 +1,5 @@
-#include "WFWebServer.h"
-#include "WFHttpMsg.h"
+#include "HttpServer.h"
+#include "HttpMsg.h"
 #include "workflow/WFFacilities.h"
 #include "workflow/HttpUtil.h"
 #include <csignal>
@@ -20,24 +20,26 @@ int main()
 {
     signal(SIGINT, sig_handler);
 
-    WFWebServer svr;
+    HttpServer svr;
 
     // curl -v http://ip:port/hello
     svr.Get("/hello", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->String("world\n");
+        resp->send("world\n");
     });
     // curl -v http://ip:port/data
     svr.Get("/data", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Data("Hello world\n", 12 /* true */);
+        resp->send_no_copy("Hello world\n", 12);
     });
     // curl -v http://ip:port/api/chanchann
-    svr.Get("/api/<name>", [](HttpReq *req, HttpResp *resp)
+    svr.Get("/api/{name}", [](HttpReq *req, HttpResp *resp)
     {
-        std::string name = req->query_params["name"];
-        resp->String(name+"\n");
+        std::string name = req->get("name");
+        resp->send(name+"\n");
     });
+
+
     // We do not provide a built-in json library,
     // users can choose the json library according to their preferences
     // curl -v http://ip:port/json
@@ -46,22 +48,20 @@ int main()
         json js;
         js["test"] = 123;
         js["json"] = "test json";
-        resp->String(js.dump());
+        resp->send(js.dump());
     });
 
     // curl -v http://ip:port/html/index.html
     svr.Get("/html/index.html", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->File("html/index.html");
+        resp->file("html/index.html");
     });
 
     // curl -v http://ip:port/post -d 'post hello world'
     svr.Post("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        const char *body;
-        size_t body_len = 0;
-        req->Body(&body, &body_len);
-        fprintf(stderr, "post data : %s\n", body);
+        std::string body = req->body();
+        fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
     // Content-Type: application/x-www-form-urlencoded
@@ -76,10 +76,8 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        const char *body;
-        size_t body_len = 0;
-        req->Body(&body, &body_len);
-        fprintf(stderr, "post data : %s\n", body);
+        std::string body = req->body();
+        fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
     if (svr.start(9001) == 0)

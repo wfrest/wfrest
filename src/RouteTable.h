@@ -12,32 +12,32 @@
 #include <cassert>
 #include <unordered_map>
 #include "StringPiece.h"
-#include "UniquePtr.h"
-#include "Router.h"
 #include "Macro.h"
+#include "VerbHandler.h"
 
 namespace wfrest
 {
     namespace detail
     {
 
-        template<typename VerbHandler>
         class RouteTableNode
         {
         public:
+            ~RouteTableNode();
+
             struct iterator
             {
-                const RouteTableNode<VerbHandler> *ptr;
+                const RouteTableNode *ptr;
                 StringPiece first;
                 VerbHandler second;
 
                 iterator *operator->()
                 { return this; }
 
-                bool operator==(const iterator &other)
+                bool operator==(const iterator &other) const
                 { return this->ptr == other.ptr; }
 
-                bool operator!=(const iterator &other)
+                bool operator!=(const iterator &other) const
                 { return this->ptr != other.ptr; }
             };
 
@@ -46,22 +46,22 @@ namespace wfrest
             iterator end() const
             { return iterator{nullptr, StringPiece(), VerbHandler()}; }
 
-            auto find(const StringPiece &route, int cursor,
-                      OUT std::unordered_map<std::string, std::string> &query_params) const -> iterator;
+            iterator find(const StringPiece &route,
+                          int cursor,
+                          OUT RouteParams &route_params) const;
 
             template<typename Func>
             void all_routes(Func func, std::string prefix = "") const;
 
         private:
             VerbHandler verb_handler_;
-            std::unordered_map<StringPiece, std::unique_ptr<RouteTableNode>, StringPieceHash> children_;
+            std::unordered_map<StringPiece, RouteTableNode *, StringPieceHash> children_;
         };
 
-        template<typename VerbHandler>
         template<typename Func>
-        void RouteTableNode<VerbHandler>::all_routes(Func func, std::string prefix) const
+        void RouteTableNode::all_routes(Func func, std::string prefix) const
         {
-            if (children_.size() == 0)
+            if (children_.empty())
             {
                 func(prefix, verb_handler_);
             } else
@@ -73,129 +73,34 @@ namespace wfrest
             }
         }
 
-        template<typename VerbHandler>
-        VerbHandler &RouteTableNode<VerbHandler>::find_or_create(const StringPiece &route, int cursor)
-        {
-            if (cursor == route.size())
-                return verb_handler_;
-
-            if (route[cursor] == '/')
-                cursor++; // skip the /
-            int anchor = cursor;
-            while (cursor < route.size() and route[cursor] != '/')
-                cursor++;
-
-            // get the '/ {mid} /' part
-            StringPiece mid(route.begin() + anchor, cursor - anchor);
-            auto it = children_.find(mid);
-            if (it != children_.end())
-            {
-                return children_[mid]->find_or_create(route, cursor);
-            } else
-            {
-                auto ret = children_.insert({mid, make_unique<RouteTableNode>()});
-                // ret -> pair<iterator,bool>
-                // iterator->sencond = std::unique_ptr<RouteTableNode>
-                return ret.first->second->find_or_create(route, cursor);
-            }
-        }
-
-        template<typename VerbHandler>
-        auto RouteTableNode<VerbHandler>::find(const StringPiece &route,
-                                               int cursor, OUT
-                                               std::unordered_map<std::string, std::string> &query_params) const -> RouteTableNode::iterator
-        {
-            assert(cursor >= 0);
-            // We found the route
-            if ((cursor == route.size() and verb_handler_.handler != nullptr) or (children_.empty()))
-                return iterator{this, route, verb_handler_};
-            // route does not match any.
-            if (cursor == route.size() and verb_handler_.handler == nullptr)
-                return iterator{nullptr, route, verb_handler_};
-
-            if (route[cursor] == '/')
-                cursor++; // skip the first /
-            // Find the next /.
-            // mark an anchor here
-            int anchor = cursor;
-            while (cursor < route.size() and route[cursor] != '/')
-                cursor++;
-
-            // mid is the string between the 2 /.
-            // / {mid} /
-            StringPiece mid(route.begin() + anchor, cursor - anchor);
-
-            // look for mid in the children.
-            auto it = children_.find(mid);
-            // it == <StringPiece: path level part, unique_ptr<RouteTableNode> >
-            if (it != children_.end())
-            {
-                // it2 == RouteTableNode::iterator
-                auto it2 = it->second->find(route, cursor, query_params); // search in the corresponding child.
-                if (it2 != it->second->end())
-                    return it2;
-            }
-
-            // if one child is an url param <param_name>, choose it
-            for (auto &kv: children_)
-            {
-                StringPiece param(kv.first);
-                if (param.size() > 2 and param[0] == '<' and
-                        param[param.size() - 1] == '>')
-                {
-                    int i = 1;
-                    int j = param.size() - 2;
-                    while(param[i] == ' ') i++;
-                    while(param[j] == ' ') j--;
-
-                    param.shrink(i, param.size() - 1 - j);
-                    query_params[param.as_string()] = mid.as_string();
-                    return kv.second->find(route, cursor, query_params);
-                }
-            }
-            return end();
-        }
-
     } // namespace detail
 
 
-    template<typename VerbHandler>
     class RouteTable
     {
     public:
         // Find a route and return reference to the procedure.
-        VerbHandler &operator[](const char *route);
-
-        // Find a route and return an iterator.
-        // c++14
-        // 'auto' return without trailing return type; deduced return types are a C++14 extension
-        // auto find(const StringPiece& r) const { return root.find(r, 0); }
-        // c++11
-        // use typename when refers to Out<T>::Inner, to indicates that this is a type, not a variable
+        VerbHandler &operator[](const char *route)
+        {
+            StringPiece route2(route);
+            return root_.find_or_create(route2, 0);
+        }
 
         // todo : this interface is not very good
-        auto find(const StringPiece &route, OUT std::unordered_map<std::string, std::string> &query_params) const
-        -> typename detail::RouteTableNode<VerbHandler>::iterator
-        { return root_.find(route, 0, query_params); }
+        detail::RouteTableNode::iterator find(const StringPiece &route, OUT RouteParams &route_params) const
+        { return root_.find(route, 0, route_params); }
 
         template<typename Func>
         void all_routes(Func func) const
         { root_.all_routes(func); }
 
-        auto end() const
-        -> typename detail::RouteTableNode<VerbHandler>::iterator
+        detail::RouteTableNode::iterator end() const
         { return root_.end(); }
 
     private:
-        detail::RouteTableNode<VerbHandler> root_;
+        detail::RouteTableNode root_;
     };
 
-    template<typename VerbHandler>
-    VerbHandler &RouteTable<VerbHandler>::operator[](const char *route)
-    {
-        StringPiece route2(route);
-        return root_.find_or_create(route2, 0);
-    }
-
 } // namespace wfrest
+
 #endif // _ROUTETABLE_H_

@@ -5,9 +5,10 @@
 #ifndef _ROUTER_H_
 #define _ROUTER_H_
 
-#include "RouteTable.h"
-#include "WFHttpMsg.h"
+#include "VerbHandler.h"
+#include "HttpMsg.h"
 #include "Macro.h"
+#include "RouteTable.h"
 #include "workflow/HttpUtil.h"
 #include <functional>
 
@@ -17,19 +18,6 @@ namespace wfrest
     class Router
     {
     public:
-        enum
-        {
-            ANY, GET, POST, PUT, HTTP_DELETE
-        };
-        using Handler = std::function<void(HttpReq *, HttpResp *)>;
-
-        struct VerbHandler
-        {
-            int verb = GET;
-            Handler handler;
-            std::string path;
-        };
-
         void handle(const char *route, const Handler &handler, int verb = GET);
 
         void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
@@ -38,7 +26,7 @@ namespace wfrest
         void print_routes();   // for test
 
     private:
-        RouteTable<VerbHandler> routes_map_;
+        RouteTable routes_map_;
     };
 
 

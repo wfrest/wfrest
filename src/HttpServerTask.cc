@@ -1,4 +1,4 @@
-#include "WFWebServerTask.h"
+#include "HttpServerTask.h"
 #include "workflow/StringUtil.h"
 
 using namespace wfrest;
@@ -7,14 +7,14 @@ using namespace protocol;
 #define HTTP_KEEPALIVE_DEFAULT    (60 * 1000)
 #define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
-WFWebServerTask::WFWebServerTask(CommService *service,
-                                 std::function<void(WFWebTask *)> &process) :
+HttpServerTask::HttpServerTask(CommService *service,
+                                 std::function<void(WebTask *)> &process) :
         WFServerTask(service, WFGlobal::get_scheduler(), process),
         req_is_alive_(false),
         req_has_keep_alive_header_(false)
 {}
 
-void WFWebServerTask::handle(int state, int error)
+void HttpServerTask::handle(int state, int error)
 {
     if (state == WFT_STATE_TOREPLY)
     {
@@ -38,7 +38,7 @@ void WFWebServerTask::handle(int state, int error)
 }
 
 
-CommMessageOut *WFWebServerTask::message_out()
+CommMessageOut *HttpServerTask::message_out()
 {
     HttpResponse *resp = this->get_resp();
     struct HttpMessageHeader header{};

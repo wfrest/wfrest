@@ -6,7 +6,7 @@
 
 using namespace wfrest;
 
-void wfrest::Router::handle(const char *route, const Router::Handler &handler, int verb)
+void Router::handle(const char *route, const Handler &handler, int verb)
 {
     auto &vh = routes_map_[route];
     vh.verb = verb;
@@ -18,19 +18,21 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
 {
     // skip the last / of the url.
     // /hello ==  /hello/
+    fprintf(stderr, "route : %s\n", route.c_str());
     StringPiece route2(route);
     if (!route2.empty() and route2[route2.size() - 1] == '/')
         route2.remove_suffix(1);
 
-    std::unordered_map<std::string, std::string> query_params;
-    auto it = routes_map_.find(route2, query_params);
+    RouteParams route_params;
+    auto it = routes_map_.find(route2, route_params);
+
     if (it != routes_map_.end())   // has route
     {
         // match verb
         // it == <StringPiece : path, VerbHandler>
         if (it->second.verb == ANY or parse_verb(verb) == it->second.verb)
         {
-            req->query_params = std::move(query_params);
+            req->set_route_params(std::move(route_params));
             it->second.handler(req, resp);
         }
         else
@@ -41,7 +43,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
     } else
     {
         resp->set_status(HttpStatusNotFound);
-        fprintf(stderr, "Route dose not exist");
+        fprintf(stderr, "Route dose not exist\n");
     }
 }
 
