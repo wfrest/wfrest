@@ -26,45 +26,39 @@ make install
 ## ⚡️ Simple examples
 
 ```cpp
-svr.Get("/hello", [](const HttpReq* req, HttpResp* resp) {
-    resp->String("world\n");
+svr.Get("/hello", [](const HttpReq *req, HttpResp *resp)
+{
+    resp->send("world\n");
 });
 
-svr.Get("/data", [](const HttpReq* req, HttpResp* resp) {
-    resp->Data("Hello world\n", 12 /* true */);
+svr.Get("/data", [](const HttpReq *req, HttpResp *resp)
+{
+    resp->send_no_copy("Hello world\n", 12);
 });
 
-svr.Get("/json", [](const HttpReq* req, HttpResp* resp) {
+svr.Get("/api/{name}", [](HttpReq *req, HttpResp *resp)
+{
+    std::string name = req->get("name");
+    resp->send(name+"\n");
+});
+
+svr.Get("/json", [](const HttpReq *req, HttpResp *resp)
+{
     json js;
     js["test"] = 123;
     js["json"] = "test json";
-    resp->String(js.dump());
+    resp->send(js.dump());
 });
 
-svr.Get("/html/index.html", [](const HttpReq* req, HttpResp* resp) {
+svr.Get("/html/index.html", [](const HttpReq *req, HttpResp *resp)
+{
     resp->file("html/index.html");
 });
 
-svr.Post("/post", [](const HttpReq* req, HttpResp* resp){
-    const char *body;
-    size_t body_len = 0;
-    req->body(&body, &body_len);
-    fprintf(stderr, "post data : %s\n", body);
-});
-
-svr.Post("/enlen", [](const HttpReq* req, HttpResp* resp){
-    protocol::HttpHeaderCursor cursor(req);
-    std::string content_type;
-    cursor.find("Content-Type", content_type);
-    if(content_type != "application/x-www-form-urlencoded")
-    {
-        resp->set_status(HttpStatusBadRequest);
-        return;
-    }
-    const char *body;
-    size_t body_len = 0;
-    req->body(&body, &body_len);
-    fprintf(stderr, "post data : %s\n", body);
+svr.Post("/post", [](const HttpReq *req, HttpResp *resp)
+{
+    std::string body = req->body();
+    fprintf(stderr, "post data : %s\n", body.c_str());
 });
 ```
 
