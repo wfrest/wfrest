@@ -63,7 +63,21 @@ void test03()
     proc_param(str3);
     std::cout << str3.as_string() << std::endl;
 }
+
+void test04()
+{
+    StringPiece origin("action*");
+    StringPiece match(origin);
+    match.remove_suffix(1);
+    StringPiece str1("action1");
+    StringPiece str2("action");
+    StringPiece str3("action123123");
+    if(str1.starts_with(match)) { fprintf(stderr, "str1 match\n"); }
+    if(str2.starts_with(match)) { fprintf(stderr, "str2 match\n"); }
+    if(str3.starts_with(match)) { fprintf(stderr, "str3 match\n"); }
+}
+
 int main()
 {
-    test03();
+    test04();
 }

@@ -67,7 +67,7 @@ namespace wfrest
 
             // look for mid in the children.
             auto it = children_.find(mid);
-            // it == <StringPiece: path level part, unique_ptr<RouteTableNode> >
+            // it == <StringPiece: path level part, RouteTableNode* >
             if (it != children_.end())
             {
                 // it2 == RouteTableNode::iterator
@@ -80,6 +80,17 @@ namespace wfrest
             for (auto &kv: children_)
             {
                 StringPiece param(kv.first);
+                if(!param.empty() && param[param.size() - 1] == '*')
+                {
+                    StringPiece match(param);
+                    match.remove_suffix(1);
+                    if(mid.starts_with(match))
+                    {
+                        fprintf(stderr, "wildcast * : %s\n", route.data());
+                        return iterator{kv.second, route, kv.second->verb_handler_};
+                    }
+                }
+
                 if (param.size() > 2 and param[0] == '{' and
                     param[param.size() - 1] == '}')
                 {

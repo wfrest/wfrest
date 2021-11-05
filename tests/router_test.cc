@@ -30,6 +30,15 @@ int main()
         printf("pong");
     }, GET);
 
+    router.handle("/api/{name}", [](const HttpReq* req, HttpResp* resp){
+        printf("pong");
+    }, GET);
+
+    router.handle("/api/action*", [](const HttpReq* req, HttpResp* resp){
+        printf("pong");
+    }, GET);
+
+
     router.print_routes();
 
 

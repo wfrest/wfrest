@@ -175,7 +175,7 @@ can occur during the deserialization of JSON text, CBOR, MessagePack, as well
 as when using JSON Patch.
 
 Member @a byte holds the byte index of the last read character in the input
-file.
+File.
 
 Exceptions have ids 1xx.
 
@@ -196,7 +196,7 @@ json.exception.parse_error.113 | parse error at 2: expected a CBOR string; last 
 json.exception.parse_error.114 | parse error: Unsupported BSON record type 0x0F | The parsing of the corresponding BSON record type is not implemented (yet).
 
 @note For an input with n bytes, 1 is the index of the first character and n+1
-      is the index of the terminating null byte or the end of file. This also
+      is the index of the terminating null byte or the end of File. This also
       holds true when reading a byte vector (CBOR or MessagePack).
 
 @liveexample{The following code shows how a `parse_error` exception can be
@@ -241,10 +241,10 @@ class parse_error : public exception
     /*!
     @brief byte index of the parse error
 
-    The byte index of the last read character in the input file.
+    The byte index of the last read character in the input File.
 
     @note For an input with n bytes, 1 is the index of the first character and
-          n+1 is the index of the terminating null byte or the end of file.
+          n+1 is the index of the terminating null byte or the end of File.
           This also holds true when reading a byte vector (CBOR or MessagePack).
     */
     const std::size_t byte;
@@ -453,7 +453,7 @@ class other_error : public exception
 
 #include <utility> // pair
 
-// This file contains all internal macro definitions
+// This File contains all internal macro definitions
 // You MUST include macro_unscope.hpp at the end of json.hpp to undef all of them
 
 // exclude unsupported compilers
@@ -896,7 +896,7 @@ namespace detail
 
 // Note to maintainers:
 //
-// Every trait in this file expects a non CV-qualified type.
+// Every trait in this File expects a non CV-qualified type.
 // The only exceptions are in the 'aliases for detected' section
 // (i.e. those of the form: decltype(T::member_function(std::declval<T>())))
 //
@@ -2320,7 +2320,7 @@ struct input_adapter_protocol
 using input_adapter_t = std::shared_ptr<input_adapter_protocol>;
 
 /*!
-Input adapter for stdio file access. This adapter read only 1 byte and do not use any
+Input adapter for stdio File access. This adapter read only 1 byte and do not use any
  buffer. This adapter is a very low level adapter.
 */
 class file_input_adapter : public input_adapter_protocol
@@ -2343,7 +2343,7 @@ class file_input_adapter : public input_adapter_protocol
     }
 
   private:
-    /// the file pointer to read from
+    /// the File pointer to read from
     std::FILE* m_file;
 };
 
@@ -5457,7 +5457,7 @@ class binary_reader
     {
         if (JSON_UNLIKELY(current == std::char_traits<char>::eof()))
         {
-            return sax->parse_error(chars_read, "<end of file>",
+            return sax->parse_error(chars_read, "<end of File>",
                                     parse_error::create(110, chars_read, exception_message(format, "unexpected end of input", context)));
         }
         return true;
@@ -5779,7 +5779,7 @@ class lexer
             // get next character
             switch (get())
             {
-                // end of file while parsing string
+                // end of File while parsing string
                 case std::char_traits<char>::eof():
                 {
                     error_message = "invalid string: missing closing quote";
@@ -19790,7 +19790,7 @@ class basic_json
             value_t::discarded.
 
     @throw parse_error.110 if the given input ends prematurely or the end of
-    file was not reached when @a strict was set to true
+    File was not reached when @a strict was set to true
     @throw parse_error.112 if unsupported features from CBOR were
     used in the given input @a v or if the input is not valid CBOR
     @throw parse_error.113 if a string was expected as map key, but not found
@@ -19897,7 +19897,7 @@ class basic_json
             value_t::discarded.
 
     @throw parse_error.110 if the given input ends prematurely or the end of
-    file was not reached when @a strict was set to true
+    File was not reached when @a strict was set to true
     @throw parse_error.112 if unsupported features from MessagePack were
     used in the given input @a i or if the input is not valid MessagePack
     @throw parse_error.113 if a string was expected as map key, but not found
@@ -19988,7 +19988,7 @@ class basic_json
             value_t::discarded.
 
     @throw parse_error.110 if the given input ends prematurely or the end of
-    file was not reached when @a strict was set to true
+    File was not reached when @a strict was set to true
     @throw parse_error.112 if a parse error occurs
     @throw parse_error.113 if a string could not be parsed successfully
 

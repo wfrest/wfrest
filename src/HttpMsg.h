@@ -13,7 +13,7 @@ namespace wfrest
     class HttpReq : public protocol::HttpRequest
     {
     public:
-        std::string body() const;
+        std::string Body() const;
 
         void test()
         { fprintf(stderr, "req test : %s\n", get_request_uri()); }
@@ -23,22 +23,44 @@ namespace wfrest
             route_params = std::move(params);
         }
 
-        std::string get(const std::string &key)
+        std::string param(const std::string &key)
         { return route_params[key]; };
+
+
+        template <typename T>
+        T param(const std::string& key) const;
     private:
         RouteParams route_params;
     };
 
+    template<>
+    inline int HttpReq::param<int>(const std::string& key) const
+    {
+        return std::stoi(route_params.at(key));
+    }
+
+    template<>
+    inline size_t HttpReq::param<size_t>(const std::string& key) const
+    {
+        return static_cast<size_t>(std::stoul(route_params.at(key)));
+    }
+
+    template<>
+    inline double HttpReq::param<double>(const std::string& key) const
+    {
+        return std::stod(route_params.at(key));
+    }
+
+
     class HttpResp : public protocol::HttpResponse
     {
     public:
-        void send(const std::string &str);
+        void String(const std::string &str);
+        void String(std::string &&str);
 
-        void send(const char *data, size_t len);
+        void String(const char *data, size_t len);
 
-        void send_no_copy(const char *data, size_t len);
-
-        void file(const std::string &path);
+        void File(const std::string &path);
 
         // void Write(const std::string& content, const std::string& path);
 
