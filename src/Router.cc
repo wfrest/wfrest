@@ -32,6 +32,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
         // it == <StringPiece : path, VerbHandler>
         if (it->second.verb == ANY or parse_verb(verb) == it->second.verb)
         {
+            req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
             it->second.handler(req, resp);
         } else

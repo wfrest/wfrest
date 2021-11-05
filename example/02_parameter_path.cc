@@ -5,13 +5,9 @@
 #include "HttpServer.h"
 #include "HttpMsg.h"
 #include "workflow/WFFacilities.h"
-#include "workflow/HttpUtil.h"
 #include <csignal>
-#include "json.hpp"
 
 using namespace wfrest;
-
-using json = nlohmann::json;
 
 static WFFacilities::WaitGroup wait_group(1);
 
@@ -34,7 +30,6 @@ int main()
         resp->String("Hello " + name + "\n");
     });
 
-    // However, this one will match
     // wildcast/chanchan/action... (prefix)
     svr.Get("/wildcast/{name}/action*", [](HttpReq *req, HttpResp *resp)
     {
@@ -42,6 +37,28 @@ int main()
         std::string message = name + " : path " + req->get_request_uri();
 
         resp->String("Hello " + message + "\n");
+    });
+
+    // request will hold the route definition
+    svr.Get("/user/{name}/match*", [](HttpReq *req, HttpResp *resp)
+    {
+        std::string full_path = req->full_path();
+        if (full_path == "/user/{name}/match*")
+        {
+            full_path += " match";
+        } else
+        {
+            full_path += " dosen't match";
+        }
+        resp->String(full_path);
+    });
+
+    // This handler will add a new router for /user/groups.
+    // Exact routes are resolved before param routes, regardless of the order they were defined.
+    // Routes starting with /user/groups are never interpreted as /user/{name}/... routes
+    svr.Get("/user/groups", [](HttpReq *req, HttpResp *resp)
+    {
+        resp->String(req->full_path());
     });
 
     if (svr.start(9001) == 0)

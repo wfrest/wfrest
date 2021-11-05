@@ -4,6 +4,7 @@
 #include "workflow/HttpMessage.h"
 #include "HttpServer.h"
 #include "HttpServerTask.h"
+#include "UriUtil.h"
 
 using namespace wfrest;
 
@@ -28,7 +29,6 @@ void HttpServer::proc(WebTask *server_task)
 
     request_uri += host;
     request_uri += req->get_request_uri();
-
     ParsedURI uri;
 
     if (URIParser::parse(request_uri, uri) < 0)
@@ -36,7 +36,6 @@ void HttpServer::proc(WebTask *server_task)
         resp->set_status(HttpStatusBadRequest);
         return;
     }
-
     std::string route;
 
     if (uri.path && uri.path[0])
@@ -44,7 +43,13 @@ void HttpServer::proc(WebTask *server_task)
     else
         route = "/";
 
-    fprintf(stderr, "%s\n", uri.path);
+    if(uri.query)
+    {
+        req->set_query_params(UriUtil::split_query(uri.query));
+    }
+
+    req->set_parsed_uri(std::move(uri));
+
     router_.call(req->get_method(), route, req, resp);
 }
 

@@ -15,6 +15,14 @@ std::string HttpReq::Body() const
     return protocol::HttpUtil::decode_chunked_body(this);
 }
 
+std::string HttpReq::default_query(const std::string &key, const std::string& default_val)
+{
+    if(query_params_.count(key))
+        return query_params_[key];
+    else
+        return default_val;
+}
+
 void HttpResp::String(const std::string &str)
 {
     // bool append_output_body(const void *buf, size_t size);
