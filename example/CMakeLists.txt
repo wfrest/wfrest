@@ -6,3 +6,6 @@ target_link_libraries(02_parameter wfrest)
 
 add_executable(03_query_params 03_query_params.cc)
 target_link_libraries(03_query_params wfrest)
+
+add_executable(04_post_form 04_post_form.cc)
+target_link_libraries(04_post_form wfrest)

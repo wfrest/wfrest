@@ -47,7 +47,7 @@ void HttpServer::proc(WebTask *server_task)
     {
         req->set_query_params(UriUtil::split_query(uri.query));
     }
-
+    req->parse_body();
     req->set_parsed_uri(std::move(uri));
 
     router_.call(req->get_method(), route, req, resp);

@@ -1,11 +1,12 @@
 #include "HttpMsg.h"
-#include "HttpServer.h"
 #include "workflow/HttpUtil.h"
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
 #include <spdlog/spdlog.h>
 #include "HttpTaskUtil.h"
+#include "UriUtil.h"
+#include "StrUtil.h"
 
 using namespace wfrest;
 
@@ -21,6 +22,61 @@ std::string HttpReq::default_query(const std::string &key, const std::string& de
         return query_params_[key];
     else
         return default_val;
+}
+
+bool HttpReq::has_query(const std::string &key)
+{
+    if(query_params_.find(key) != query_params_.end())
+    {
+        return true;
+    } else
+    {
+        return false;
+    }
+}
+
+void HttpReq::parse_body()
+{
+    fill_content_type();
+    const void *body;
+    size_t len;
+    this->get_parsed_body(&body, &len);
+    std::string body_str(static_cast<const char*>(body), len);
+
+    switch(content_type)
+    {
+        case X_WWW_FORM_URLENCODED:
+            Urlencode::parse_query_params(body_str, kv);
+            break;
+        case MULTIPART_FORM_DATA:
+            multi_part_.parse_multipart(body_str, form);
+            break; // do nothing
+        default:
+            break;// do nothing
+    }
+}
+
+void HttpReq::fill_content_type()
+{
+    protocol::HttpHeaderCursor cursor(this);
+    std::string content_type_str;
+    cursor.find("Content-Type", content_type_str);
+    content_type = ContentType::to_enum(content_type_str);
+
+    if(content_type == MULTIPART_FORM_DATA)
+    {
+        // if type is multipart form, we reserve the boudary first
+        const char* boundary = strstr(content_type_str.c_str(), "boundary=");
+        if (boundary == nullptr)
+        {
+            return;
+        }
+        boundary += strlen("boundary=");
+        std::string boundary_str(boundary);
+        boundary_str = StrUtil::trim_pairs(boundary_str, R"(""'')");
+        multi_part_.set_boundary(std::move(boundary_str));
+    }
+    // todo : WITHOUT_HTTP_CONTENT to automatically fill
 }
 
 void HttpResp::String(const std::string &str)

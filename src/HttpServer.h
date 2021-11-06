@@ -34,10 +34,4 @@ namespace wfrest
 
 }  // namespace wfrest
 
-
-
-
-
-
-
 #endif // _HTTPSERVER_H_

@@ -3,3 +3,5 @@ target_link_libraries(string_piece_test wfrest)
 
 add_executable(router_test router_test.cc)
 target_link_libraries(router_test wfrest)
+
+add_executable(multi_part_test multi_part_test.cc)

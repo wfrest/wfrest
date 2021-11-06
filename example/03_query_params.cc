@@ -42,6 +42,21 @@ int main()
         resp->String(user_name + " " + password + " " + info + " " + address + "\n");
     });
 
+    // The request responds to a url matching:  /query_has?username=chanchann&password=
+    // The logic for judging whether a parameter exists is that if the parameter value is empty, the parameter is considered to exist
+    // and the parameter does not exist unless the parameter is submitted.
+    svr.Get("/query_has", [](HttpReq *req, HttpResp *resp)
+    {
+        if(req->has_query("password"))
+        {
+            fprintf(stderr, "has password query\n");
+        }
+        if(req->has_query("info"))
+        {
+            fprintf(stderr, "has info query\n");
+        }
+    });
+
     if (svr.start(9001) == 0)
     {
         wait_group.wait();

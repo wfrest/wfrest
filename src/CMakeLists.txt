@@ -3,7 +3,11 @@ set(SRCS
         HttpServerTask.cc
         HttpServer.cc
         Router.cc
-        RouteTable.cc UriUtil.cc)
+        RouteTable.cc
+        UriUtil.cc
+        HttpDef.cc
+        HttpContent.cc
+        MultiPartParser.c StrUtil.cc StrUtil.h)
 
 add_library(wfrest ${SRCS})
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt)
