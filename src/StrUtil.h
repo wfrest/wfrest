@@ -13,8 +13,9 @@ namespace wfrest
     class StrUtil : public StringUtil
     {
     public:
-        static std::string trim_pairs(const std::string& str, const char* pairs);
-        static std::string trim(const std::string& str, const char* chars);
+        static std::string trim_pairs(const std::string &str, const char *pairs);
+
+        static std::string trim(const std::string &str, const char *chars);
 
     };
 

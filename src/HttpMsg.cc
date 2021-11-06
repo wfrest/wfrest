@@ -10,15 +10,14 @@
 
 using namespace wfrest;
 
-
 std::string HttpReq::Body() const
 {
     return protocol::HttpUtil::decode_chunked_body(this);
 }
 
-std::string HttpReq::default_query(const std::string &key, const std::string& default_val)
+std::string HttpReq::default_query(const std::string &key, const std::string &default_val)
 {
-    if(query_params_.count(key))
+    if (query_params_.count(key))
         return query_params_[key];
     else
         return default_val;
@@ -26,7 +25,7 @@ std::string HttpReq::default_query(const std::string &key, const std::string& de
 
 bool HttpReq::has_query(const std::string &key)
 {
-    if(query_params_.find(key) != query_params_.end())
+    if (query_params_.find(key) != query_params_.end())
     {
         return true;
     } else
@@ -41,9 +40,9 @@ void HttpReq::parse_body()
     const void *body;
     size_t len;
     this->get_parsed_body(&body, &len);
-    std::string body_str(static_cast<const char*>(body), len);
+    std::string body_str(static_cast<const char *>(body), len);
 
-    switch(content_type)
+    switch (content_type)
     {
         case X_WWW_FORM_URLENCODED:
             Urlencode::parse_query_params(body_str, kv);
@@ -63,10 +62,10 @@ void HttpReq::fill_content_type()
     cursor.find("Content-Type", content_type_str);
     content_type = ContentType::to_enum(content_type_str);
 
-    if(content_type == MULTIPART_FORM_DATA)
+    if (content_type == MULTIPART_FORM_DATA)
     {
         // if type is multipart form, we reserve the boudary first
-        const char* boundary = strstr(content_type_str.c_str(), "boundary=");
+        const char *boundary = strstr(content_type_str.c_str(), "boundary=");
         if (boundary == nullptr)
         {
             return;

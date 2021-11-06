@@ -43,7 +43,7 @@ void HttpServer::proc(WebTask *server_task)
     else
         route = "/";
 
-    if(uri.query)
+    if (uri.query)
     {
         req->set_query_params(UriUtil::split_query(uri.query));
     }

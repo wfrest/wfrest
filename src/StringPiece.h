@@ -49,25 +49,30 @@
 
 #include <string>
 
-namespace wfrest {
+namespace wfrest
+{
 
 // For passing C-style std::string argument to a function.
     class StringArg // copyable
     {
     public:
         explicit StringArg(const char *str)
-                : str_(str) {}
+                : str_(str)
+        {}
 
         explicit StringArg(const std::string &str)
-                : str_(str.c_str()) {}
+                : str_(str.c_str())
+        {}
 
-        const char *c_str() const { return str_; }
+        const char *c_str() const
+        { return str_; }
 
     private:
         const char *str_;
     };
 
-    class StringPiece {
+    class StringPiece
+    {
     private:
         const char *ptr_;
         int length_;
@@ -77,20 +82,25 @@ namespace wfrest {
         // in a "const char*" or a "std::string" wherever a "StringPiece" is
         // expected.
         StringPiece()
-                : ptr_(nullptr), length_(0) {}
+                : ptr_(nullptr), length_(0)
+        {}
 
         explicit StringPiece(const char *str)
-                : ptr_(str), length_(static_cast<int>(strlen(ptr_))) {}
+                : ptr_(str), length_(static_cast<int>(strlen(ptr_)))
+        {}
 
         explicit StringPiece(const unsigned char *str)
                 : ptr_(reinterpret_cast<const char *>(str)),
-                  length_(static_cast<int>(strlen(ptr_))) {}
+                  length_(static_cast<int>(strlen(ptr_)))
+        {}
 
         explicit StringPiece(const std::string &str)
-                : ptr_(str.data()), length_(static_cast<int>(str.size())) {}
+                : ptr_(str.data()), length_(static_cast<int>(str.size()))
+        {}
 
         StringPiece(const char *offset, int len)
-                : ptr_(offset), length_(len) {}
+                : ptr_(offset), length_(len)
+        {}
 
         // data() may return a pointer to a buffer with embedded NULs, and the
         // returned buffer may or may not be null terminated.  Therefore it is
@@ -98,44 +108,56 @@ namespace wfrest {
         // terminated std::string.  Use "as_string().c_str()" if you really need to do
         // this.  Or better yet, change your routine so it does not rely on NUL
         // termination.
-        const char *data() const { return ptr_; }
+        const char *data() const
+        { return ptr_; }
 
-        int size() const { return length_; }
+        int size() const
+        { return length_; }
 
-        bool empty() const { return length_ == 0; }
+        bool empty() const
+        { return length_ == 0; }
 
-        const char *begin() const { return ptr_; }
+        const char *begin() const
+        { return ptr_; }
 
-        const char *end() const { return ptr_ + length_; }
+        const char *end() const
+        { return ptr_ + length_; }
 
-        void clear() {
+        void clear()
+        {
             ptr_ = nullptr;
             length_ = 0;
         }
 
-        void set(const char *buffer, int len) {
+        void set(const char *buffer, int len)
+        {
             ptr_ = buffer;
             length_ = len;
         }
 
-        void set(const char *str) {
+        void set(const char *str)
+        {
             ptr_ = str;
             length_ = static_cast<int>(strlen(str));
         }
 
-        void set(const void *buffer, int len) {
+        void set(const void *buffer, int len)
+        {
             ptr_ = reinterpret_cast<const char *>(buffer);
             length_ = len;
         }
 
-        char operator[](int i) const { return ptr_[i]; }
+        char operator[](int i) const
+        { return ptr_[i]; }
 
-        void remove_prefix(int n) {
+        void remove_prefix(int n)
+        {
             ptr_ += n;
             length_ -= n;
         }
 
-        void remove_suffix(int n) {
+        void remove_suffix(int n)
+        {
             length_ -= n;
         }
 
@@ -146,12 +168,14 @@ namespace wfrest {
             length_ -= suffix;
         }
 
-        bool operator==(const StringPiece &x) const {
+        bool operator==(const StringPiece &x) const
+        {
             return ((length_ == x.length_) &&
                     (memcmp(ptr_, x.ptr_, length_) == 0));
         }
 
-        bool operator!=(const StringPiece &x) const {
+        bool operator!=(const StringPiece &x) const
+        {
             return !(*this == x);
         }
 
@@ -170,25 +194,30 @@ namespace wfrest {
         STRINGPIECE_BINARY_PREDICATE(>, >);
 #undef STRINGPIECE_BINARY_PREDICATE
 
-        int compare(const StringPiece &x) const {
+        int compare(const StringPiece &x) const
+        {
             int r = memcmp(ptr_, x.ptr_, length_ < x.length_ ? length_ : x.length_);
-            if (r == 0) {
+            if (r == 0)
+            {
                 if (length_ < x.length_) r = -1;
                 else if (length_ > x.length_) r = +1;
             }
             return r;
         }
 
-        std::string as_string() const {
+        std::string as_string() const
+        {
             return std::string(data(), size());
         }
 
-        void CopyToString(std::string *target) const {
+        void CopyToString(std::string *target) const
+        {
             target->assign(ptr_, length_);
         }
 
         // Does "this" start with "x"
-        bool starts_with(const StringPiece &x) const {
+        bool starts_with(const StringPiece &x) const
+        {
             return ((length_ >= x.length_) && (memcmp(ptr_, x.ptr_, x.length_) == 0));
         }
     };

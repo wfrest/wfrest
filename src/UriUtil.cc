@@ -18,14 +18,14 @@ std::unordered_map<std::string, std::string> UriUtil::split_query(const std::str
     if (arr.empty())
         return res;
 
-    for (const auto& ele : arr)
+    for (const auto &ele: arr)
     {
         if (ele.empty())
             continue;
 
         std::vector<std::string> kv = StrUtil::split(ele, '=');
         size_t kv_size = kv.size();
-        std::string& key = kv[0];
+        std::string &key = kv[0];
 
         if (key.empty() || res.count(key) > 0)
             continue;
@@ -36,7 +36,7 @@ std::unordered_map<std::string, std::string> UriUtil::split_query(const std::str
             continue;
         }
 
-        std::string& val = kv[1];
+        std::string &val = kv[1];
 
         if (val.empty())
             res.emplace(std::move(key), "");

@@ -1,7 +1,7 @@
 //
 // Created by Chanchan on 11/5/21.
 //
-// Taken from libhv : https://github.com/ithewei/libhv
+
 #ifndef _HTTPDEF_H_
 #define _HTTPDEF_H_
 
@@ -10,6 +10,7 @@
 namespace wfrest
 {
 
+// Taken from libhv : https://github.com/ithewei/libhv
 // MIME: https://www.iana.org/assignments/media-types/media-types.xhtml
 // http_content_type
 // XX(name, mime, suffix)
@@ -32,7 +33,8 @@ namespace wfrest
 
 #define X_WWW_FORM_URLENCODED   APPLICATION_URLENCODED // for compatibility
 
-    enum http_content_type {
+    enum http_content_type
+    {
 #define XX(name, string, suffix)   name,
         CONTENT_TYPE_NONE,
         HTTP_CONTENT_TYPE_MAP(XX)
@@ -44,9 +46,9 @@ namespace wfrest
     {
     public:
         static std::string to_string(enum http_content_type type);
-        static enum http_content_type to_enum(const std::string& content_type_str);
-    };
 
+        static enum http_content_type to_enum(const std::string &content_type_str);
+    };
 
 
 } // wfrest
