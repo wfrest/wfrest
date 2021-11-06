@@ -7,6 +7,7 @@
 
 #include "workflow/URIParser.h"
 #include <unordered_map>
+#include "StrUtil.h"
 
 namespace wfrest
 {

@@ -3,7 +3,6 @@
 //
 
 #include "UriUtil.h"
-#include "workflow/StringUtil.h"
 
 using namespace wfrest;
 
@@ -14,7 +13,7 @@ std::unordered_map<std::string, std::string> UriUtil::split_query(const std::str
     if (query.empty())
         return res;
 
-    std::vector<std::string> arr = StringUtil::split(query, '&');
+    std::vector<std::string> arr = StrUtil::split(query, '&');
 
     if (arr.empty())
         return res;
@@ -24,7 +23,7 @@ std::unordered_map<std::string, std::string> UriUtil::split_query(const std::str
         if (ele.empty())
             continue;
 
-        std::vector<std::string> kv = StringUtil::split(ele, '=');
+        std::vector<std::string> kv = StrUtil::split(ele, '=');
         size_t kv_size = kv.size();
         std::string& key = kv[0];
 

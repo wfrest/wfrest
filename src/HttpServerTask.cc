@@ -1,5 +1,5 @@
 #include "HttpServerTask.h"
-#include "workflow/StringUtil.h"
+#include "StrUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -86,16 +86,16 @@ CommMessageOut *HttpServerTask::message_out()
         if (req_has_keep_alive_header_)
         {
             int flag = 0;
-            std::vector<std::string> params = StringUtil::split(req_keep_alive_, ',');
+            std::vector<std::string> params = StrUtil::split(req_keep_alive_, ',');
 
             for (const auto &kv: params)
             {
-                std::vector<std::string> arr = StringUtil::split(kv, '=');
+                std::vector<std::string> arr = StrUtil::split(kv, '=');
                 if (arr.size() < 2)
                     arr.emplace_back("0");
 
-                std::string key = StringUtil::strip(arr[0]);
-                std::string val = StringUtil::strip(arr[1]);
+                std::string key = StrUtil::strip(arr[0]);
+                std::string val = StrUtil::strip(arr[1]);
                 if (!(flag & 1) && strcasecmp(key.c_str(), "timeout") == 0)
                 {
                     flag |= 1;
