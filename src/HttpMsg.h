@@ -5,6 +5,7 @@
 #include "workflow/WFTaskFactory.h"
 #include <fcntl.h>
 #include <unordered_map>
+#include <workflow/HttpUtil.h>
 #include "HttpDef.h"
 #include "HttpContent.h"
 
@@ -16,11 +17,17 @@ namespace wfrest
     class HttpReq : public protocol::HttpRequest
     {
     public:
+        ~HttpReq() override { delete header_; }
         // chunked body
         std::string Body() const;
 
         // body -> structured content
         void parse_body();
+
+        // header map
+        void set_header_map(protocol::HttpHeaderMap* header) { header_ = header; }
+        std::string header(const std::string& key) { return header_->get(key); }
+        bool has_header(const std::string& key) { return header_->key_exists(key); }
 
         // /{name}/{id} parans in route
         void set_route_params(RouteParams &&params)
@@ -58,7 +65,7 @@ namespace wfrest
         bool has_query(const std::string &key);
 
     private:
-        void fill_content_type();
+        void fill_content_type(const StringPiece& body);
 
     public:
         Urlencode::KV kv;
@@ -70,6 +77,7 @@ namespace wfrest
         ParsedURI parsed_uri_;
         QueryParams query_params_;
         MultiPartForm multi_part_;
+        protocol::HttpHeaderMap* header_;
     };
 
     template<>

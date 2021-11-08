@@ -14,10 +14,10 @@ void HttpServer::proc(WebTask *server_task)
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
 
-    std::string host;
-    protocol::HttpHeaderCursor cursor(req);
-    cursor.find("Host", host);
-    fprintf(stderr, "Host : %s\n", host.c_str());
+    req->set_header_map(new protocol::HttpHeaderMap(req));
+
+    std::string host = req->header("Host");
+    printf("host : %s", host.c_str());
     if (host.empty())
     {
         //header Host not found
@@ -25,12 +25,8 @@ void HttpServer::proc(WebTask *server_task)
         return;
     }
 
-    std::string request_uri = "http://";    // or can't parse URI
-
-    request_uri += host;
-    request_uri += req->get_request_uri();
+    std::string request_uri = "http://" + host + req->get_request_uri();    // or can't parse URI
     ParsedURI uri;
-
     if (URIParser::parse(request_uri, uri) < 0)
     {
         resp->set_status(HttpStatusBadRequest);
@@ -45,7 +41,8 @@ void HttpServer::proc(WebTask *server_task)
 
     if (uri.query)
     {
-        req->set_query_params(UriUtil::split_query(uri.query));
+        StringPiece query(uri.query);
+        req->set_query_params(UriUtil::split_query(query));
     }
     req->parse_body();
     req->set_parsed_uri(std::move(uri));

@@ -5,3 +5,6 @@ add_executable(router_test router_test.cc)
 target_link_libraries(router_test wfrest)
 
 add_executable(multi_part_test multi_part_test.cc)
+
+add_executable(StrUtil_test StrUtil_test.cc)
+target_link_libraries(StrUtil_test wfrest)

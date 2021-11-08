@@ -24,7 +24,7 @@ int main()
     HttpServer svr;
 
     // Urlencoded Form
-    // curl -v http://ip:port/kv -H "content-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
+    // curl -v http://ip:port/post -H "content-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
     svr.Post("/post", [](const HttpReq *req, HttpResp *resp)
     {
         if(req->content_type != APPLICATION_URLENCODED)
@@ -32,6 +32,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
+        printf("123");
         auto form_kv = req->kv;
         for(auto& kv : form_kv)
         {
@@ -39,9 +40,9 @@ int main()
         }
     });
 
-    // curl -X POST http://ip:port/form \
-    // -F "file=@/path/file" \
-    // -H "Content-Type: multipart/form-data"
+//     curl -X POST http://ip:port/form \
+//     -F "file=@/path/file" \
+//     -H "Content-Type: multipart/form-data"
     svr.Post("/form", [](const HttpReq *req, HttpResp *resp)
     {
         if(req->content_type != MULTIPART_FORM_DATA)

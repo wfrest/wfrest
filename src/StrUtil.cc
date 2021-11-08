@@ -6,29 +6,54 @@
 
 using namespace wfrest;
 
-std::string StrUtil::trim_pairs(const std::string &str, const char *pairs)
+const std::string StrUtil::sk_pairs_ = R"({}[]()<>""''``)";
+
+std::string StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
 {
-    const char *s = str.c_str();
-    const char *e = str.c_str() + str.size() - 1;
+    const char *lhs = str.begin();
+    const char *rhs = str.begin() + str.size() - 1;
     const char *p = pairs;
     bool is_pair = false;
-    while (*p != '\0' && *(p + 1) != '\0')
+    while (*p != '\0' && *(p+1) != '\0')
     {
-        if (*s == *p && *e == *(p + 1))
+        if (*lhs == *p && *rhs == *(p + 1))
         {
             is_pair = true;
             break;
         }
         p += 2;
     }
-    return is_pair ? str.substr(1, str.size() - 2) : str;
+    if(is_pair)
+    {
+        StringPiece res(str.begin() + 1, str.size() - 2);
+        return res.as_string();
+    } else
+    {
+        return str.as_string();
+    }
 }
 
-std::string StrUtil::trim(const std::string &str, const char *chars)
+StringPiece StrUtil::ltrim(const StringPiece &str)
 {
-    std::string::size_type pos1 = str.find_first_not_of(chars);
-    if (pos1 == std::string::npos) return "";
+    const char *lhs = str.begin();
+    while(lhs != str.end() and std::isspace(*lhs)) lhs++;
+    if(lhs == str.end()) return {};
+    StringPiece res(str);
+    res.remove_prefix(lhs - str.begin());
+    return res;
+}
 
-    std::string::size_type pos2 = str.find_last_not_of(chars);
-    return str.substr(pos1, pos2 - pos1 + 1);
+StringPiece StrUtil::rtrim(const StringPiece &str)
+{
+    const char *rhs = str.end() - 1;
+    while(rhs != str.begin() and std::isspace(*rhs)) rhs--;
+    if(rhs == str.begin() and std::isspace(*rhs)) return {};
+    StringPiece res(str);
+    res.remove_suffix(str.end() - rhs);
+    return res;
+}
+
+StringPiece StrUtil::trim(const StringPiece &str)
+{
+    return ltrim(rtrim(str));
 }

@@ -9,12 +9,14 @@
 
 using namespace wfrest;
 
-void Urlencode::parse_query_params(const std::string &body, OUT KV &res)
+const std::string MultiPartForm::default_boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+
+void Urlencode::parse_query_params(const StringPiece &body, Urlencode::KV &res)
 {
     if (body.empty())
         return;
 
-    std::vector<std::string> arr = StringUtil::split(body, '&');
+    std::vector<StringPiece> arr = StrUtil::split_piece<StringPiece>(body, '&');
 
     if (arr.empty())
         return;
@@ -24,7 +26,7 @@ void Urlencode::parse_query_params(const std::string &body, OUT KV &res)
         if (ele.empty())
             continue;
 
-        std::vector<std::string> kv = StringUtil::split(ele, '=');
+        std::vector<std::string> kv = StrUtil::split_piece<std::string>(ele, '=');
         size_t kv_size = kv.size();
         std::string &key = kv[0];
 
@@ -78,26 +80,25 @@ void multipart_parser_userdata::handle_header()
     if (header_field.empty() || header_value.empty()) return;
     if (strcasecmp(header_field.c_str(), "Content-Disposition") == 0)
     {
-
         // Content-Disposition: attachment
         // Content-Disposition: attachment; filename="filename.jpg"
         // Content-Disposition: form-data; name="avatar"; filename="user.jpg"
-        std::vector<std::string> dispo_list = StrUtil::split(header_value, ';');
+        StringPiece header_val_piece(header_value);
+        std::vector<StringPiece> dispo_list = StrUtil::split_piece<StringPiece>(header_val_piece, ';');
 
         for (auto &dispo: dispo_list)
         {
-            std::vector<std::string> kv = StrUtil::split(StrUtil::trim(dispo, " "), '=');
+            std::vector<StringPiece> kv = StrUtil::split_piece<StringPiece>(StrUtil::trim(dispo), '=');
             if (kv.size() == 2)
             {
-                const char *key = kv.begin()->c_str();
-                std::string value = *(kv.begin() + 1);
-                value = StrUtil::trim_pairs(value, R"(""'')");
+                const char *key = kv[0].data();
+                std::string value = StrUtil::trim_pairs(kv[1], R"(""'')");
                 if (strcmp(key, "name") == 0)
                 {
-                    name = value;
+                    name = std::move(value);
                 } else if (strcmp(key, "filename") == 0)
                 {
-                    filename = value;
+                    filename = std::move(value);
                 }
             }
         }
@@ -188,15 +189,15 @@ int MultiPartForm::body_end_cb(multipart_parser *parser)
     return 0;
 }
 
-int MultiPartForm::parse_multipart(const std::string &body, OUT MultiPartForm::MultiPart &form)
+int MultiPartForm::parse_multipart(const StringPiece &body, OUT MultiPartForm::MultiPart &form)
 {
-    boundary_.insert(0, "--");
-    multipart_parser *parser = multipart_parser_init(boundary_.c_str(), &settings_);
+    std::string boundary = "--" + boundary_;
+    multipart_parser *parser = multipart_parser_init(boundary.c_str(), &settings_);
     multipart_parser_userdata userdata;
     userdata.state = MP_START;
     userdata.mp = &form;
     multipart_parser_set_data(parser, &userdata);
-    size_t num_parse = multipart_parser_execute(parser, body.c_str(), body.size());
+    size_t num_parse = multipart_parser_execute(parser, body.data(), body.size());
     multipart_parser_free(parser);
     return num_parse == body.size() ? 0 : -1;
 }

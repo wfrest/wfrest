@@ -6,14 +6,14 @@
 
 using namespace wfrest;
 
-std::unordered_map<std::string, std::string> UriUtil::split_query(const std::string &query)
+std::unordered_map<std::string, std::string> UriUtil::split_query(const StringPiece &query)
 {
     std::unordered_map<std::string, std::string> res;
 
     if (query.empty())
         return res;
 
-    std::vector<std::string> arr = StrUtil::split(query, '&');
+    std::vector<StringPiece> arr = StrUtil::split_piece<StringPiece>(query, '&');
 
     if (arr.empty())
         return res;
@@ -23,7 +23,7 @@ std::unordered_map<std::string, std::string> UriUtil::split_query(const std::str
         if (ele.empty())
             continue;
 
-        std::vector<std::string> kv = StrUtil::split(ele, '=');
+        std::vector<std::string> kv = StrUtil::split_piece<std::string>(ele, '=');
         size_t kv_size = kv.size();
         std::string &key = kv[0];
 

@@ -45,37 +45,15 @@
 #define _STRINGPIECE_H_
 
 #include <cstring>
-#include <iosfwd>    // for ostream forward-declaration
-
 #include <string>
 
 namespace wfrest
 {
-
-// For passing C-style std::string argument to a function.
-    class StringArg // copyable
-    {
-    public:
-        explicit StringArg(const char *str)
-                : str_(str)
-        {}
-
-        explicit StringArg(const std::string &str)
-                : str_(str.c_str())
-        {}
-
-        const char *c_str() const
-        { return str_; }
-
-    private:
-        const char *str_;
-    };
-
     class StringPiece
     {
     private:
         const char *ptr_;
-        int length_;
+        size_t length_;
 
     public:
         // We provide non-explicit singleton constructors so users can pass
@@ -86,20 +64,19 @@ namespace wfrest
         {}
 
         explicit StringPiece(const char *str)
-                : ptr_(str), length_(static_cast<int>(strlen(ptr_)))
-        {}
-
-        explicit StringPiece(const unsigned char *str)
-                : ptr_(reinterpret_cast<const char *>(str)),
-                  length_(static_cast<int>(strlen(ptr_)))
+                : ptr_(str), length_(strlen(ptr_))
         {}
 
         explicit StringPiece(const std::string &str)
-                : ptr_(str.data()), length_(static_cast<int>(str.size()))
+                : ptr_(str.data()), length_(str.size())
         {}
 
-        StringPiece(const char *offset, int len)
+        StringPiece(const char *offset, size_t len)
                 : ptr_(offset), length_(len)
+        {}
+
+        StringPiece(const void *str, size_t len)
+                : ptr_(static_cast<const char *>(str)), length_(len)
         {}
 
         // data() may return a pointer to a buffer with embedded NULs, and the
@@ -111,7 +88,7 @@ namespace wfrest
         const char *data() const
         { return ptr_; }
 
-        int size() const
+        size_t size() const
         { return length_; }
 
         bool empty() const
@@ -138,30 +115,36 @@ namespace wfrest
         void set(const char *str)
         {
             ptr_ = str;
-            length_ = static_cast<int>(strlen(str));
+            length_ = strlen(str);
         }
 
-        void set(const void *buffer, int len)
+        void set(const char *buffer, size_t len)
         {
-            ptr_ = reinterpret_cast<const char *>(buffer);
+            ptr_= buffer;
+            length_ = len;
+        }
+
+        void set(const void *buffer, size_t len)
+        {
+            ptr_ = static_cast<const char *>(buffer);
             length_ = len;
         }
 
         char operator[](int i) const
         { return ptr_[i]; }
 
-        void remove_prefix(int n)
+        void remove_prefix(size_t n)
         {
             ptr_ += n;
             length_ -= n;
         }
 
-        void remove_suffix(int n)
+        void remove_suffix(size_t n)
         {
             length_ -= n;
         }
 
-        void shrink(int prefix, int suffix)
+        void shrink(size_t prefix, size_t suffix)
         {
             ptr_ += prefix;
             length_ -= prefix;
@@ -241,9 +224,6 @@ template<> struct __type_traits<wfrest::StringPiece> {
     typedef __true_type    is_POD_type;
 };
 #endif
-
-// allow StringPiece to be logged
-std::ostream &operator<<(std::ostream &o, const wfrest::StringPiece &piece);
 
 // Stand-ins for the STL's std::hash<> specializations.
 template<typename StringPieceType>

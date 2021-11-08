@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "MultiPartParser.h"
 #include "Macro.h"
+#include "StringPiece.h"
 
 namespace wfrest
 {
@@ -17,7 +18,8 @@ namespace wfrest
     public:
         using KV = std::unordered_map<std::string, std::string>;
 
-        static void parse_query_params(const std::string &body, OUT KV &res);
+        static void parse_query_params(const StringPiece &body, OUT KV &res);
+
     };
 
     struct FormData
@@ -36,11 +38,16 @@ namespace wfrest
 
         MultiPartForm();
 
-        int parse_multipart(const std::string &body, OUT MultiPart &form);
+        int parse_multipart(const StringPiece &body, OUT MultiPart &form);
 
         void set_boundary(std::string &&boundary)
         { boundary_ = std::move(boundary); }
 
+        void set_boundary(const std::string &boundary)
+        { boundary_= boundary; }
+
+    public:
+        static const std::string default_boundary;
     private:
         static int header_field_cb(multipart_parser *parser, const char *buf, size_t len);
 
@@ -55,10 +62,10 @@ namespace wfrest
         static int part_data_end_cb(multipart_parser *parser);
 
         static int body_end_cb(multipart_parser *parser);
-
     private:
         multipart_parser *parser_{};
         std::string boundary_;
+
         multipart_parser_settings settings_{};
     };
 }  // wfrest

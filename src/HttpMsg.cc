@@ -36,11 +36,13 @@ bool HttpReq::has_query(const std::string &key)
 
 void HttpReq::parse_body()
 {
-    fill_content_type();
     const void *body;
     size_t len;
     this->get_parsed_body(&body, &len);
-    std::string body_str(static_cast<const char *>(body), len);
+    StringPiece body_str(body, len);
+    if(body_str.empty()) return;
+
+    fill_content_type(body_str);
 
     switch (content_type)
     {
@@ -55,12 +57,26 @@ void HttpReq::parse_body()
     }
 }
 
-void HttpReq::fill_content_type()
+void HttpReq::fill_content_type(const StringPiece& body)
 {
-    protocol::HttpHeaderCursor cursor(this);
-    std::string content_type_str;
-    cursor.find("Content-Type", content_type_str);
+    std::string content_type_str = header("Content-Type");
     content_type = ContentType::to_enum(content_type_str);
+
+//    if (content_type == CONTENT_TYPE_NONE) {
+//        if (!form.empty()) {
+//            content_type = MULTIPART_FORM_DATA;
+//        }
+//        else if (!kv.empty()) {
+//            content_type = X_WWW_FORM_URLENCODED;
+//        }
+//        else if (!body.empty()) {
+//            content_type = TEXT_PLAIN;
+//        }
+//    }
+    // todo : we need fill this in header? add interface to change the header value?
+    // if (content_type != CONTENT_TYPE_NONE) {
+    //    header("Content-Type") = ContentType::to_string(content_type);
+    // }
 
     if (content_type == MULTIPART_FORM_DATA)
     {
@@ -68,14 +84,17 @@ void HttpReq::fill_content_type()
         const char *boundary = strstr(content_type_str.c_str(), "boundary=");
         if (boundary == nullptr)
         {
+            // todo : do we need to add default to header field ?
+            // header("Content-Type") += "; boundary=" + MultiPartForm::default_boundary;
+            multi_part_.set_boundary(MultiPartForm::default_boundary);
             return;
         }
         boundary += strlen("boundary=");
-        std::string boundary_str(boundary);
-        boundary_str = StrUtil::trim_pairs(boundary_str, R"(""'')");
+        StringPiece boundary_piece(boundary);
+
+        std::string boundary_str = StrUtil::trim_pairs(boundary_piece, R"(""'')");
         multi_part_.set_boundary(std::move(boundary_str));
     }
-    // todo : WITHOUT_HTTP_CONTENT to automatically fill
 }
 
 void HttpResp::String(const std::string &str)

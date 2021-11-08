@@ -16,7 +16,7 @@ namespace wfrest
     {
     public:
         static std::unordered_map<std::string, std::string>
-        split_query(const std::string &query);
+        split_query(const StringPiece &query);
     };
 
 }  // wfrest
