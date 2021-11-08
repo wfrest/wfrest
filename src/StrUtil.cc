@@ -38,11 +38,11 @@ StringPiece StrUtil::ltrim(const StringPiece &str)
 
 StringPiece StrUtil::rtrim(const StringPiece &str)
 {
+    if(str.empty()) return str;
     const char *rhs = str.end() - 1;
     while(rhs != str.begin() and std::isspace(*rhs)) rhs--;
     if(rhs == str.begin() and std::isspace(*rhs)) return {};
-    StringPiece res(str);
-    res.remove_suffix(str.end() - rhs);
+    StringPiece res(str.begin(), rhs - str.begin() + 1);
     return res;
 }
 

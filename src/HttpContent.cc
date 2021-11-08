@@ -86,35 +86,20 @@ void multipart_parser_userdata::handle_header()
         StringPiece header_val_piece(header_value);
         std::vector<StringPiece> dispo_list = StrUtil::split_piece<StringPiece>(header_val_piece, ';');
 
-//        auto dispo_list2 = StrUtil::split(header_value, ';');
-//        for(auto &li2 : dispo_list2)
-//        {
-//            fprintf(stderr, "dispo2 : %s\n", li2.c_str());
-//        }
         for (auto &dispo: dispo_list)
         {
-//            fprintf(stderr, "dispo : %s\n", dispo.data());
             auto kv = StrUtil::split_piece<StringPiece>(StrUtil::trim(dispo), '=');
-//            auto kv = StrUtil::split(StrUtil::trim(dispo, " "), '=');
             if (kv.size() == 2)
             {
-                const char *key = kv[0].data();
-                StringPiece value_piece = *(kv.begin() + 1);
-                // todo
-                StringPiece value = StrUtil::trim_pairs(value_piece, R"(""'')");
-//                std::string value = StrUtil::trim_pairs(kv[1], R"(""'')");
-
-//                std::string value = *(kv.begin() + 1);
-//                StringPiece value_piece(value);
-//                value = StrUtil::trim_pairs(value_piece, R"(""'')");
-
-                if (strcmp(key, "name") == 0)
+                // name="file"
+                // kv[0] is key(name)
+                // kv[1] is value("file")
+                StringPiece value = StrUtil::trim_pairs(kv[1], R"(""'')");
+                if(kv[0].starts_with(StringPiece("name")))
                 {
-//                    name = std::move(value);
                     name = value.as_string();
-                } else if (strcmp(key, "filename") == 0)
+                } else if(kv[0].starts_with(StringPiece("filename")))
                 {
-//                    filename = std::move(value);
                     filename = value.as_string();
                 }
             }
@@ -208,23 +193,13 @@ int MultiPartForm::body_end_cb(multipart_parser *parser)
 
 int MultiPartForm::parse_multipart(const StringPiece &body, OUT MultiPartForm::MultiPart &form)
 {
-//    std::string boundary = "--" + boundary_;
-    boundary_.insert(0, "--");
-    fprintf(stderr, "-- bounday : %s\n", boundary_.c_str());
-    multipart_parser *parser = multipart_parser_init(boundary_.c_str(), &settings_);
+    std::string boundary = "--" + boundary_;
+    multipart_parser *parser = multipart_parser_init(boundary.c_str(), &settings_);
     multipart_parser_userdata userdata;
     userdata.state = MP_START;
     userdata.mp = &form;
     multipart_parser_set_data(parser, &userdata);
     size_t num_parse = multipart_parser_execute(parser, body.data(), body.size());
     multipart_parser_free(parser);
-    fprintf(stderr, "num parse : %zu || body size : %zu\n", num_parse, body.size());
-    fprintf(stderr, "form size : %zu\n", form.size());
     return num_parse == body.size() ? 0 : -1;
 }
-
-
-
-
-
-

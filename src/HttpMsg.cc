@@ -40,7 +40,7 @@ void HttpReq::parse_body()
     size_t len;
     this->get_parsed_body(&body, &len);
     StringPiece body_str(body, len);
-    fprintf(stderr, "body size : %zu\n", body_str.size());
+
     if(body_str.empty()) return;
 
     fill_content_type();
@@ -61,7 +61,6 @@ void HttpReq::parse_body()
 void HttpReq::fill_content_type()
 {
     std::string content_type_str = header("Content-Type");
-    fprintf(stderr, "content : %s\n", content_type_str.c_str());
     content_type = ContentType::to_enum(content_type_str);
 
 //    if (content_type == CONTENT_TYPE_NONE) {
@@ -95,10 +94,6 @@ void HttpReq::fill_content_type()
         StringPiece boundary_piece(boundary);
 
         StringPiece boundary_str = StrUtil::trim_pairs(boundary_piece, R"(""'')");
-        // todo :
-        fprintf(stderr, "boundary : %s\n", boundary_str.data());
-        fprintf(stderr, "boundary : %s\n", boundary_str.as_string().c_str());
-
         multi_part_.set_boundary(std::move(boundary_str.as_string()));
     }
 }
