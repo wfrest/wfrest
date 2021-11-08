@@ -8,7 +8,7 @@ using namespace wfrest;
 
 const std::string StrUtil::sk_pairs_ = R"({}[]()<>""''``)";
 
-std::string StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
+StringPiece StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
 {
     const char *lhs = str.begin();
     const char *rhs = str.begin() + str.size() - 1;
@@ -23,14 +23,7 @@ std::string StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
         }
         p += 2;
     }
-    if(is_pair)
-    {
-        StringPiece res(str.begin() + 1, str.size() - 2);
-        return res.as_string();
-    } else
-    {
-        return str.as_string();
-    }
+    return is_pair ? StringPiece (str.begin() + 1, str.size() - 2) : str;
 }
 
 StringPiece StrUtil::ltrim(const StringPiece &str)
@@ -56,4 +49,13 @@ StringPiece StrUtil::rtrim(const StringPiece &str)
 StringPiece StrUtil::trim(const StringPiece &str)
 {
     return ltrim(rtrim(str));
+}
+
+std::string StrUtil::trim(const std::string &str, const char *chars)
+{
+    std::string::size_type pos1 = str.find_first_not_of(chars);
+    if (pos1 == std::string::npos)   return "";
+
+    std::string::size_type pos2 = str.find_last_not_of(chars);
+    return str.substr(pos1, pos2-pos1+1);
 }

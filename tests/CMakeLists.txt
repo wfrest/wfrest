@@ -6,5 +6,11 @@ target_link_libraries(router_test wfrest)
 
 add_executable(multi_part_test multi_part_test.cc)
 
-add_executable(StrUtil_test StrUtil_test.cc)
-target_link_libraries(StrUtil_test wfrest)
+add_executable(strutil_test strutil_test.cc)
+target_link_libraries(strutil_test wfrest)
+
+add_executable(strutil_split strutil_split.cc)
+target_link_libraries(strutil_split wfrest)
+
+add_executable(strutil_trim strutil_trim.cc)
+target_link_libraries(strutil_trim wfrest)

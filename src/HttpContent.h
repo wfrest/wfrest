@@ -30,7 +30,6 @@ namespace wfrest
 
     // Taken From
     // libhv : https://github.com/ithewei/libhv
-    // cosmonaut : https://github.com/iafonov/cosmonaut
     class MultiPartForm
     {
     public:

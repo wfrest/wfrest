@@ -77,7 +77,19 @@ void test04()
     if(str3.starts_with(match)) { fprintf(stderr, "str3 match\n"); }
 }
 
+void test05()
+{
+    StringPiece str("1234567890");
+    str.shrink(0, 2);
+
+    fprintf(stderr, "string : %s\n", str.as_string().c_str());
+
+    StringPiece str2(str.begin() + 1, 2);
+    fprintf(stderr, "str2 : %s\n", str2.data());
+    fprintf(stderr, "str2: %s\n", str2.as_string().c_str());
+}
+
 int main()
 {
-    test04();
+    test05();
 }

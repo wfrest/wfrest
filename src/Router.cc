@@ -20,7 +20,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
     // /hello ==  /hello/
     fprintf(stderr, "route : %s\n", route.c_str());
     StringPiece route2(route);
-    if (!route2.empty() and route2[route2.size() - 1] == '/')
+    if (!route2.empty() and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
 
     RouteParams route_params;

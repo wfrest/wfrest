@@ -17,7 +17,7 @@ void HttpServer::proc(WebTask *server_task)
     req->set_header_map(new protocol::HttpHeaderMap(req));
 
     std::string host = req->header("Host");
-    printf("host : %s", host.c_str());
+    fprintf(stderr,"host : %s\n", host.c_str());
     if (host.empty())
     {
         //header Host not found
@@ -44,9 +44,10 @@ void HttpServer::proc(WebTask *server_task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
+    fprintf(stderr, "111\n");
     req->parse_body();
     req->set_parsed_uri(std::move(uri));
-
+    fprintf(stderr, "222\n");
     router_.call(req->get_method(), route, req, resp);
 }
 

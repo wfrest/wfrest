@@ -65,7 +65,7 @@ namespace wfrest
         bool has_query(const std::string &key);
 
     private:
-        void fill_content_type(const StringPiece& body);
+        void fill_content_type();
 
     public:
         Urlencode::KV kv;

@@ -2,7 +2,6 @@
 // Created by Chanchan on 11/5/21.
 //
 
-
 #include "HttpServer.h"
 #include "HttpMsg.h"
 #include "workflow/WFFacilities.h"
@@ -32,7 +31,6 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        printf("123");
         auto form_kv = req->kv;
         for(auto& kv : form_kv)
         {
@@ -50,6 +48,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
+        fprintf(stderr, "123\n");
         auto form_kv = req->form;
         for(auto & it : form_kv)
         {
