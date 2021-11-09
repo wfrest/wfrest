@@ -37,35 +37,58 @@ namespace detail
         }
     }
 
+    void pwrite_callback(WFFileIOTask *pwrite_task)
+    {
+        long ret = pwrite_task->get_retval();
+        auto *resp = static_cast<HttpResp *>(pwrite_task->user_data);
+
+        if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
+        {
+            resp->set_status_code("503");
+            resp->append_output_body("<html>503 Internal Server Error.</html>\r\n");
+        }
+        else
+        {
+            resp->set_status_code("200");
+            resp->append_output_body("<html>save 200 success.</html>\r\n");
+        }
+    }
+
+    std::string concat_path(std::string& root, const std::string& path)
+    {
+        std::string res;
+        if (root.back() == '/' and path.front() == '/')
+        {
+            root.pop_back();
+            res = root + path;
+        } else if (root.back() != '/' and path.front() != '/')
+        {
+            res = root + "/" + path;
+        } else
+        {
+            res = root + path;
+        }
+        return res;
+    }
+
 }  // namespace detail
 
 void HttpFile::send_file(const std::string &path, size_t start, size_t end)
 {
     assert(msg_);
-
     auto *resp = dynamic_cast<HttpResp *>(msg_);
 
     auto *server_task = resp->get_task();
     assert(server_task);
 
-    std::string abs_path;
-    if (root_.back() == '/' and path.front() == '/')
-    {
-        root_.pop_back();
-        abs_path = root_ + path;
-    } else if (root_.back() != '/' and path.front() != '/')
-    {
-        abs_path = root_ + "/" + path;
-    } else
-    {
-        abs_path = root_ + path;
-    }
-    fprintf(stderr, "file path : %s\n", abs_path.c_str());
+    std::string file_path = ::detail::concat_path(root_, path);
+
+    fprintf(stderr, "file path : %s\n", file_path.c_str());
 
     if (end == 0)
     {
         struct stat st{};
-        stat(abs_path.c_str(), &st);
+        stat(file_path.c_str(), &st);
         end = st.st_size;
     }
     size_t size = end - start;
@@ -77,7 +100,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end)
                           + "-" + std::to_string(end)
                           + "/" + std::to_string(size));
 
-    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(abs_path,
+    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file_path,
                                                                 buf,
                                                                 size,
                                                                 static_cast<off_t>(start),
@@ -104,6 +127,24 @@ void HttpFile::mount(std::string &&root)
         root_ = std::move(root);
     }
 
+}
+
+void HttpFile::save_file(const std::string &dst_path, const void *content, size_t size)
+{
+    auto *resp = dynamic_cast<HttpResp *>(msg_);
+    auto *server_task = resp->get_task();
+
+    std::string file_path = ::detail::concat_path(root_, dst_path);
+
+    fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
+
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
+                                                                  content,
+                                                                  size,
+                                                                  0,
+                                                                  ::detail::pwrite_callback);
+    pwrite_task->user_data = resp;
+    **server_task << pwrite_task;
 }
 
 

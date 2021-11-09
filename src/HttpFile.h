@@ -17,7 +17,8 @@ namespace wfrest
 
         void send_file(const std::string &path, size_t start, size_t end);
         void mount(std::string &&root);
-        //    void save_file();
+
+        void save_file(const std::string &dst_path, const void* content, size_t size);
     private:
         std::string root_ = ".";
         protocol::HttpMessage *msg_;

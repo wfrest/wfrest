@@ -13,5 +13,10 @@ target_link_libraries(04_post_form wfrest)
 add_executable(05_header 05_header.cc)
 target_link_libraries(05_header wfrest)
 
-add_executable(06_file 06_file.cc)
-target_link_libraries(06_file wfrest)
+add_executable(06_file_read 06_file_read.cc)
+target_link_libraries(06_file_read wfrest)
+
+add_executable(07_file_write 07_file_write.cc)
+target_link_libraries(07_file_write wfrest)
+
+

@@ -73,6 +73,7 @@ namespace wfrest
         // connect to server_task
         void set_task(WebTask *task) { server_task_ = task; };
         WebTask *get_task() const { return server_task_; }
+
     private:
         void fill_content_type();
 
@@ -86,7 +87,7 @@ namespace wfrest
         ParsedURI parsed_uri_;
         QueryParams query_params_;
         MultiPartForm multi_part_;
-        protocol::HttpHeaderMap* header_;
+        protocol::HttpHeaderMap *header_;
         WebTask* server_task_ = nullptr;
     };
 
@@ -142,6 +143,11 @@ namespace wfrest
         void set_task(WebTask *task) { server_task_ = task; };
         WebTask *get_task() const { return server_task_; }
 
+        // save file
+        void Save(const std::string& file_dst);
+        void Save(const std::string& file_dst, const char *content, size_t len);
+        void Save(const std::string& file_dst, const void *content, size_t len);
+        void Save(const std::string& file_dst, const std::string& content);
     private:
         HttpFile file_;
         WebTask *server_task_ = nullptr;
