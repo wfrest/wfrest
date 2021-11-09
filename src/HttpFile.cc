@@ -46,7 +46,6 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end)
     auto *resp = dynamic_cast<HttpResp *>(msg_);
 
     auto *server_task = resp->get_task();
-
     assert(server_task);
 
     std::string abs_path;
@@ -71,6 +70,13 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end)
     }
     size_t size = end - start;
     void *buf = malloc(size);
+    // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
+    // Content-Range: bytes 42-1233/1234
+    resp->add_header_pair("Content-Range",
+                          "bytes " + std::to_string(start)
+                          + "-" + std::to_string(end)
+                          + "/" + std::to_string(size));
+
     WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(abs_path,
                                                                 buf,
                                                                 size,
