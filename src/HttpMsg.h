@@ -8,11 +8,17 @@
 #include <workflow/HttpUtil.h>
 #include "HttpDef.h"
 #include "HttpContent.h"
+#include "HttpFile.h"
 
 namespace wfrest
 {
+
     using RouteParams = std::unordered_map<std::string, std::string>;
     using QueryParams = std::unordered_map<std::string, std::string>;
+
+    class HttpReq;
+    class HttpResp;
+    using WebTask = WFNetworkTask<HttpReq, HttpResp>;
 
     class HttpReq : public protocol::HttpRequest
     {
@@ -64,6 +70,9 @@ namespace wfrest
 
         bool has_query(const std::string &key);
 
+        // connect to server_task
+        void set_task(WebTask *task) { server_task_ = task; };
+        WebTask *get_task() const { return server_task_; }
     private:
         void fill_content_type();
 
@@ -78,6 +87,7 @@ namespace wfrest
         QueryParams query_params_;
         MultiPartForm multi_part_;
         protocol::HttpHeaderMap* header_;
+        WebTask* server_task_ = nullptr;
     };
 
     template<>
@@ -111,24 +121,33 @@ namespace wfrest
     class HttpResp : public protocol::HttpResponse
     {
     public:
+        HttpResp() : file_(this) {}
+
+        // send string
         void String(const std::string &str);
-
-        void String(std::string &&str);
-
         void String(const char *data, size_t len);
 
         // todo : json / file clear_output_body
-        void File(const std::string &path);
-
+        // file
+        void File(const std::string &path, size_t start = 0, size_t end = 0);
+        void mount(std::string &&path) { file_.mount(std::move(path)); }
         // void Write(const std::string& content, const std::string& path);
 
         void set_status(int status_code);
 
         void test()
         { fprintf(stderr, "resp test : %s\n", get_status_code()); }
+
+        // connect to server_task
+        void set_task(WebTask *task) { server_task_ = task; };
+        WebTask *get_task() const { return server_task_; }
+
+    private:
+        HttpFile file_;
+        WebTask *server_task_ = nullptr;
     };
 
-    using WebTask = WFNetworkTask<HttpReq, HttpResp>;
+
 
 } // namespace wfrest
 

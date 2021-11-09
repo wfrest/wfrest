@@ -5,6 +5,8 @@
 #ifndef _HTTPTASKUTIL_H_
 #define _HTTPTASKUTIL_H_
 
+#include "HttpMsg.h"
+
 namespace wfrest
 {
 
@@ -32,11 +34,12 @@ namespace wfrest
             WFConnection *get_connection() const override
             { return nullptr; }
 
-            CommMessageOut *message_out() override
+            CommMessageIn *message_in() override
             { return &this->req; };
 
-            CommMessageIn *message_in() override
+            CommMessageOut *message_out() override
             { return &this->resp; };
+
         private:
             explicit WebTaskModel(std::function<void(WebTask * )> proc) :
                     WFNetworkTask(nullptr, nullptr, std::move(proc))

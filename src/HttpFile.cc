@@ -1,0 +1,103 @@
+//
+// Created by Chanchan on 11/8/21.
+//
+
+#include "HttpFile.h"
+#include "HttpTaskUtil.h"
+#include <sys/stat.h>
+#include "HttpMsg.h"
+#include <workflow/WFTaskFactory.h>
+
+using namespace wfrest;
+
+namespace detail
+{
+    /*
+    We do not occupy any thread to read the file, but generate an asynchronous file reading task
+    and reply to the request after the reading is completed.
+
+    We need to read the whole data into the memory before we start replying to the message.
+    Therefore, it is not suitable for transferring files that are too large.
+
+    todo : Any better way to transfer large File?
+    */
+    void pread_callback(WFFileIOTask *pread_task)
+    {
+        FileIOArgs *args = pread_task->get_args();
+        long ret = pread_task->get_retval();
+        auto *resp = static_cast<HttpResp *>(pread_task->user_data);
+
+        if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
+        {
+            resp->set_status_code("503");
+            resp->append_output_body("<html>503 Internal Server Error.</html>");
+        } else
+        {
+            resp->append_output_body_nocopy(args->buf, ret);
+        }
+    }
+
+}  // namespace detail
+
+void HttpFile::send_file(const std::string &path, size_t start, size_t end)
+{
+    assert(msg_);
+
+    auto *resp = dynamic_cast<HttpResp *>(msg_);
+
+    auto *server_task = resp->get_task();
+
+    assert(server_task);
+
+    std::string abs_path;
+    if (root_.back() == '/' and path.front() == '/')
+    {
+        root_.pop_back();
+        abs_path = root_ + path;
+    } else if (root_.back() != '/' and path.front() != '/')
+    {
+        abs_path = root_ + "/" + path;
+    } else
+    {
+        abs_path = root_ + path;
+    }
+    fprintf(stderr, "file path : %s\n", abs_path.c_str());
+
+    if (end == 0)
+    {
+        struct stat st{};
+        stat(abs_path.c_str(), &st);
+        end = st.st_size;
+    }
+    size_t size = end - start;
+    void *buf = malloc(size);
+    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(abs_path,
+                                                                buf,
+                                                                size,
+                                                                static_cast<off_t>(start),
+                                                                ::detail::pread_callback);
+    server_task->user_data = buf; /* to free() in callback() */
+    pread_task->user_data = resp;   /* pass resp pointer to pread task. */
+    server_task->set_callback([](WebTask *server_task)
+                              {
+                                  free(server_task->user_data);
+                              });
+    **server_task << pread_task;
+}
+
+void HttpFile::mount(std::string &&root)
+{
+    if(root.front() != '.' and root.front() != '/')
+    {
+        root_ = "./" + root;
+    } else if(root.front() != '.')
+    {
+        root_ = "." + root;
+    } else
+    {
+        root_ = std::move(root);
+    }
+
+}
+
+

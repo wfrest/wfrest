@@ -13,6 +13,9 @@ void HttpServer::proc(WebTask *server_task)
 {
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
+    // conntect msg to server task
+    req->set_task(server_task);
+    resp->set_task(server_task);
 
     req->set_header_map(new protocol::HttpHeaderMap(req));
 
