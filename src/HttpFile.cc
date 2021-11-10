@@ -136,7 +136,7 @@ void HttpFile::save_file(const std::string &dst_path, const void *content, size_
 
     std::string file_path = ::detail::concat_path(root_, dst_path);
 
-    fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
+    // fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
 
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
                                                                   content,

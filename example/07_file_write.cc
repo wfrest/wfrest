@@ -27,11 +27,19 @@ int main()
 
     HttpServer svr;
 
-    // todo : bug need fix
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
     svr.Post("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Save("test.txt");
+        auto *ctx = new write_ctx;
+        ctx->content = req->Body();   // multipart/form - body has boundary
+        auto *server_task = req->get_task();
+        server_task->user_data = ctx;    // for delete in server_task's callback
+
+        resp->Save("test.txt", ctx->content);
+
+        server_task->set_callback([](const WebTask *server_task) {
+            delete static_cast<write_ctx *>(server_task->user_data);
+        });
     });
 
     svr.Get("/file_write2", [](const HttpReq *req, HttpResp *resp)

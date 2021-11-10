@@ -121,15 +121,6 @@ void HttpResp::set_status(int status_code)
     protocol::HttpUtil::set_response_status(this, status_code);
 }
 
-void HttpResp::Save(const std::string &file_dst)
-{
-    const void *body;
-    size_t len;
-    this->get_parsed_body(&body, &len);
-    fprintf(stderr, "body : %s\n", static_cast<const char *>(body));
-    file_.save_file(file_dst, body, len);
-}
-
 void HttpResp::Save(const std::string &file_dst, const void *content, size_t len)
 {
     file_.save_file(file_dst, content, len);

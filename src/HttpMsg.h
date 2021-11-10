@@ -144,7 +144,6 @@ namespace wfrest
         WebTask *get_task() const { return server_task_; }
 
         // save file
-        void Save(const std::string& file_dst);
         void Save(const std::string& file_dst, const char *content, size_t len);
         void Save(const std::string& file_dst, const void *content, size_t len);
         void Save(const std::string& file_dst, const std::string& content);
