@@ -6,7 +6,6 @@
 #include "json.hpp"
 
 using namespace wfrest;
-
 using json = nlohmann::json;
 
 static WFFacilities::WaitGroup wait_group(1);

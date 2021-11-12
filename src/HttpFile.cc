@@ -9,7 +9,7 @@
 
 using namespace wfrest;
 
-namespace detail
+namespace
 {
     /*
     We do not occupy any thread to read the file, but generate an asynchronous file reading task
@@ -68,7 +68,7 @@ namespace detail
         return res;
     }
 
-}  // namespace detail
+}  // namespace
 
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
@@ -76,7 +76,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
     auto *server_task = resp->get_task();
     assert(server_task);
 
-    std::string file_path = ::detail::concat_path(root_, path);
+    std::string file_path = concat_path(root_, path);
 
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
@@ -99,7 +99,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                                                                 buf,
                                                                 size,
                                                                 static_cast<off_t>(start),
-                                                                ::detail::pread_callback);
+                                                                pread_callback);
     server_task->user_data = buf; /* to free() in callback() */
     pread_task->user_data = resp;   /* pass resp pointer to pread task. */
     server_task->set_callback([](WebTask *server_task)
@@ -129,7 +129,7 @@ void HttpFile::save_file(const std::string &dst_path, const void *content, size_
 {
     auto *server_task = resp->get_task();
 
-    std::string file_path = ::detail::concat_path(root_, dst_path);
+    std::string file_path = concat_path(root_, dst_path);
 
     // fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
 
@@ -137,7 +137,7 @@ void HttpFile::save_file(const std::string &dst_path, const void *content, size_
                                                                   content,
                                                                   size,
                                                                   0,
-                                                                  ::detail::pwrite_callback);
+                                                                  pwrite_callback);
     pwrite_task->user_data = resp;
     **server_task << pwrite_task;
 }
