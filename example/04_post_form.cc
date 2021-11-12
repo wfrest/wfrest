@@ -38,9 +38,9 @@ int main()
         }
     });
 
-//     curl -X POST http://ip:port/form \
-//     -F "file=@/path/file" \
-//     -H "Content-Type: multipart/form-data"
+    // curl -X POST http://ip:port/form \
+    // -F "file=@/path/file" \
+    // -H "Content-Type: multipart/form-data"
     svr.Post("/form", [](const HttpReq *req, HttpResp *resp)
     {
         if(req->content_type != MULTIPART_FORM_DATA)

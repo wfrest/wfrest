@@ -5,9 +5,9 @@
 #include "HttpServer.h"
 #include "HttpServerTask.h"
 #include "UriUtil.h"
+#include "Global.h"
 
 using namespace wfrest;
-
 
 void HttpServer::proc(WebTask *server_task)
 {
@@ -73,6 +73,11 @@ CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
     task->get_req()->set_size_limit(this->params.request_size_limit);
 
     return task;
+}
+
+void HttpServer::mount(std::string&& path)
+{
+    Global::get_http_file()->mount(std::move(path));
 }
 
 

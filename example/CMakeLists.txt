@@ -19,4 +19,7 @@ target_link_libraries(06_file_read wfrest)
 add_executable(07_file_write 07_file_write.cc)
 target_link_libraries(07_file_write wfrest)
 
+#add_executable(08_upload_single_file 08_upload_single_file.cc)
+#target_link_libraries(08_upload_single_file wfrest)
+
 

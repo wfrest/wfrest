@@ -3,7 +3,6 @@
 //
 
 #include "HttpFile.h"
-#include "HttpTaskUtil.h"
 #include <sys/stat.h>
 #include "HttpMsg.h"
 #include <workflow/WFTaskFactory.h>
@@ -57,11 +56,8 @@ namespace detail
     std::string concat_path(std::string& root, const std::string& path)
     {
         std::string res;
-        if (root.back() == '/' and path.front() == '/')
-        {
-            root.pop_back();
-            res = root + path;
-        } else if (root.back() != '/' and path.front() != '/')
+
+        if (path.front() != '/')
         {
             res = root + "/" + path;
         } else
@@ -73,11 +69,9 @@ namespace detail
 
 }  // namespace detail
 
-void HttpFile::send_file(const std::string &path, size_t start, size_t end)
+void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    assert(msg_);
-    auto *resp = dynamic_cast<HttpResp *>(msg_);
-
+    assert(resp);
     auto *server_task = resp->get_task();
     assert(server_task);
 
@@ -126,12 +120,12 @@ void HttpFile::mount(std::string &&root)
     {
         root_ = std::move(root);
     }
-
+    if(root_.back() == '/') root_.pop_back();
+    // ./xxx/xx
 }
 
-void HttpFile::save_file(const std::string &dst_path, const void *content, size_t size)
+void HttpFile::save_file(const std::string &dst_path, const void *content, size_t size, HttpResp *resp)
 {
-    auto *resp = dynamic_cast<HttpResp *>(msg_);
     auto *server_task = resp->get_task();
 
     std::string file_path = ::detail::concat_path(root_, dst_path);

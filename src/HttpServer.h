@@ -22,6 +22,7 @@ namespace wfrest
 
         void Post(const char *route, const Handler &handler);
 
+        void mount(std::string&& path);
     protected:
         CommSession *new_session(long long seq, CommConnection *conn) override;
 

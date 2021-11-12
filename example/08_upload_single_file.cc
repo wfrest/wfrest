@@ -25,15 +25,16 @@ int main()
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
     svr.Post("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->Body();   // multipart/form - body has boundary
-        resp->Save("test.txt", std::move(body));
-    });
+        auto *ctx = new write_ctx;
+        ctx->content = req->Body();   // multipart/form - body has boundary
+        auto *server_task = req->get_task();
+        server_task->user_data = ctx;    // for delete in server_task's callback
 
-    svr.Get("/file_write2", [](const HttpReq *req, HttpResp *resp)
-    {
-        std::string content = "1234567890987654321";
+        resp->Save("test.txt", ctx->content);
 
-        resp->Save("test1.txt", std::move(content));
+        server_task->set_callback([](const WebTask *server_task) {
+            delete static_cast<write_ctx *>(server_task->user_data);
+        });
     });
 
     if (svr.start(9001) == 0)

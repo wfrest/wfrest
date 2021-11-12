@@ -9,7 +9,9 @@ set(SRCS
         HttpContent.cc
         MultiPartParser.c
         StrUtil.cc
-        HttpFile.cc)
+        HttpFile.cc
+        Global.cc
+        )
 
 add_library(wfrest ${SRCS})
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt)

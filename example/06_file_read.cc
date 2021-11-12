@@ -22,6 +22,7 @@ int main()
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
+    svr.mount("static");
 
     svr.Get("/file1", [](const HttpReq *req, HttpResp *resp)
     {
@@ -30,38 +31,25 @@ int main()
 
     svr.Get("/file2", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->File("/static/demo.txt");
+        resp->File("html/index.html");
     });
 
     svr.Get("/file3", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->mount("static");
-        resp->File("demo.txt");
+        resp->File("/html/index.html");
     });
 
     svr.Get("/file4", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->mount("/static");
-        resp->File("demo.txt");
+        resp->File("todo.txt", 0);
     });
 
     svr.Get("/file5", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->mount("./static");
-        resp->File("demo.txt");
-    });
-
-    svr.Get("/file6", [](const HttpReq *req, HttpResp *resp)
-    {
-        resp->File("todo.txt", 0);
-    });
-
-    svr.Get("/file7", [](const HttpReq *req, HttpResp *resp)
-    {
         resp->File("todo.txt", 0, 10);
     });
 
-    svr.Get("/file8", [](const HttpReq *req, HttpResp *resp)
+    svr.Get("/file6", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt", 5, 10);
     });
