@@ -45,6 +45,8 @@ int main()
         }
     });
 
+    // Here is the right way:
+    // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     svr.Post("/upload_fix", [](HttpReq *req, HttpResp *resp)
     {
         auto files = req->post_files();
@@ -75,7 +77,7 @@ int main()
         {
             for(auto& file : files)
             {
-                resp->Save(file->filename, std::move(file->content));
+                resp->Save(PathUtil::base(file->filename), std::move(file->content));
             }
         }
     });
