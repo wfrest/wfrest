@@ -5,6 +5,7 @@
 #include "HttpServer.h"
 #include "HttpMsg.h"
 #include "workflow/WFFacilities.h"
+#include "PathUtil.h"
 #include <csignal>
 
 using namespace wfrest;
@@ -23,7 +24,9 @@ int main()
     HttpServer svr;
     svr.mount("/static");
 
-    // curl -v -X POST "ip:port/upload" -F "file=@filename" -H "Content-Type: multipart/form-data"
+    // An expriment (Upload a file to parent dir is really dangerous.):
+    // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
+    // Then you find the file is store in the parent dir, which is dangerous
     svr.Post("/upload", [](HttpReq *req, HttpResp *resp)
     {
         auto files = req->post_files();
@@ -33,7 +36,27 @@ int main()
         } else
         {
             auto *file = files[0];
+            // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
+            // The filename is always optional and must not be used blindly by the application:
+            // path information should be stripped, and conversion to the server file system rules should be done.
+            fprintf(stderr, "filename : %s\n", file->filename.c_str());
             resp->Save(file->filename, std::move(file->content));
+        }
+    });
+
+    svr.Post("/upload_fix", [](HttpReq *req, HttpResp *resp)
+    {
+        auto files = req->post_files();
+        if(files.empty())
+        {
+            resp->set_status(HttpStatusBadRequest);
+        } else
+        {
+            auto *file = files[0];
+            // simple solution to fix the problem above
+            // This will restrict the upload file to current directory.
+            resp->Save(PathUtil::base(file->filename), std::move(file->content));
         }
     });
 

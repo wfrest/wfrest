@@ -11,6 +11,7 @@ set(SRCS
         StrUtil.cc
         HttpFile.cc
         Global.cc
+        PathUtil.cc
         )
 
 add_library(wfrest ${SRCS})
