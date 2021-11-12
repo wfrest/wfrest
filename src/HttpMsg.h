@@ -74,6 +74,10 @@ namespace wfrest
         void set_task(WebTask *task) { server_task_ = task; };
         WebTask *get_task() const { return server_task_; }
 
+        // multipart/form
+        FormData* post_form(const std::string& key);
+        std::vector<FormData *> post_files();
+
     private:
         void fill_content_type();
 

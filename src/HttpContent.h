@@ -26,6 +26,8 @@ namespace wfrest
     {
         std::string filename;
         std::string content;
+
+        bool is_file() const { return !filename.empty(); }
     };
 
     // Taken From

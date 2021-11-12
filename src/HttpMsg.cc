@@ -40,7 +40,7 @@ void HttpReq::parse_body()
     this->get_parsed_body(&body, &len);
     StringPiece body_str(body, len);
 
-    if(body_str.empty()) return;
+    if (body_str.empty()) return;
 
     fill_content_type();
 
@@ -97,6 +97,25 @@ void HttpReq::fill_content_type()
     }
 }
 
+FormData *HttpReq::post_form(const std::string &key)
+{
+    if (form.find(key) != form.end()) return &form[key];
+    else return nullptr;
+}
+
+std::vector<FormData *> HttpReq::post_files()
+{
+    std::vector<FormData *> res;
+    for(auto& part : form)
+    {
+        if(part.second.is_file())
+        {
+            res.push_back(&part.second);
+        }
+    }
+    return res;
+}
+
 
 void HttpResp::String(const std::string &str)
 {
@@ -128,12 +147,13 @@ struct save_context
 void HttpResp::Save(const std::string &file_dst, const void *content, size_t len)
 {
     auto *ctx = new save_context;
-    ctx->content = std::string(static_cast<const char*>(content), len);
+    ctx->content = std::string(static_cast<const char *>(content), len);
     Global::get_http_file()->save_file(file_dst, content, len, this);
     server_task_->user_data = ctx;
-    server_task_->set_callback([](const WebTask* server_task){
-        delete static_cast<save_context *>(server_task->user_data);
-    });
+    server_task_->set_callback([](const WebTask *server_task)
+                               {
+                                   delete static_cast<save_context *>(server_task->user_data);
+                               });
 }
 
 void HttpResp::Save(const std::string &file_dst, const char *content, size_t len)
@@ -146,7 +166,7 @@ void HttpResp::Save(const std::string &file_dst, const std::string &content)
     Save(file_dst, static_cast<const void *>(content.c_str()), content.size());
 }
 
-void HttpResp::Save(const std::string &file_dst, std::string&& content)
+void HttpResp::Save(const std::string &file_dst, std::string &&content)
 {
     auto *ctx = new save_context;
     ctx->content = std::move(content);
@@ -155,9 +175,10 @@ void HttpResp::Save(const std::string &file_dst, std::string&& content)
                                        ctx->content.size(),
                                        this);
     server_task_->user_data = ctx;
-    server_task_->set_callback([](const WebTask* server_task){
-        delete static_cast<save_context *>(server_task->user_data);
-    });
+    server_task_->set_callback([](const WebTask *server_task)
+                               {
+                                   delete static_cast<save_context *>(server_task->user_data);
+                               });
 }
 
 
