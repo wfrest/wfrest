@@ -102,7 +102,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                                                                 pread_callback);
     server_task->user_data = buf; /* to free() in callback() */
     pread_task->user_data = resp;   /* pass resp pointer to pread task. */
-    server_task->set_callback([](WebTask *server_task)
+    server_task->set_callback([](HttpTask *server_task)
                               {
                                   free(server_task->user_data);
                               });

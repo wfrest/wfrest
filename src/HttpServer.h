@@ -27,7 +27,7 @@ namespace wfrest
         CommSession *new_session(long long seq, CommConnection *conn) override;
 
     private:
-        void proc(WebTask *server_task);
+        void proc(HttpTask *server_task);
 
     private:
         Router router_{};

@@ -18,7 +18,7 @@ namespace
         save_context* next = nullptr;
     };
 
-    void save_callback(const WebTask *server_task)
+    void save_callback(const HttpTask *server_task)
     {
         auto *ctx = static_cast<save_context *>(server_task->user_data);
         while(ctx != nullptr)

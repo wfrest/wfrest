@@ -18,7 +18,7 @@ namespace wfrest
 
     class HttpReq;
     class HttpResp;
-    using WebTask = WFNetworkTask<HttpReq, HttpResp>;
+    using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
     class HttpReq : public protocol::HttpRequest
     {
@@ -71,8 +71,8 @@ namespace wfrest
         bool has_query(const std::string &key);
 
         // connect to server_task
-        void set_task(WebTask *task) { server_task_ = task; };
-        WebTask *get_task() const { return server_task_; }
+        void set_task(HttpTask *task) { server_task_ = task; };
+        HttpTask *get_task() const { return server_task_; }
 
         // multipart/form
         FormData* post_form(const std::string& key);
@@ -91,8 +91,8 @@ namespace wfrest
         ParsedURI parsed_uri_;
         QueryParams query_params_;
         MultiPartForm multi_part_;
-        protocol::HttpHeaderMap *header_;
-        WebTask* server_task_ = nullptr;
+        protocol::HttpHeaderMap *header_;   // todo : is it safe here?
+        HttpTask* server_task_ = nullptr;
     };
 
     template<>
@@ -145,11 +145,11 @@ namespace wfrest
         { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
         // connect to server_task
-        void set_task(WebTask *task) { server_task_ = task; };
-        WebTask *get_task() const { return server_task_; }
+        void set_task(HttpTask *task) { server_task_ = task; };
+        HttpTask *get_task() const { return server_task_; }
 
     private:
-        WebTask *server_task_ = nullptr;
+        HttpTask *server_task_ = nullptr;
     };
 
 

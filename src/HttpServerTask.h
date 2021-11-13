@@ -8,13 +8,13 @@
 namespace wfrest
 {
 
-    using WebTask = WFNetworkTask<HttpReq, HttpResp>;
+    using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
     class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
     {
     public:
         HttpServerTask(CommService *service,
-                       std::function<void(WebTask *)> &process);
+                       std::function<void(HttpTask *)> &process);
 
     protected:
         void handle(int state, int error) override;
