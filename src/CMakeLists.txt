@@ -12,7 +12,7 @@ set(SRCS
         HttpFile.cc
         Global.cc
         PathUtil.cc
-        HttpServerBase.cc HttpServerBase.h)
+        )
 
 add_library(wfrest ${SRCS})
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt)

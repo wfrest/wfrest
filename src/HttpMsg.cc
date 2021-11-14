@@ -18,7 +18,7 @@ namespace
         save_context* next = nullptr;
     };
 
-    void save_callback(const HttpTask *server_task)
+    void save_callback(HttpTask *server_task)
     {
         auto *ctx = static_cast<save_context *>(server_task->user_data);
         while(ctx != nullptr)
@@ -172,7 +172,7 @@ void HttpResp::Save(const std::string &file_dst, const void *content, size_t len
     if(server_task_->user_data == nullptr)
     {
         server_task_->user_data = ctx;
-        server_task_->set_callback(save_callback);
+        server_task_->add_callback(save_callback);
     } else
     {
         ctx->next = static_cast<save_context *>(server_task_->user_data);
@@ -201,7 +201,7 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
     if(server_task_->user_data == nullptr)
     {
         server_task_->user_data = ctx;
-        server_task_->set_callback(save_callback);
+        server_task_->add_callback(save_callback);
     } else
     {
         ctx->next = static_cast<save_context *>(server_task_->user_data);

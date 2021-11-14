@@ -1,14 +1,17 @@
 #ifndef _HTTPMSG_H_
 #define _HTTPMSG_H_
 
-#include "workflow/HttpMessage.h"
-#include "workflow/WFTaskFactory.h"
+#include <workflow/HttpMessage.h>
+#include <workflow/WFTaskFactory.h>
+#include <workflow/HttpUtil.h>
+
 #include <fcntl.h>
 #include <unordered_map>
-#include <workflow/HttpUtil.h>
+
 #include "HttpDef.h"
 #include "HttpContent.h"
 #include "HttpFile.h"
+#include "NetworkTask.h"
 
 namespace wfrest
 {
@@ -18,7 +21,7 @@ namespace wfrest
 
     class HttpReq;
     class HttpResp;
-    using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
+    using HttpTask = NetworkTask<HttpReq, HttpResp>;
 
     class HttpReq : public protocol::HttpRequest
     {

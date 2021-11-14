@@ -8,8 +8,8 @@ using namespace protocol;
 #define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
 HttpServerTask::HttpServerTask(CommService *service,
-                               std::function<void(HttpTask *)> &process) :
-        WFServerTask(service, WFGlobal::get_scheduler(), process),
+                               ProcCallBack &process) :
+        ServerTask(service, WFGlobal::get_scheduler(), process),
         req_is_alive_(false),
         req_has_keep_alive_header_(false)
 {}
@@ -34,7 +34,7 @@ void HttpServerTask::handle(int state, int error)
             }
         }
     }
-    this->WFServerTask::handle(state, error);
+    this->ServerTask::handle(state, error);
 }
 
 
@@ -141,5 +141,5 @@ CommMessageOut *HttpServerTask::message_out()
         resp->add_header(&header);
     }
 
-    return this->WFServerTask::message_out();
+    return this->ServerTask::message_out();
 }

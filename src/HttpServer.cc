@@ -67,7 +67,7 @@ void HttpServer::Post(const char *route, const Handler &handler)
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 {
-    HttpTask *task = new HttpServerTask(this, this->process);
+    HttpTask *task = new HttpServerTask(this, process_);
     task->set_keep_alive(this->params.keep_alive_timeout);
     task->set_receive_timeout(this->params.receive_timeout);
     task->get_req()->set_size_limit(this->params.request_size_limit);

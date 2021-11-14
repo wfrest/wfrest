@@ -2,20 +2,23 @@
 #define _HTTPSERVER_H_
 
 #include <workflow/WFHttpServer.h>
+
 #include <unordered_map>
 #include <string>
+
 #include "HttpMsg.h"
 #include "Router.h"
 #include "VerbHandler.h"
+#include "ServerBase.h"
 
 namespace wfrest
 {
 
-    class HttpServer : public WFServer<HttpReq, HttpResp>
+    class HttpServer : public ServerBase<HttpReq, HttpResp>
     {
     public:
         HttpServer() :
-                WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
+                ServerBase(std::bind(&HttpServer::proc, this, std::placeholders::_1))
         {}
 
         void Get(const char *route, const Handler &handler);

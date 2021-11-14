@@ -2,19 +2,20 @@
 #define _HTTPSERVERTASK_H_
 
 #include "HttpMsg.h"
-#include "workflow/HttpUtil.h"
-#include "workflow/HttpMessage.h"
+#include "ServerTask.h"
+#include "NetworkTask.h"
+#include <workflow/HttpUtil.h>
+#include <workflow/HttpMessage.h>
 
 namespace wfrest
 {
+    using HttpTask = NetworkTask<HttpReq, HttpResp>;
 
-    using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
-
-    class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
+    class HttpServerTask : public ServerTask<HttpReq, HttpResp>
     {
     public:
-        HttpServerTask(CommService *service,
-                       std::function<void(HttpTask *)> &process);
+        using ProcCallBack = std::function<void(HttpTask *)>;
+        HttpServerTask(CommService *service, ProcCallBack &process);
 
     protected:
         void handle(int state, int error) override;
