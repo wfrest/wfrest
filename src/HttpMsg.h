@@ -26,7 +26,6 @@ namespace wfrest
     class HttpReq : public protocol::HttpRequest
     {
     public:
-        ~HttpReq() override { delete header_; }
         // chunked body
         std::string Body() const;
 
@@ -94,7 +93,7 @@ namespace wfrest
         ParsedURI parsed_uri_;
         QueryParams query_params_;
         MultiPartForm multi_part_;
-        protocol::HttpHeaderMap *header_;   // todo : is it safe here?
+        protocol::HttpHeaderMap *header_;
         HttpTask* server_task_ = nullptr;
     };
 
@@ -135,9 +134,8 @@ namespace wfrest
 
         // todo : json / file clear_output_body
         // file
-        void File(const std::string &path, size_t start = 0, size_t end = 0);
+        void File(const std::string &path, int start = 0, int end = -1);
         // save file
-        void Save(const std::string& file_dst, const char *content, size_t len);
         void Save(const std::string& file_dst, const void *content, size_t len);
         void Save(const std::string& file_dst, const std::string& content);
         void Save(const std::string& file_dst, std::string&& content);

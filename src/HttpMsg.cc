@@ -11,23 +11,10 @@ using namespace wfrest;
 
 namespace
 {
-
     struct save_context
     {
         std::string content;
-        save_context* next = nullptr;
     };
-
-    void save_callback(HttpTask *server_task)
-    {
-        auto *ctx = static_cast<save_context *>(server_task->user_data);
-        while(ctx != nullptr)
-        {
-            auto *ctx_tmp = ctx;
-            ctx = ctx->next;
-            delete ctx_tmp;
-        }
-    }
 
 } // namespace
 
@@ -152,7 +139,7 @@ void HttpResp::String(const char *data, size_t len)
     this->append_output_body(static_cast<const void *>(data), len);
 }
 
-void HttpResp::File(const std::string &path, size_t start, size_t end)
+void HttpResp::File(const std::string &path, int start, int end)
 {
     Global::get_http_file()->send_file(path, start, end, this);
 }
@@ -162,27 +149,14 @@ void HttpResp::set_status(int status_code)
     protocol::HttpUtil::set_response_status(this, status_code);
 }
 
-
-
 void HttpResp::Save(const std::string &file_dst, const void *content, size_t len)
 {
     auto *ctx = new save_context;
     ctx->content = std::string(static_cast<const char *>(content), len);
     Global::get_http_file()->save_file(file_dst, content, len, this);
-    if(server_task_->user_data == nullptr)
-    {
-        server_task_->user_data = ctx;
-        server_task_->add_callback(save_callback);
-    } else
-    {
-        ctx->next = static_cast<save_context *>(server_task_->user_data);
-        server_task_->user_data = ctx;
-    }
-}
-
-void HttpResp::Save(const std::string &file_dst, const char *content, size_t len)
-{
-    Save(file_dst, static_cast<const void *>(content), len);
+    server_task_->add_callback([ctx](const HttpTask *) {
+        delete ctx;
+    });
 }
 
 void HttpResp::Save(const std::string &file_dst, const std::string &content)
@@ -198,15 +172,10 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
                                        static_cast<const void *>(ctx->content.c_str()),
                                        ctx->content.size(),
                                        this);
-    if(server_task_->user_data == nullptr)
-    {
-        server_task_->user_data = ctx;
-        server_task_->add_callback(save_callback);
-    } else
-    {
-        ctx->next = static_cast<save_context *>(server_task_->user_data);
-        server_task_->user_data = ctx;
-    }
+    server_task_->add_callback([ctx](const HttpTask *) {
+        delete ctx;
+    });
+
 
 }
 

@@ -23,6 +23,7 @@ int main()
     HttpServer svr;
 
     // This handler will match /user/chanchan but will not match /user/ or /user
+    // curl -v "ip:port/user/chanchan/"
     svr.Get("/user/{name}", [](HttpReq *req, HttpResp *resp)
     {
         std::string name = req->param("name");

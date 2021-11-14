@@ -15,15 +15,23 @@ namespace wfrest
     class NetworkTask : public WFNetworkTask<REQ, RESP>
     {
     public:
-        using NetWorkCallBack = std::function<void (NetworkTask<REQ, RESP> *)>;
+        using NetWorkCallBack = std::function<void(NetworkTask<REQ, RESP> *)>;
 
         void add_callback(NetWorkCallBack cb)
         {
             cb_list_.emplace_back(std::move(cb));
         }
+
     protected:
         NetworkTask(CommSchedObject *object, CommScheduler *scheduler);
+
         virtual SubTask *done();
+
+    private:
+        // for hidding this function
+        void set_callback(NetWorkCallBack cb)
+        {}
+
     protected:
         std::vector<NetWorkCallBack> cb_list_;
     };
@@ -37,25 +45,18 @@ namespace wfrest
     SubTask *NetworkTask<REQ, RESP>::done()
     {
         SeriesWork *series = series_of(this);
-
         if (this->state == WFT_STATE_SYS_ERROR && this->error < 0)
         {
             this->state = WFT_STATE_SSL_ERROR;
             this->error = -this->error;
         }
-
-        if (this->callback)
-            this->callback(this);
-
-        for(auto& cb : cb_list_)
+        for (auto &cb: cb_list_)
         {
             cb(this);
         }
-
         delete this;
         return series->pop();
     }
-
 
 
 }   // namespace wfrest

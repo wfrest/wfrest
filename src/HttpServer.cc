@@ -17,7 +17,11 @@ void HttpServer::proc(HttpTask *server_task)
     req->set_task(server_task);
     resp->set_task(server_task);
 
-    req->set_header_map(new protocol::HttpHeaderMap(req));
+    auto *header_map_ptr = new protocol::HttpHeaderMap(req);
+    req->set_header_map(header_map_ptr);
+    server_task->add_callback([header_map_ptr](const HttpTask *) {
+        delete header_map_ptr;
+    });
 
     std::string host = req->header("Host");
 

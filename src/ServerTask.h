@@ -13,9 +13,9 @@ namespace wfrest
     class ServerTask : public NetworkTask<REQ, RESP>
     {
     public:
-        using ProcCallBack = std::function<void(NetworkTask<REQ, RESP> *)>;
+        using ProcFunc = std::function<void(NetworkTask < REQ, RESP > *)>;
 
-        ServerTask(CommService *service, CommScheduler *scheduler, ProcCallBack &proc);
+        ServerTask(CommService *service, CommScheduler *scheduler, ProcFunc &proc);
 
     protected:
         virtual ~ServerTask() = default;
@@ -36,7 +36,7 @@ namespace wfrest
         class Processor : public SubTask
         {
         public:
-            Processor(ServerTask<REQ, RESP> *task, ProcCallBack &proc);
+            Processor(ServerTask<REQ, RESP> *task, ProcFunc &proc);
 
             virtual void dispatch();
 
@@ -44,7 +44,7 @@ namespace wfrest
 
         public:
             ServerTask<REQ, RESP> *task_;
-            ProcCallBack &process_;
+            ProcFunc &process_;
         };
 
         class Series : public SeriesWork
@@ -78,7 +78,7 @@ namespace wfrest
     }
 
     template<class REQ, class RESP>
-    ServerTask<REQ, RESP>::Processor::Processor(ServerTask<REQ, RESP> *task, ServerTask::ProcCallBack &proc)
+    ServerTask<REQ, RESP>::Processor::Processor(ServerTask<REQ, RESP> *task, ServerTask::ProcFunc &proc)
             :  task_(task), process_(proc)
     {}
 
@@ -98,7 +98,7 @@ namespace wfrest
 
 
     template<class REQ, class RESP>
-    ServerTask<REQ, RESP>::ServerTask(CommService *service, CommScheduler *scheduler, ServerTask::ProcCallBack &proc)
+    ServerTask<REQ, RESP>::ServerTask(CommService *service, CommScheduler *scheduler, ServerTask::ProcFunc &proc)
             : NetworkTask<REQ, RESP>(nullptr, scheduler),
               processor_(this, proc),
               service_(service)

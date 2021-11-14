@@ -26,11 +26,10 @@ namespace
         long ret = pread_task->get_retval();
         auto *resp = static_cast<HttpResp *>(pread_task->user_data);
 
-        // todo : give this process to user
         if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
         {
             resp->set_status_code("503");
-            resp->append_output_body("<html>503 Internal Server Error.</html>");
+            resp->append_output_body_nocopy("<html>503 Internal Server Error.</html>\r\n", 41);
         } else
         {
             resp->append_output_body_nocopy(args->buf, ret);
@@ -45,16 +44,15 @@ namespace
         if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
         {
             resp->set_status_code("503");
-            resp->append_output_body("<html>503 Internal Server Error.</html>\r\n");
-        }
-        else
+            resp->append_output_body_nocopy("<html>503 Internal Server Error.</html>\r\n", 41);
+        } else
         {
             resp->set_status_code("200");
-            resp->append_output_body("<html>save 200 success.</html>\r\n");
+            resp->append_output_body_nocopy("<html>save 200 success.</html>\r\n", 32);
         }
     }
 
-    std::string concat_path(std::string& root, const std::string& path)
+    std::string concat_path(std::string &root, const std::string &path)
     {
         std::string res;
 
@@ -70,24 +68,37 @@ namespace
 
 }  // namespace
 
-void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
+void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *resp)
 {
-    assert(resp);
+    if (start < 0)
+    {
+        fprintf(stderr, "start parameter should not be negative\n");
+        resp->append_output_body_nocopy("start parameter should not be negative\n", 39);
+        return;
+    }
     auto *server_task = resp->get_task();
-    assert(server_task);
-
     std::string file_path = concat_path(root_, path);
-
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
-    if (end == 0)
+    if (end == -1)
     {
         struct stat st{};
         stat(file_path.c_str(), &st);
         end = st.st_size;
     }
+
+    if(end < start)
+    {
+        fprintf(stderr, "File size should greater or equal than zero\n");
+        resp->append_output_body_nocopy("File size should greater or equal than zero\n", 44);
+        return;
+    }
     size_t size = end - start;
     void *buf = malloc(size);
+    server_task->add_callback([buf](HttpTask *server_task)
+                              {
+                                  free(buf);
+                              });
     // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
     // Content-Range: bytes 42-1233/1234
     resp->add_header_pair("Content-Range",
@@ -100,28 +111,23 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                                                                 size,
                                                                 static_cast<off_t>(start),
                                                                 pread_callback);
-    server_task->user_data = buf; /* to free() in callback() */
     pread_task->user_data = resp;   /* pass resp pointer to pread task. */
-    server_task->add_callback([](HttpTask *server_task)
-                              {
-                                  free(server_task->user_data);
-                              });
     **server_task << pread_task;
 }
 
 void HttpFile::mount(std::string &&root)
 {
-    if(root.front() != '.' and root.front() != '/')
+    if (root.front() != '.' and root.front() != '/')
     {
         root_ = "./" + root;
-    } else if(root.front() != '.')
+    } else if (root.front() != '.')
     {
         root_ = "." + root;
     } else
     {
         root_ = std::move(root);
     }
-    if(root_.back() == '/') root_.pop_back();
+    if (root_.back() == '/') root_.pop_back();
     // ./xxx/xx
 }
 
