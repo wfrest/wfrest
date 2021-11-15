@@ -1,11 +1,14 @@
-#include "HttpMsg.h"
-#include "workflow/HttpUtil.h"
+#include <workflow/HttpUtil.h>
+
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
+
+#include "HttpMsg.h"
 #include "UriUtil.h"
 #include "StrUtil.h"
 #include "Global.h"
+#include "PathUtil.h"
 
 using namespace wfrest;
 
@@ -144,6 +147,15 @@ void HttpResp::File(const std::string &path, int start, int end)
     Global::get_http_file()->send_file(path, start, end, this);
 }
 
+void HttpResp::File(const std::vector<std::string>& path_list)
+{
+    this->add_header_pair("Content-Type", "multipart/form-data");
+    for(int i = 0; i < path_list.size(); i++)
+    {
+        Global::get_http_file()->send_file_for_multi(path_list, i, this);
+    }
+}
+
 void HttpResp::set_status(int status_code)
 {
     protocol::HttpUtil::set_response_status(this, status_code);
@@ -190,11 +202,11 @@ void HttpResp::Json(const std::string &str)
         this->String("JSON is invalid");
         return;
     }
+    this->add_header_pair("Content-Type", "application/json");
     // should we just don't care format?
     // this->String(str);
     this->String(Json::parse(str).dump());
 }
-
 
 
 

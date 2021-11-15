@@ -3,6 +3,7 @@
 //
 
 #include "HttpDef.h"
+#include <cstring>
 
 namespace wfrest
 {
@@ -42,6 +43,21 @@ namespace wfrest
         HTTP_CONTENT_TYPE_MAP(XX)
 #undef XX
         return CONTENT_TYPE_UNDEFINED;
+    }
+
+    std::string ContentType::to_string_by_suffix(const char *str)
+    {
+        if (!str || !*str)
+        {
+            return "";
+        }
+#define XX(name, string, suffix) \
+    if (strcmp(str, #suffix) == 0) { \
+        return #string; \
+    }
+        HTTP_CONTENT_TYPE_MAP(XX)
+#undef XX
+        return "";
     }
 
 }  // wfrest

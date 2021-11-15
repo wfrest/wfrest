@@ -6,6 +6,7 @@
 #define _HTTPFILE_H_
 
 #include <string>
+#include <vector>
 #include <workflow/HttpMessage.h>
 
 namespace wfrest
@@ -22,6 +23,8 @@ namespace wfrest
         }
 
         void send_file(const std::string &path, int start, int end, HttpResp *resp);
+        void send_file_for_multi(const std::vector<std::string>& path_list, int i, HttpResp *resp);
+
         void mount(std::string &&root);
 
         void save_file(const std::string &dst_path, const void* content, size_t size, HttpResp *resp);

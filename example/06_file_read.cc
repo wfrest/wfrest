@@ -24,6 +24,9 @@ int main()
     HttpServer svr;
     svr.mount("static");
 
+    // todo : how to serve mulitple static files ? necessary?
+    // we can add batch files interface;
+    // TODO : How to avoid multiple operation which make different content mix together?
     svr.Get("/file1", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt");

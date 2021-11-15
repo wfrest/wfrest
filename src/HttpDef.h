@@ -47,7 +47,11 @@ namespace wfrest
     public:
         static std::string to_string(enum http_content_type type);
 
+        static std::string to_string_by_suffix(const char* str);
+
         static enum http_content_type to_enum(const std::string &content_type_str);
+
+
     };
 
 

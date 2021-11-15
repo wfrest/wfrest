@@ -135,6 +135,7 @@ namespace wfrest
         // todo : json / file clear_output_body
         // file
         void File(const std::string &path, int start = 0, int end = -1);
+        void File(const std::vector<std::string>& path_list);
         // save file
         void Save(const std::string& file_dst, const void *content, size_t len);
         void Save(const std::string& file_dst, const std::string& content);
