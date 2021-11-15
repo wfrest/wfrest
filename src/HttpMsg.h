@@ -140,6 +140,10 @@ namespace wfrest
         void Save(const std::string& file_dst, const std::string& content);
         void Save(const std::string& file_dst, std::string&& content);
 
+        // json
+        void Json(const Json &json);
+        void Json(const std::string& str);
+
         void set_status(int status_code);
 
         void test()

@@ -175,8 +175,24 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
     server_task_->add_callback([ctx](const HttpTask *) {
         delete ctx;
     });
+}
 
+void HttpResp::Json(const ::Json &json)
+{
+    this->add_header_pair("Content-Type", "application/json");
+    this->String(json.dump());
+}
 
+void HttpResp::Json(const std::string &str)
+{
+    if(!Json::accept(str))
+    {
+        this->String("JSON is invalid");
+        return;
+    }
+    // should we just don't care format?
+    // this->String(str);
+    this->String(Json::parse(str).dump());
 }
 
 

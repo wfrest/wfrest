@@ -1,7 +1,7 @@
 #include "HttpServer.h"
 #include "HttpMsg.h"
-#include "workflow/WFFacilities.h"
-#include "workflow/HttpUtil.h"
+#include <workflow/WFFacilities.h>
+#include <workflow/HttpUtil.h>
 #include <csignal>
 #include "json.hpp"
 
@@ -37,7 +37,6 @@ int main()
         std::string name = req->param("name");
         resp->String(name + "\n");
     });
-
 
     // We do not provide a built-in json library,
     // users can choose the json library according to their preferences

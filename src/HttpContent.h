@@ -10,6 +10,7 @@
 #include "MultiPartParser.h"
 #include "Macro.h"
 #include "StringPiece.h"
+#include "json.hpp"
 
 namespace wfrest
 {
@@ -69,6 +70,11 @@ namespace wfrest
 
         multipart_parser_settings settings_{};
     };
+
+        // Json
+        // https://github.com/nlohmann/json
+        using Json = nlohmann::json;
+
 }  // wfrest
 
 #endif //_HTTPCONTENT_H_

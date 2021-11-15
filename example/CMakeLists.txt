@@ -1,4 +1,4 @@
-add_executable(01_basic 01_basic.cc 05_header.cc)
+add_executable(01_basic 01_basic.cc 05_header.cc 09_json.cc)
 target_link_libraries(01_basic wfrest)
 
 add_executable(02_parameter 02_parameter_path.cc)
@@ -21,5 +21,9 @@ target_link_libraries(07_file_write wfrest)
 
 add_executable(08_upload_file 08_upload_file.cc)
 target_link_libraries(08_upload_file wfrest)
+
+add_executable(09_json 09_json.cc)
+target_link_libraries(09_json wfrest)
+
 
 
