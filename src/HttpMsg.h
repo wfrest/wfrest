@@ -86,11 +86,13 @@ namespace wfrest
     public:
         Urlencode::KV kv;
         MultiPartForm::MultiPart form;
+        Json json;
         http_content_type content_type;
     private:
         RouteParams route_params_;
         std::string route_full_path_;
         ParsedURI parsed_uri_;
+        StringPiece body_;
         QueryParams query_params_;
         MultiPartForm multi_part_;
         protocol::HttpHeaderMap *header_;
@@ -132,7 +134,6 @@ namespace wfrest
         void String(const std::string &str);
         void String(const char *data, size_t len);
 
-        // todo : json / file clear_output_body
         // file
         void File(const std::string &path, int start = 0, int end = -1);
         void File(const std::vector<std::string>& path_list);

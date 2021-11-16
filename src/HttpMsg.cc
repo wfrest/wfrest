@@ -51,20 +51,43 @@ void HttpReq::parse_body()
     const void *body;
     size_t len;
     this->get_parsed_body(&body, &len);
-    StringPiece body_str(body, len);
 
-    if (body_str.empty()) return;
+    StringPiece body_piece(body, len);
+    if (body_piece.empty()) return;
 
     fill_content_type();
+
+    std::string chunked_body;
+    if ((this->is_chunked() && (content_type == X_WWW_FORM_URLENCODED || content_type == MULTIPART_FORM_DATA))
+        || content_type == APPLICATION_JSON)
+    {
+        chunked_body = this->Body();
+        body_piece = StringPiece(chunked_body);
+    }
 
     switch (content_type)
     {
         case X_WWW_FORM_URLENCODED:
-            Urlencode::parse_query_params(body_str, kv);
+        {
+            Urlencode::parse_query_params(body_piece, kv);
             break;
+        }
         case MULTIPART_FORM_DATA:
-            multi_part_.parse_multipart(body_str, form);
-            break; // do nothing
+        {
+            multi_part_.parse_multipart(body_piece, form);
+            break;
+        }
+        case APPLICATION_JSON:
+        {
+            fprintf(stderr, "%s\n", chunked_body.c_str());
+            if (!Json::accept(chunked_body))
+            {
+                fprintf(stderr, "json is invalid\n");
+                break;
+                // todo : how to let user know the error ?
+            }
+            json = Json::parse(chunked_body);
+        }
         default:
             break;// do nothing
     }
@@ -75,31 +98,12 @@ void HttpReq::fill_content_type()
     std::string content_type_str = header("Content-Type");
     content_type = ContentType::to_enum(content_type_str);
 
-//    if (content_type == CONTENT_TYPE_NONE) {
-//        if (!form.empty()) {
-//            content_type = MULTIPART_FORM_DATA;
-//        }
-//        else if (!kv.empty()) {
-//            content_type = X_WWW_FORM_URLENCODED;
-//        }
-//        else {
-//            content_type = TEXT_PLAIN;
-//        }
-//    }
-    // todo : we need fill this in header? add interface to change the header value?
-    // if (content_type != CONTENT_TYPE_NONE) {
-    //    header("Content-Type") = ContentType::to_string(content_type);
-    // }
-
     if (content_type == MULTIPART_FORM_DATA)
     {
         // if type is multipart form, we reserve the boudary first
         const char *boundary = strstr(content_type_str.c_str(), "boundary=");
         if (boundary == nullptr)
         {
-            // todo : do we need to add default to header field ?
-            // header("Content-Type") += "; boundary=" + MultiPartForm::default_boundary;
-            // multi_part_.set_boundary(MultiPartForm::default_boundary);
             return;
         }
         boundary += strlen("boundary=");
@@ -119,9 +123,9 @@ FormData *HttpReq::post_form(const std::string &key)
 std::vector<FormData *> HttpReq::post_files()
 {
     std::vector<FormData *> res;
-    for(auto& part : form)
+    for (auto &part: form)
     {
-        if(part.second.is_file())
+        if (part.second.is_file())
         {
             res.push_back(&part.second);
         }
@@ -129,13 +133,11 @@ std::vector<FormData *> HttpReq::post_files()
     return res;
 }
 
-
 void HttpResp::String(const std::string &str)
 {
     // bool append_output_body(const void *buf, size_t size);
     this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
 }
-
 
 void HttpResp::String(const char *data, size_t len)
 {
@@ -147,10 +149,10 @@ void HttpResp::File(const std::string &path, int start, int end)
     Global::get_http_file()->send_file(path, start, end, this);
 }
 
-void HttpResp::File(const std::vector<std::string>& path_list)
+void HttpResp::File(const std::vector<std::string> &path_list)
 {
     this->add_header_pair("Content-Type", "multipart/form-data");
-    for(int i = 0; i < path_list.size(); i++)
+    for (int i = 0; i < path_list.size(); i++)
     {
         Global::get_http_file()->send_file_for_multi(path_list, i, this);
     }
@@ -166,9 +168,10 @@ void HttpResp::Save(const std::string &file_dst, const void *content, size_t len
     auto *ctx = new save_context;
     ctx->content = std::string(static_cast<const char *>(content), len);
     Global::get_http_file()->save_file(file_dst, content, len, this);
-    server_task_->add_callback([ctx](const HttpTask *) {
-        delete ctx;
-    });
+    server_task_->add_callback([ctx](const HttpTask *)
+                               {
+                                   delete ctx;
+                               });
 }
 
 void HttpResp::Save(const std::string &file_dst, const std::string &content)
@@ -184,9 +187,10 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
                                        static_cast<const void *>(ctx->content.c_str()),
                                        ctx->content.size(),
                                        this);
-    server_task_->add_callback([ctx](const HttpTask *) {
-        delete ctx;
-    });
+    server_task_->add_callback([ctx](const HttpTask *)
+                               {
+                                   delete ctx;
+                               });
 }
 
 void HttpResp::Json(const ::Json &json)
@@ -197,7 +201,7 @@ void HttpResp::Json(const ::Json &json)
 
 void HttpResp::Json(const std::string &str)
 {
-    if(!Json::accept(str))
+    if (!Json::accept(str))
     {
         this->String("JSON is invalid");
         return;
