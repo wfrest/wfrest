@@ -24,9 +24,7 @@ int main()
     HttpServer svr;
     svr.mount("static");
 
-    // todo : how to serve mulitple static files ? necessary?
-    // we can add batch files interface;
-    // TODO : How to avoid multiple operation which make different content mix together?
+    // single files
     svr.Get("/file1", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt");
@@ -55,6 +53,13 @@ int main()
     svr.Get("/file6", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt", 5, 10);
+    });
+
+    // multiple files
+    svr.Get("/multi_files", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::vector<std::string> file_list = {"test.txt", "todo.txt", "test1.txt"};
+        resp->File(file_list);
     });
 
     if (svr.start(9001) == 0)

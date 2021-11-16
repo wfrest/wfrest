@@ -39,12 +39,51 @@ namespace
         }
     }
 
+    struct pread_multi_context
+    {
+        std::string file_name;
+        int file_index;
+        bool last = false;
+    };
+
+    std::string build_multi_part_one(const std::string& file_name, int idx)
+    {
+        std::string str;
+        str.reserve(256);  // reserve space avoid copy
+        // todo : how to generate name ?
+        str.append("--");
+        str.append(MultiPartForm::default_boundary);
+        str.append("\r\n");
+        str.append("Content-Disposition: form-data; name=");
+        str.append("\"file");
+        str.append(std::to_string(idx));
+        str.append("\"; filename= \"");
+        str.append(file_name);
+        str.append("\"");
+
+        const char* suffix = strrchr(file_name.c_str(), '.');
+        if (suffix) {
+            std::string stype = ContentType::to_string_by_suffix(++suffix);
+            if (!stype.empty()) {
+                str.append("\r\n");
+                str.append("Content-Type: ");
+                str.append(stype);
+            }
+        }
+        str.append("\r\n\r\n");
+        return str;
+    }
+
     void pread_multi_callback(WFFileIOTask *pread_task)
     {
         FileIOArgs *args = pread_task->get_args();
         long ret = pread_task->get_retval();
+        auto* ctx = static_cast<pread_multi_context *>(pread_task->user_data);
         auto *resp = static_cast<HttpResp *>(series_of(pread_task)->get_context());
-        auto* last = static_cast<int *>(pread_task->user_data);
+
+        std::string part_one = build_multi_part_one(ctx->file_name, ctx->file_index);
+        resp->append_output_body(part_one);
+
         if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
         {
             resp->set_status_code("503");
@@ -53,15 +92,18 @@ namespace
         {
             resp->append_output_body_nocopy(args->buf, ret);
             resp->append_output_body_nocopy("\r\n", 2);
-            if(!last)   // last one
-            {
-                std::string multi_part_end = "--";
-                multi_part_end.append(MultiPartForm::default_boundary);
-                multi_part_end.append("--");
-                resp->append_output_body(multi_part_end);
-                delete last;
-            }
         }
+        if(ctx->last)   // last one
+        {
+            std::string multi_part_end;
+            multi_part_end.reserve(128);
+            multi_part_end.append("--");
+            // RFC1521 says that a boundary "must be no longer than 70 characters, not counting the two leading hyphens".
+            multi_part_end.append(MultiPartForm::default_boundary);
+            multi_part_end.append("--");
+            resp->append_output_body(multi_part_end);
+        }
+        delete ctx;
     }
 
     void pwrite_callback(WFFileIOTask *pwrite_task)
@@ -94,33 +136,6 @@ namespace
         return res;
     }
 
-    std::string build_multi_part_one(const std::string& path, int i)
-    {
-        std::string str;
-        // todo : how to generate name ?
-        std::string file_name = PathUtil::base(path);
-        str.append("--");
-        str.append(MultiPartForm::default_boundary);
-        str.append("\r\n");
-        str.append("Content-Disposition: form-data; name=");
-        str.append("\"file");
-        str.append(std::to_string(i));
-        str.append("\"; filename= \"");
-        str.append(file_name);
-        str.append("\"");
-
-        const char* suffix = strrchr(file_name.c_str(), '.');
-        if (suffix) {
-            std::string stype = ContentType::to_string_by_suffix(++suffix);
-            if (!stype.empty()) {
-                str.append("\r\n");
-                str.append("Content-Type: ");
-                str.append(stype);
-            }
-        }
-        str.append("\r\n\r\n");
-        return str;
-    }
 
 }  // namespace
 
@@ -171,14 +186,20 @@ void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *
     **server_task << pread_task;
 }
 
-void HttpFile::send_file_for_multi(const std::vector<std::string>& path_list, int i, HttpResp *resp)
+void HttpFile::send_file_for_multi(const std::vector<std::string>& path_list, int path_idx, HttpResp *resp)
 {
     auto *server_task = resp->get_task();
-    std::string file_path = concat_path(root_, path_list[i]);
+    std::string file_path = concat_path(root_, path_list[path_idx]);
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
-    std::string part_one = build_multi_part_one(path_list[i], i);
-    resp->append_output_body(part_one);
+    auto *ctx = new pread_multi_context;
+    ctx->file_name = PathUtil::base(path_list[path_idx]);
+    ctx->file_index = path_idx;
+    if(path_idx == path_list.size() - 1)
+    {
+        // last one
+        ctx->last = true;
+    }
 
     struct stat st{};
     stat(file_path.c_str(), &st);
@@ -194,14 +215,10 @@ void HttpFile::send_file_for_multi(const std::vector<std::string>& path_list, in
                                                                 size,
                                                                 0,
                                                                 pread_multi_callback);
-    if(i == path_list.size() - 1)
-    {
-        int *last = new int;
-        pread_task->user_data = last;
-    }
+    pread_task->user_data = ctx;
     auto series = series_of(server_task);
     series->push_back(pread_task);
-    if(i == 0) series->set_context(resp);
+    if(path_idx == 0) series->set_context(resp);
 }
 
 void HttpFile::mount(std::string &&root)
