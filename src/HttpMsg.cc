@@ -9,6 +9,7 @@
 #include "StrUtil.h"
 #include "Global.h"
 #include "PathUtil.h"
+#include "HttpServerTask.h"
 
 using namespace wfrest;
 

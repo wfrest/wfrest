@@ -9,16 +9,14 @@
 #include "HttpMsg.h"
 #include "Router.h"
 #include "VerbHandler.h"
-#include "ServerBase.h"
 
 namespace wfrest
 {
-
-    class HttpServer : public ServerBase<HttpReq, HttpResp>
+    class HttpServer : public WFServer<HttpReq, HttpResp>
     {
     public:
         HttpServer() :
-                ServerBase(std::bind(&HttpServer::proc, this, std::placeholders::_1))
+                WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
         {}
 
         void Get(const char *route, const Handler &handler);
@@ -30,7 +28,7 @@ namespace wfrest
         CommSession *new_session(long long seq, CommConnection *conn) override;
 
     private:
-        void proc(HttpTask *server_task);
+        void proc(HttpTask *task);
 
     private:
         Router router_{};

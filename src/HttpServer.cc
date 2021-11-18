@@ -1,7 +1,13 @@
-#include <cstring>
-#include <utility>
+//
+// Created by Chanchan on 11/18/21.
+//
+
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
+
+#include <cstring>
+#include <utility>
+
 #include "HttpServer.h"
 #include "HttpServerTask.h"
 #include "UriUtil.h"
@@ -9,8 +15,10 @@
 
 using namespace wfrest;
 
-void HttpServer::proc(HttpTask *server_task)
+void HttpServer::proc(HttpTask *task)
 {
+    auto *server_task = dynamic_cast<HttpServerTask *>(task);
+
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
     // conntect msg to server task
@@ -71,7 +79,7 @@ void HttpServer::Post(const char *route, const Handler &handler)
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 {
-    HttpTask *task = new HttpServerTask(this, process_);
+    HttpTask *task = new HttpServerTask(this, this->process);
     task->set_keep_alive(this->params.keep_alive_timeout);
     task->set_receive_timeout(this->params.receive_timeout);
     task->get_req()->set_size_limit(this->params.request_size_limit);
@@ -83,8 +91,3 @@ void HttpServer::mount(std::string&& path)
 {
     Global::get_http_file()->mount(std::move(path));
 }
-
-
-
-
-

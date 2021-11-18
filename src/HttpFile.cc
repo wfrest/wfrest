@@ -2,13 +2,14 @@
 // Created by Chanchan on 11/8/21.
 //
 
-#include <workflow/WFTaskFactory.h>
+#include "workflow/WFTaskFactory.h"
 
 #include <sys/stat.h>
 
 #include "HttpFile.h"
 #include "HttpMsg.h"
 #include "PathUtil.h"
+#include "HttpServerTask.h"
 
 using namespace wfrest;
 
@@ -29,6 +30,7 @@ namespace
         long ret = pread_task->get_retval();
         auto *resp = static_cast<HttpResp *>(pread_task->user_data);
 
+        // clear output body
         if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
         {
             resp->set_status_code("503");
@@ -38,6 +40,7 @@ namespace
             resp->append_output_body_nocopy(args->buf, ret);
         }
     }
+ 
 
     struct pread_multi_context
     {
@@ -139,6 +142,8 @@ namespace
 
 }  // namespace
 
+// todo : start : -1 -- python like define
+// if windows have off_t, use off_t, or use long / or size_t
 void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *resp)
 {
     if (start < 0)
@@ -154,6 +159,8 @@ void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *
     if (end == -1)
     {
         struct stat st{};
+
+        // todo ret 
         stat(file_path.c_str(), &st);
         end = st.st_size;
     }

@@ -1,9 +1,9 @@
 #ifndef _HTTPMSG_H_
 #define _HTTPMSG_H_
 
-#include <workflow/HttpMessage.h>
-#include <workflow/WFTaskFactory.h>
-#include <workflow/HttpUtil.h>
+#include "workflow/HttpMessage.h"
+#include "workflow/WFTaskFactory.h"
+#include "workflow/HttpUtil.h"
 
 #include <fcntl.h>
 #include <unordered_map>
@@ -11,7 +11,6 @@
 #include "HttpDef.h"
 #include "HttpContent.h"
 #include "HttpFile.h"
-#include "NetworkTask.h"
 
 namespace wfrest
 {
@@ -21,7 +20,8 @@ namespace wfrest
 
     class HttpReq;
     class HttpResp;
-    using HttpTask = NetworkTask<HttpReq, HttpResp>;
+    using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
+    class HttpServerTask;
 
     class HttpReq : public protocol::HttpRequest
     {
@@ -73,8 +73,8 @@ namespace wfrest
         bool has_query(const std::string &key);
 
         // connect to server_task
-        void set_task(HttpTask *task) { server_task_ = task; };
-        HttpTask *get_task() const { return server_task_; }
+        void set_task(HttpServerTask *task) { server_task_ = task; };
+        HttpServerTask *get_task() const { return server_task_; }
 
         // multipart/form
         FormData* post_form(const std::string& key);
@@ -96,7 +96,7 @@ namespace wfrest
         QueryParams query_params_;
         MultiPartForm multi_part_;
         protocol::HttpHeaderMap *header_;
-        HttpTask* server_task_ = nullptr;
+        HttpServerTask* server_task_ = nullptr;
     };
 
     template<>
@@ -152,11 +152,11 @@ namespace wfrest
         { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
         // connect to server_task
-        void set_task(HttpTask *task) { server_task_ = task; };
-        HttpTask *get_task() const { return server_task_; }
+        void set_task(HttpServerTask *task) { server_task_ = task; };
+        HttpServerTask *get_task() const { return server_task_; }
 
     private:
-        HttpTask *server_task_ = nullptr;
+        HttpServerTask *server_task_ = nullptr;
     };
 
 
