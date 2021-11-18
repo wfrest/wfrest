@@ -16,7 +16,7 @@ using namespace wfrest;
 
 void HttpServer::proc(HttpTask *task)
 {
-    auto *server_task = dynamic_cast<HttpServerTask *>(task);
+    auto *server_task = static_cast<HttpServerTask *>(task);
 
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();

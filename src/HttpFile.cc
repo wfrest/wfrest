@@ -142,23 +142,15 @@ namespace
 
 }  // namespace
 
-// todo : start : -1 -- python like define
-// if windows have off_t, use off_t, or use long / or size_t
-void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *resp)
+void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    if (start < 0)
-    {
-        fprintf(stderr, "start parameter should not be negative\n");
-        resp->append_output_body_nocopy("start parameter should not be negative\n", 39);
-        return;
-    }
     auto *server_task = resp->get_task();
     std::string file_path = concat_path(root_, path);
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
-    if (end == -1)
+    if (end == -1 || start < 0)
     {
-        struct stat st{};
+        struct stat st;
 
         int ret = stat(file_path.c_str(), &st);
         if(ret == -1)
@@ -167,13 +159,13 @@ void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *
             resp->append_output_body_nocopy("File has something wrong", 24);
             return;
         }
-        end = st.st_size;
+        size_t file_size = st.st_size;
+        if(end == -1) end = file_size;
+        if(start < 0) start = file_size + start;
     }
 
-    if(end < start)
+    if(end <= start)
     {
-        fprintf(stderr, "File size should greater or equal than zero\n");
-        resp->append_output_body_nocopy("File size should greater or equal than zero\n", 44);
         return;
     }
     size_t size = end - start;

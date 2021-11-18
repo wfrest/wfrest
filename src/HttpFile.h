@@ -22,7 +22,7 @@ namespace wfrest
             return &kInstance;
         }
 
-        void send_file(const std::string &path, int start, int end, HttpResp *resp);
+        void send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
         void send_file_for_multi(const std::vector<std::string>& path_list, int path_idx, HttpResp *resp);
 
         void mount(std::string &&root);
