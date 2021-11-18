@@ -5,7 +5,6 @@
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
 
-#include <cstring>
 #include <utility>
 
 #include "HttpServer.h"

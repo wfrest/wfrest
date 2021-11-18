@@ -160,8 +160,13 @@ void HttpFile::send_file(const std::string &path, int start, int end, HttpResp *
     {
         struct stat st{};
 
-        // todo ret 
-        stat(file_path.c_str(), &st);
+        int ret = stat(file_path.c_str(), &st);
+        if(ret == -1)
+        {
+            fprintf(stderr, "File has something wrong\n");
+            resp->append_output_body_nocopy("File has something wrong", 24);
+            return;
+        }
         end = st.st_size;
     }
 

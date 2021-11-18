@@ -17,7 +17,6 @@ namespace wfrest
 
         void add_callback(const ServerCallBack& cb) { cb_list_.push_back(cb); }
         void add_callback(ServerCallBack&& cb) { cb_list_.emplace_back(std::move(cb)); }
-
     protected:
         void handle(int state, int error) override;
 
