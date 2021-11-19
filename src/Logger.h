@@ -5,6 +5,10 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#include <functional>
+
+#include "LogStream.h"
+
 namespace wfrest
 {
     class Logger
@@ -20,6 +24,13 @@ namespace wfrest
             FATAL,
             NUM_LOG_LEVELS,
         };
+
+        // Two std::funcion set output location
+        using OutputFunc = std::function<void(const char* msg, int len)>;
+        using FlushFunc = std::function<void()>;
+        static void setOutput(OutputFunc out);
+        static void setFlush(FlushFunc flush);
+
         // compile time calculation of basename of source file
         class SourceFile
         {
@@ -39,6 +50,7 @@ namespace wfrest
         Logger(SourceFile file, int line, bool toAbort);
         ~Logger();
 
+        LogStream& stream() { return impl_.stream_; }
         static LogLevel logLevel();
         static void setLogLevel(LogLevel level);
 
@@ -51,12 +63,19 @@ namespace wfrest
             void formatTime();
             void finish();
 
+            LogStream stream_;
             LogLevel level_;
             int line_;
             SourceFile basename_;
         } impl_;
     };
 
+    extern Logger::LogLevel g_logLevel;
+
+    inline Logger::LogLevel Logger::logLevel()
+    {
+        return g_logLevel;
+    }
 
 #define LOG_TRACE if (wfrest::Logger::logLevel() <= wfrest::Logger::TRACE) \
   wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::TRACE, __func__).stream()
