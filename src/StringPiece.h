@@ -15,118 +15,118 @@
 
 namespace wfrest
 {
-    class StringPiece
+class StringPiece
+{
+private:
+    const char *ptr_;
+    size_t length_;
+
+public:
+    // We provide non-explicit singleton constructors so users can pass
+    // in a "const char*" or a "std::string" wherever a "StringPiece" is
+    // expected.
+    StringPiece()
+            : ptr_(nullptr), length_(0)
+    {}
+
+    explicit StringPiece(const char *str)
+            : ptr_(str), length_(strlen(ptr_))
+    {}
+
+    explicit StringPiece(const std::string &str)
+            : ptr_(str.data()), length_(str.size())
+    {}
+
+    StringPiece(const char *offset, size_t len)
+            : ptr_(offset), length_(len)
+    {}
+
+    StringPiece(const void *str, size_t len)
+            : ptr_(static_cast<const char *>(str)), length_(len)
+    {}
+
+    // data() may return a pointer to a buffer with embedded NULs, and the
+    // returned buffer may or may not be null terminated.  Therefore it is
+    // typically a mistake to pass data() to a routine that expects a NUL
+    // terminated std::string.  Use "as_string().c_str()" if you really need to do
+    // this.  Or better yet, change your routine so it does not rely on NUL
+    // termination.
+    const char *data() const
+    { return ptr_; }
+
+    size_t size() const
+    { return length_; }
+
+    bool empty() const
+    { return length_ == 0; }
+
+    const char *begin() const
+    { return ptr_; }
+
+    const char *end() const
+    { return ptr_ + length_; }
+
+    void clear()
     {
-    private:
-        const char *ptr_;
-        size_t length_;
+        ptr_ = nullptr;
+        length_ = 0;
+    }
 
-    public:
-        // We provide non-explicit singleton constructors so users can pass
-        // in a "const char*" or a "std::string" wherever a "StringPiece" is
-        // expected.
-        StringPiece()
-                : ptr_(nullptr), length_(0)
-        {}
+    void set(const char *buffer, int len)
+    {
+        ptr_ = buffer;
+        length_ = len;
+    }
 
-        explicit StringPiece(const char *str)
-                : ptr_(str), length_(strlen(ptr_))
-        {}
+    void set(const char *str)
+    {
+        ptr_ = str;
+        length_ = strlen(str);
+    }
 
-        explicit StringPiece(const std::string &str)
-                : ptr_(str.data()), length_(str.size())
-        {}
+    void set(const char *buffer, size_t len)
+    {
+        ptr_ = buffer;
+        length_ = len;
+    }
 
-        StringPiece(const char *offset, size_t len)
-                : ptr_(offset), length_(len)
-        {}
+    void set(const void *buffer, size_t len)
+    {
+        ptr_ = static_cast<const char *>(buffer);
+        length_ = len;
+    }
 
-        StringPiece(const void *str, size_t len)
-                : ptr_(static_cast<const char *>(str)), length_(len)
-        {}
+    char operator[](int i) const
+    { return ptr_[i]; }
 
-        // data() may return a pointer to a buffer with embedded NULs, and the
-        // returned buffer may or may not be null terminated.  Therefore it is
-        // typically a mistake to pass data() to a routine that expects a NUL
-        // terminated std::string.  Use "as_string().c_str()" if you really need to do
-        // this.  Or better yet, change your routine so it does not rely on NUL
-        // termination.
-        const char *data() const
-        { return ptr_; }
+    void remove_prefix(size_t n)
+    {
+        ptr_ += n;
+        length_ -= n;
+    }
 
-        size_t size() const
-        { return length_; }
+    void remove_suffix(size_t n)
+    {
+        length_ -= n;
+    }
 
-        bool empty() const
-        { return length_ == 0; }
+    void shrink(size_t prefix, size_t suffix)
+    {
+        ptr_ += prefix;
+        length_ -= prefix;
+        length_ -= suffix;
+    }
 
-        const char *begin() const
-        { return ptr_; }
+    bool operator==(const StringPiece &x) const
+    {
+        return ((length_ == x.length_) &&
+                (memcmp(ptr_, x.ptr_, length_) == 0));
+    }
 
-        const char *end() const
-        { return ptr_ + length_; }
-
-        void clear()
-        {
-            ptr_ = nullptr;
-            length_ = 0;
-        }
-
-        void set(const char *buffer, int len)
-        {
-            ptr_ = buffer;
-            length_ = len;
-        }
-
-        void set(const char *str)
-        {
-            ptr_ = str;
-            length_ = strlen(str);
-        }
-
-        void set(const char *buffer, size_t len)
-        {
-            ptr_= buffer;
-            length_ = len;
-        }
-
-        void set(const void *buffer, size_t len)
-        {
-            ptr_ = static_cast<const char *>(buffer);
-            length_ = len;
-        }
-
-        char operator[](int i) const
-        { return ptr_[i]; }
-
-        void remove_prefix(size_t n)
-        {
-            ptr_ += n;
-            length_ -= n;
-        }
-
-        void remove_suffix(size_t n)
-        {
-            length_ -= n;
-        }
-
-        void shrink(size_t prefix, size_t suffix)
-        {
-            ptr_ += prefix;
-            length_ -= prefix;
-            length_ -= suffix;
-        }
-
-        bool operator==(const StringPiece &x) const
-        {
-            return ((length_ == x.length_) &&
-                    (memcmp(ptr_, x.ptr_, length_) == 0));
-        }
-
-        bool operator!=(const StringPiece &x) const
-        {
-            return !(*this == x);
-        }
+    bool operator!=(const StringPiece &x) const
+    {
+        return !(*this == x);
+    }
 
 #define STRINGPIECE_BINARY_PREDICATE(cmp, auxcmp)                             \
     bool operator cmp (const StringPiece& x) const {                           \
@@ -134,47 +134,47 @@ namespace wfrest
         return ((r auxcmp 0) || ((r == 0) && (length_ cmp x.length_)));          \
     }
 
-        STRINGPIECE_BINARY_PREDICATE(<, <);
+    STRINGPIECE_BINARY_PREDICATE(<, <);
 
-        STRINGPIECE_BINARY_PREDICATE(<=, <);
+    STRINGPIECE_BINARY_PREDICATE(<=, <);
 
-        STRINGPIECE_BINARY_PREDICATE(>=, >);
+    STRINGPIECE_BINARY_PREDICATE(>=, >);
 
-        STRINGPIECE_BINARY_PREDICATE(>, >);
+    STRINGPIECE_BINARY_PREDICATE(>, >);
 #undef STRINGPIECE_BINARY_PREDICATE
 
-        int compare(const StringPiece &x) const
+    int compare(const StringPiece &x) const
+    {
+        int r = memcmp(ptr_, x.ptr_, length_ < x.length_ ? length_ : x.length_);
+        if (r == 0)
         {
-            int r = memcmp(ptr_, x.ptr_, length_ < x.length_ ? length_ : x.length_);
-            if (r == 0)
-            {
-                if (length_ < x.length_) r = -1;
-                else if (length_ > x.length_) r = +1;
-            }
-            return r;
+            if (length_ < x.length_) r = -1;
+            else if (length_ > x.length_) r = +1;
         }
+        return r;
+    }
 
-        std::string as_string() const
-        {
-            return std::string(data(), size());
-        }
+    std::string as_string() const
+    {
+        return std::string(data(), size());
+    }
 //
 //        std::string to_string() const
 //        {
 //            return std::string(data(), size() + 1);
 //        }
 
-        void CopyToString(std::string *target) const
-        {
-            target->assign(ptr_, length_);
-        }
+    void CopyToString(std::string *target) const
+    {
+        target->assign(ptr_, length_);
+    }
 
-        // Does "this" start with "x"
-        bool starts_with(const StringPiece &x) const
-        {
-            return ((length_ >= x.length_) && (memcmp(ptr_, x.ptr_, x.length_) == 0));
-        }
-    };
+    // Does "this" start with "x"
+    bool starts_with(const StringPiece &x) const
+    {
+        return ((length_ >= x.length_) && (memcmp(ptr_, x.ptr_, x.length_) == 0));
+    }
+};
 
 }  // namespace wfrest
 

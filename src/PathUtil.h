@@ -10,13 +10,13 @@
 
 namespace wfrest
 {
-    class PathUtil
-    {
-    public:
-        // filepath = /usr/local/image/test.jpg
-        // base = test.jpg
-        static std::string base(const std::string& filepath);
-    };
+class PathUtil
+{
+public:
+    // filepath = /usr/local/image/test.jpg
+    // base = test.jpg
+    static std::string base(const std::string &filepath);
+};
 }  // namespace wfrest
 
 

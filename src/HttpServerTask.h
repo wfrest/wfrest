@@ -8,29 +8,36 @@
 
 namespace wfrest
 {
-    class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
-    {
-    public:
-        using ProcFunc = std::function<void(HttpTask *)>;
-        using ServerCallBack = std::function<void(HttpTask *)>;
-        HttpServerTask(CommService *service, ProcFunc &process);
+class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
+{
+public:
+    using ProcFunc = std::function<void(HttpTask *)>;
+    using ServerCallBack = std::function<void(HttpTask *)>;
 
-        void add_callback(const ServerCallBack& cb) { cb_list_.push_back(cb); }
-        void add_callback(ServerCallBack&& cb) { cb_list_.emplace_back(std::move(cb)); }
-    protected:
-        void handle(int state, int error) override;
+    HttpServerTask(CommService *service, ProcFunc &process);
 
-        CommMessageOut *message_out() override;
-    
-    private:
-        // for hidning set_callback
-        void set_callback() {}
-    private:
-        bool req_is_alive_;
-        bool req_has_keep_alive_header_;
-        std::string req_keep_alive_;
-        std::vector<ServerCallBack> cb_list_;
-    };
+    void add_callback(const ServerCallBack &cb)
+    { cb_list_.push_back(cb); }
+
+    void add_callback(ServerCallBack &&cb)
+    { cb_list_.emplace_back(std::move(cb)); }
+
+protected:
+    void handle(int state, int error) override;
+
+    CommMessageOut *message_out() override;
+
+private:
+    // for hidning set_callback
+    void set_callback()
+    {}
+
+private:
+    bool req_is_alive_;
+    bool req_has_keep_alive_header_;
+    std::string req_keep_alive_;
+    std::vector<ServerCallBack> cb_list_;
+};
 
 } // namespace wfrest
 

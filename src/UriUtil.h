@@ -12,12 +12,12 @@
 namespace wfrest
 {
 
-    class UriUtil : public URIParser
-    {
-    public:
-        static std::unordered_map<std::string, std::string>
-        split_query(const StringPiece &query);
-    };
+class UriUtil : public URIParser
+{
+public:
+    static std::unordered_map<std::string, std::string>
+    split_query(const StringPiece &query);
+};
 
 }  // wfrest
 

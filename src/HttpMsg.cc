@@ -15,10 +15,10 @@ using namespace wfrest;
 
 namespace
 {
-    struct save_context
-    {
-        std::string content;
-    };
+struct save_context
+{
+    std::string content;
+};
 
 } // namespace
 

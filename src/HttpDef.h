@@ -33,26 +33,26 @@ namespace wfrest
 
 #define X_WWW_FORM_URLENCODED   APPLICATION_URLENCODED // for compatibility
 
-    enum http_content_type
-    {
+enum http_content_type
+{
 #define XX(name, string, suffix)   name,
-        CONTENT_TYPE_NONE,
-        HTTP_CONTENT_TYPE_MAP(XX)
-        CONTENT_TYPE_UNDEFINED
+    CONTENT_TYPE_NONE,
+    HTTP_CONTENT_TYPE_MAP(XX)
+    CONTENT_TYPE_UNDEFINED
 #undef XX
-    };
+};
 
-    class ContentType
-    {
-    public:
-        static std::string to_string(enum http_content_type type);
+class ContentType
+{
+public:
+    static std::string to_string(enum http_content_type type);
 
-        static std::string to_string_by_suffix(const char* str);
+    static std::string to_string_by_suffix(const char *str);
 
-        static enum http_content_type to_enum(const std::string &content_type_str);
+    static enum http_content_type to_enum(const std::string &content_type_str);
 
 
-    };
+};
 
 
 } // wfrest

@@ -10,19 +10,19 @@
 
 namespace wfrest
 {
-    using Handler = std::function<void(HttpReq * , HttpResp * )>;
+using Handler = std::function<void(HttpReq * , HttpResp * )>;
 
-    enum
-    {
-        ANY, GET, POST, PUT, HTTP_DELETE
-    };
+enum
+{
+    ANY, GET, POST, PUT, HTTP_DELETE
+};
 
-    struct VerbHandler
-    {
-        int verb = GET;
-        Handler handler;
-        std::string path;
-    };
+struct VerbHandler
+{
+    int verb = GET;
+    Handler handler;
+    std::string path;
+};
 }
 
 #endif //_VERBHANDLER_H_

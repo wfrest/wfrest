@@ -12,27 +12,28 @@
 
 namespace wfrest
 {
-    class HttpServer : public WFServer<HttpReq, HttpResp>
-    {
-    public:
-        HttpServer() :
-                WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
-        {}
+class HttpServer : public WFServer<HttpReq, HttpResp>
+{
+public:
+    HttpServer() :
+            WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
+    {}
 
-        void Get(const char *route, const Handler &handler);
+    void Get(const char *route, const Handler &handler);
 
-        void Post(const char *route, const Handler &handler);
+    void Post(const char *route, const Handler &handler);
 
-        void mount(std::string&& path);
-    protected:
-        CommSession *new_session(long long seq, CommConnection *conn) override;
+    void mount(std::string &&path);
 
-    private:
-        void proc(HttpTask *task);
+protected:
+    CommSession *new_session(long long seq, CommConnection *conn) override;
 
-    private:
-        Router router_{};
-    };
+private:
+    void proc(HttpTask *task);
+
+private:
+    Router router_{};
+};
 
 }  // namespace wfrest
 

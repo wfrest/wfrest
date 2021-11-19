@@ -15,20 +15,20 @@
 namespace wfrest
 {
 
-    class Router
-    {
-    public:
-        void handle(const char *route, const Handler &handler, int verb = GET);
+class Router
+{
+public:
+    void handle(const char *route, const Handler &handler, int verb = GET);
 
-        void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
+    void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
 
-        static int parse_verb(const std::string &verb);
+    static int parse_verb(const std::string &verb);
 
-        void print_routes();   // for test
+    void print_routes();   // for test
 
-    private:
-        RouteTable routes_map_;
-    };
+private:
+    RouteTable routes_map_;
+};
 
 }  // wfrest
 

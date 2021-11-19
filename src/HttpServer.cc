@@ -26,9 +26,10 @@ void HttpServer::proc(HttpTask *task)
 
     auto *header_map_ptr = new protocol::HttpHeaderMap(req);
     req->set_header_map(header_map_ptr);
-    server_task->add_callback([header_map_ptr](const HttpTask *) {
-        delete header_map_ptr;
-    });
+    server_task->add_callback([header_map_ptr](const HttpTask *)
+                              {
+                                  delete header_map_ptr;
+                              });
 
     std::string host = req->header("Host");
 
@@ -86,7 +87,7 @@ CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
     return task;
 }
 
-void HttpServer::mount(std::string&& path)
+void HttpServer::mount(std::string &&path)
 {
     Global::get_http_file()->mount(std::move(path));
 }

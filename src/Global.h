@@ -7,12 +7,13 @@
 
 namespace wfrest
 {
-    class HttpFile;
-    class Global
-    {
-    public:
-        static HttpFile *get_http_file();
-    };
+class HttpFile;
+
+class Global
+{
+public:
+    static HttpFile *get_http_file();
+};
 
 }  // namespace wfrest
 

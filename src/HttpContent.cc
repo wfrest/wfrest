@@ -95,10 +95,10 @@ void multipart_parser_userdata::handle_header()
                 // kv[0] is key(name)
                 // kv[1] is value("file")
                 StringPiece value = StrUtil::trim_pairs(kv[1], R"(""'')");
-                if(kv[0].starts_with(StringPiece("name")))
+                if (kv[0].starts_with(StringPiece("name")))
                 {
                     name = value.as_string();
-                } else if(kv[0].starts_with(StringPiece("filename")))
+                } else if (kv[0].starts_with(StringPiece("filename")))
                 {
                     filename = value.as_string();
                 }
