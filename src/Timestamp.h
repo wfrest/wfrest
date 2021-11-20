@@ -23,15 +23,16 @@ public:
 
     Timestamp &operator=(const Timestamp &that);
 
-    explicit Timestamp(uint64_t microSecondsSinceEpoch);
+    // ms_since_epoch: The microseconds from 1970-01-01 00:00:00.
+    explicit Timestamp(uint64_t ms_since_epoch);
 
     void swap(Timestamp &that);
 
-    std::string toString() const;
+    std::string to_str() const;
 
-    std::string toFormatTime() const;
+    std::string to_format_str() const;
 
-    uint64_t microSecondsSinceEpoch() const;
+    uint64_t ms_since_epoch() const;
 
     bool valid() const
     { return ms_since_epoch_ > 0; }
@@ -48,59 +49,59 @@ private:
 
 inline bool operator<(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() < rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() < rhs.ms_since_epoch();
 }
 
 inline bool operator>(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() > rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() > rhs.ms_since_epoch();
 }
 
 inline bool operator<=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() <= rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() <= rhs.ms_since_epoch();
 }
 
 inline bool operator>=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() >= rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() >= rhs.ms_since_epoch();
 }
 
 inline bool operator==(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() == rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() == rhs.ms_since_epoch();
 }
 
 inline bool operator!=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.microSecondsSinceEpoch() != rhs.microSecondsSinceEpoch();
+    return lhs.ms_since_epoch() != rhs.ms_since_epoch();
 }
 
 inline Timestamp operator+(Timestamp lhs, uint64_t ms)
 {
-    return Timestamp(lhs.microSecondsSinceEpoch() + ms);
+    return Timestamp(lhs.ms_since_epoch() + ms);
 }
 
 inline Timestamp operator+(Timestamp lhs, double seconds)
 {
     uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_ms_per_sec);
-    return Timestamp(lhs.microSecondsSinceEpoch() + delta);
+    return Timestamp(lhs.ms_since_epoch() + delta);
 }
 
 inline Timestamp operator-(Timestamp lhs, uint64_t ms)
 {
-    return Timestamp(lhs.microSecondsSinceEpoch() - ms);
+    return Timestamp(lhs.ms_since_epoch() - ms);
 }
 
 inline Timestamp operator-(Timestamp lhs, double seconds)
 {
     uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_ms_per_sec);
-    return Timestamp(lhs.microSecondsSinceEpoch() - delta);
+    return Timestamp(lhs.ms_since_epoch() - delta);
 }
 
 inline double operator-(Timestamp high, Timestamp low)
 {
-    uint64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
+    uint64_t diff = high.ms_since_epoch() - low.ms_since_epoch();
     return static_cast<double>(diff) / Timestamp::k_ms_per_sec;
 }
 

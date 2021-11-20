@@ -14,13 +14,13 @@ Timestamp::Timestamp()
 {
 }
 
-Timestamp::Timestamp(const Timestamp &that)
-        : ms_since_epoch_(that.ms_since_epoch_)
+Timestamp::Timestamp(uint64_t ms_since_epoch)
+        : ms_since_epoch_(ms_since_epoch)
 {
 }
 
-Timestamp::Timestamp(uint64_t microSecondsSinceEpoch)
-        : ms_since_epoch_(microSecondsSinceEpoch)
+Timestamp::Timestamp(const Timestamp &that)
+        : ms_since_epoch_(that.ms_since_epoch_)
 {
 }
 
@@ -35,13 +35,13 @@ void Timestamp::swap(Timestamp &that)
     std::swap(ms_since_epoch_, that.ms_since_epoch_);
 }
 
-std::string Timestamp::toString() const
+std::string Timestamp::to_str() const
 {
     return std::to_string(ms_since_epoch_ / k_ms_per_sec)
            + "." + std::to_string(ms_since_epoch_ % k_ms_per_sec);
 }
 
-std::string Timestamp::toFormatTime() const
+std::string Timestamp::to_format_str() const
 {
     std::time_t time = ms_since_epoch_ / k_ms_per_sec;  // ms --> s
     std::stringstream ss;
@@ -49,7 +49,7 @@ std::string Timestamp::toFormatTime() const
     return ss.str();
 }
 
-uint64_t Timestamp::microSecondsSinceEpoch() const
+uint64_t Timestamp::ms_since_epoch() const
 {
     return ms_since_epoch_;
 }

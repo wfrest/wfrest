@@ -8,6 +8,7 @@
 #include <functional>
 
 #include "LogStream.h"
+#include "Timestamp.h"
 
 namespace wfrest
 {
@@ -29,19 +30,20 @@ public:
     using OutputFunc = std::function<void(const char *msg, int len)>;
     using FlushFunc = std::function<void()>;
 
-    static void setOutput(OutputFunc out);
+    static void set_log_output(const OutputFunc &output_func, const FlushFunc &flush_func);
 
-    static void setFlush(FlushFunc flush);
+    static void set_log_output(OutputFunc &&output_func, FlushFunc &&flush_func);
 
     // compile time calculation of basename of source file
     class SourceFile
     {
     public:
         template<int N>
-        SourceFile(const char (&arr)[N]);
+        explicit SourceFile(const char (&arr)[N]);
 
         explicit SourceFile(const char *filename);
 
+    public:
         const char *data_;
         int size_;
     };
@@ -60,9 +62,24 @@ public:
     LogStream &stream()
     { return impl_.stream_; }
 
-    static LogLevel logLevel();
+    static LogLevel log_level()
+    { return log_level_(); }
 
-    static void setLogLevel(LogLevel level);
+    static void set_log_level(LogLevel level)
+    { log_level_() = level; }
+
+protected:
+    static LogLevel &log_level_();
+
+    // default write to stdout
+    // Can set to file
+    static void default_output(const char *msg, int len);
+
+    static void default_flush();
+
+    static OutputFunc &output_func_();
+
+    static FlushFunc &flush_func_();
 
 private:
     class Impl
@@ -76,6 +93,8 @@ private:
 
         void finish();
 
+    public:
+        Timestamp time_;
         LogStream stream_;
         LogLevel level_;
         int line_;
@@ -83,12 +102,6 @@ private:
     } impl_;
 };
 
-extern Logger::LogLevel g_logLevel;
-
-inline Logger::LogLevel Logger::logLevel()
-{
-    return g_logLevel;
-}
 
 #define LOG_TRACE if (wfrest::Logger::logLevel() <= wfrest::Logger::TRACE) \
   wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::TRACE, __func__).stream()

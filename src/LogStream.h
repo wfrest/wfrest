@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 #include <utility>
+#include <cassert>
 #include "StringPiece.h"
 
 namespace wfrest
@@ -89,6 +90,7 @@ public:
     using Buffer = detail::FixedBuffer<detail::kSmallBuffer>;
 
     // overload stream opt <<
+    // input data into FixedBuffer(not terminal or file ...)
     self &operator<<(bool v);
 
     self &operator<<(short);
@@ -107,17 +109,100 @@ public:
 
     self &operator<<(unsigned long long);
 
+    self &operator<<(const void *);
+
+    self &operator<<(float);
+
+    self &operator<<(double);
+
+    self &operator<<(char);
+
+    self &operator<<(const char *);
+
+    self &operator<<(const unsigned char *);
+
+    self &operator<<(const std::string &);
+
+    self &operator<<(const StringPiece &);
+
+    self &operator<<(const Buffer &);
+
+    void append(const char *data, int len)
+    { buffer_.append(data, len); }
+
+    const Buffer &buffer() const
+    { return buffer_; }
+
+    void reset_buf()
+    { buffer_.reset(); }
+
 private:
     template<typename T>
     void formatInteger(T);
+
+    void static_check();
+
 private:
     Buffer buffer_;
 
     static const int k_max_num_size = 48;
 };
 
+class Fmt
+{
+public:
+    template<typename T>
+    Fmt(const char *fmt, T val);
 
+    const char *data() const
+    { return buf_; }
 
+    int length() const
+    { return length_; }
+
+private:
+    char buf_[32];
+    int length_;
+};
+
+template<typename T>
+Fmt::Fmt(const char *fmt, T val)
+{
+    static_assert(std::is_arithmetic<T>::value == true, "Must be arithmetic type");
+
+    length_ = snprintf(buf_, sizeof buf_, fmt, val);
+    assert(static_cast<size_t>(length_) < sizeof buf_);
+}
+
+inline LogStream &operator<<(LogStream &s, const Fmt &fmt)
+{
+    s.append(fmt.data(), fmt.length());
+    return s;
+}
+
+// Explicit instantiations
+
+template Fmt::Fmt(const char *fmt, char);
+
+template Fmt::Fmt(const char *fmt, short);
+
+template Fmt::Fmt(const char *fmt, unsigned short);
+
+template Fmt::Fmt(const char *fmt, int);
+
+template Fmt::Fmt(const char *fmt, unsigned int);
+
+template Fmt::Fmt(const char *fmt, long);
+
+template Fmt::Fmt(const char *fmt, unsigned long);
+
+template Fmt::Fmt(const char *fmt, long long);
+
+template Fmt::Fmt(const char *fmt, unsigned long long);
+
+template Fmt::Fmt(const char *fmt, float);
+
+template Fmt::Fmt(const char *fmt, double);
 
 }  // namespace wfrest
 
