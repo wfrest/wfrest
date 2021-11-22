@@ -30,7 +30,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        std::unordered_map<std::string, std::string>& form_kv = req->kv;
+        auto& form_kv = req->kv;
         for(auto& kv : form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());

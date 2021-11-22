@@ -1,4 +1,4 @@
-add_executable(01_basic 01_basic.cc 05_header.cc 09_json.cc)
+add_executable(01_basic 01_basic.cc)
 target_link_libraries(01_basic wfrest)
 
 add_executable(02_parameter 02_parameter_path.cc)

@@ -36,6 +36,18 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+include(ExternalProject)
+ExternalProject_Add(
+    workflow_repo
+    GIT_REPOSITORY git@github.com:sogou/workflow.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    GIT_SHALLOW         TRUE
+)
+
+include_directories(${PROJECT_BINARY_DIR}/include)
+link_directories(${PROJECT_BINARY_DIR}/lib)
+
 find_package(workflow REQUIRED)
 find_package(OpenSSL REQUIRED)
 
