@@ -12,7 +12,10 @@ set(SRCS
         PathUtil.cc
         HttpServerTask.cc
         HttpServer.cc
-        Logger.cc LogStream.cc Timestamp.cc SysInfo.cc
+        Logger.cc
+        LogStream.cc
+        Timestamp.cc
+        SysInfo.cc
         )
 
 add_library(wfrest ${SRCS})

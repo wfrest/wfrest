@@ -39,7 +39,7 @@ public:
     {
     public:
         template<int N>
-        explicit SourceFile(const char (&arr)[N]);
+        SourceFile(const char (&arr)[N]);
 
         explicit SourceFile(const char *filename);
 
@@ -91,8 +91,6 @@ private:
 
         void formatTime();
 
-        void finish();
-
     public:
         Timestamp time_;
         LogStream stream_;
@@ -102,12 +100,25 @@ private:
     } impl_;
 };
 
+template<int N>
+Logger::SourceFile::SourceFile(const char (&arr)[N])
+        : data_(arr),
+          size_(N - 1)
+{
+    const char *slash = strrchr(data_, '/'); // builtin function
+    if (slash)
+    {
+        data_ = slash + 1;
+        size_ -= static_cast<int>(data_ - arr);
+    }
+}
 
-#define LOG_TRACE if (wfrest::Logger::logLevel() <= wfrest::Logger::TRACE) \
+
+#define LOG_TRACE if (wfrest::Logger::log_level() <= wfrest::Logger::TRACE) \
   wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::TRACE, __func__).stream()
-#define LOG_DEBUG if (wfrest::Logger::logLevel() <= wfrest::Logger::DEBUG) \
+#define LOG_DEBUG if (wfrest::Logger::log_level() <= wfrest::Logger::DEBUG) \
   wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::DEBUG, __func__).stream()
-#define LOG_INFO if (wfrest::Logger::logLevel() <= wfrest::Logger::INFO) \
+#define LOG_INFO if (wfrest::Logger::log_level() <= wfrest::Logger::INFO) \
   wfrest::Logger(__FILE__, __LINE__).stream()
 #define LOG_WARN wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::WARN).stream()
 #define LOG_ERROR wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::ERROR).stream()

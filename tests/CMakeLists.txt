@@ -14,3 +14,6 @@ target_link_libraries(strutil_split wfrest)
 
 add_executable(strutil_trim strutil_trim.cc)
 target_link_libraries(strutil_trim wfrest)
+
+add_executable(logger_test01 logger_test01.cc)
+target_link_libraries(logger_test01 wfrest)

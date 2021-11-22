@@ -83,6 +83,48 @@ private:
     char *cur_;
 };
 
+template<int SIZE>
+FixedBuffer<SIZE>::FixedBuffer()
+        : cur_(data_)
+{
+    set_cookie(FixedBuffer::cookie_start);
+}
+
+template<int SIZE>
+FixedBuffer<SIZE>::~FixedBuffer()
+{
+    set_cookie(FixedBuffer::cookie_end);
+}
+
+template<int SIZE>
+void FixedBuffer<SIZE>::cookie_start()
+{
+}
+
+template<int SIZE>
+void FixedBuffer<SIZE>::cookie_end()
+{
+}
+
+template<int SIZE>
+bool FixedBuffer<SIZE>::append(const char *buf, size_t len)
+{
+    if (static_cast<size_t>(available()) > len)
+    {
+        memcpy(cur_, buf, len);
+        cur_ += len;
+        return true;
+    }
+    return false;
+}
+
+template<int SIZE>
+const char *FixedBuffer<SIZE>::debug_string()
+{
+    *cur_ = '\0';
+    return data_;
+}
+
 }   // namespace detail
 
 class LogStream

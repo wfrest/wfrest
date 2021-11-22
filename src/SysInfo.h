@@ -20,9 +20,9 @@ extern thread_local int t_cached_tid;
 extern thread_local char t_tid_str[32];
 extern thread_local int t_tid_str_len;
 
-pid_t gettid() { return static_cast<pid_t>(::syscall(SYS_gettid)); }
+static inline pid_t gettid() { return static_cast<pid_t>(::syscall(SYS_gettid)); }
 
-void cacheTid()
+static inline void cacheTid()
 {
     if (t_cached_tid == 0)
     {
@@ -31,7 +31,7 @@ void cacheTid()
     }
 }
 
-inline int tid()
+static inline int tid()
 {
     if (__builtin_expect(t_cached_tid == 0, 0))
     {
@@ -41,9 +41,9 @@ inline int tid()
 }
 
 // for logging
-inline const char *tid_str() { return t_tid_str; }
+static inline const char *tid_str() { return t_tid_str; }
 // for logging
-inline int tid_str_len() { return t_tid_str_len; }
+static inline int tid_str_len() { return t_tid_str_len; }
 
 }  // namespace CurrentThread
 
