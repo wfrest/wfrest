@@ -19,7 +19,7 @@ set(SRCS
         )
 
 add_library(wfrest ${SRCS})
-add_dependencies(wfrest workflow_repo)
+# add_dependencies(wfrest workflow_repo)
 
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt)
 

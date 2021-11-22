@@ -36,18 +36,25 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-include(ExternalProject)
-ExternalProject_Add(
-    workflow_repo
-    GIT_REPOSITORY git@github.com:sogou/workflow.git
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-    GIT_SHALLOW         TRUE
-)
-include_directories(${PROJECT_BINARY_DIR}/include)
-link_directories(${PROJECT_BINARY_DIR}/lib)
+find_package(workflow QUIET)
+if (NOT snappy_FOUND)  
+    MESSAGE("[/third-party] workflow not found, build target") 
+    include(ExternalProject)
+    ExternalProject_Add(
+        workflow_repo
+        GIT_REPOSITORY git@github.com:sogou/workflow.git
+        INSTALL_DIR ${PROJECT_BINARY_DIR}
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        GIT_SHALLOW         TRUE
+    )
+    add_library(workflow STATIC IMPORTED GLOBAL)                                                                                                      
+    add_dependencies(workflow workflow_repo)  
+    include_directories(${PROJECT_BINARY_DIR}/include)
+    link_directories(${PROJECT_BINARY_DIR}/lib)
+else()
+    MESSAGE("[/third-party] workflow exist, not build")  
+endif()
 
-find_package(workflow REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
