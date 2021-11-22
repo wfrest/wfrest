@@ -14,7 +14,7 @@ namespace wfrest
 class StrUtil : public StringUtil
 {
 public:
-    static StringPiece trim_pairs(const StringPiece &str, const char *pairs = sk_pairs_.c_str());
+    static StringPiece trim_pairs(const StringPiece &str, const char *pairs = k_pairs_.c_str());
 
     static StringPiece ltrim(const StringPiece &str);
 
@@ -28,7 +28,7 @@ public:
     static std::vector<OutputStringType> split_piece(const StringPiece &str, char sep);
 
 private:
-    static const std::string sk_pairs_;
+    static const std::string k_pairs_;
 };
 
 

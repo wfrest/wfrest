@@ -19,7 +19,6 @@ namespace wfrest
 {
 namespace detail
 {
-
 class RouteTableNode
 {
 public:
@@ -74,7 +73,6 @@ void RouteTableNode::all_routes(Func func, std::string prefix) const
 }
 
 } // namespace detail
-
 
 class RouteTable
 {

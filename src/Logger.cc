@@ -141,9 +141,9 @@ Logger::Impl::Impl(Logger::LogLevel level, int savedErrno, const Logger::SourceF
 
 void Logger::Impl::formatTime()
 {
-    int64_t ms_since_epoch = time_.ms_since_epoch();
-    time_t sec = static_cast<time_t>(ms_since_epoch / Timestamp::k_ms_per_sec);
-    int ms = static_cast<int>(ms_since_epoch % Timestamp::k_ms_per_sec);
+    int64_t ms_since_epoch = time_.micro_sec_since_epoch();
+    time_t sec = static_cast<time_t>(ms_since_epoch / Timestamp::k_micro_sec_per_sec);
+    int ms = static_cast<int>(ms_since_epoch % Timestamp::k_micro_sec_per_sec);
     if (sec != t_last_sec)
     {
         t_last_sec = sec;

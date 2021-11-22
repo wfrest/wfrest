@@ -23,8 +23,8 @@ public:
 
     Timestamp &operator=(const Timestamp &that);
 
-    // ms_since_epoch: The microseconds from 1970-01-01 00:00:00.
-    explicit Timestamp(uint64_t ms_since_epoch);
+    // micro_sec_since_epoch: The microseconds from 1970-01-01 00:00:00.
+    explicit Timestamp(uint64_t micro_sec_since_epoch);
 
     void swap(Timestamp &that);
 
@@ -32,77 +32,77 @@ public:
 
     std::string to_format_str() const;
 
-    uint64_t ms_since_epoch() const;
+    uint64_t micro_sec_since_epoch() const;
 
     bool valid() const
-    { return ms_since_epoch_ > 0; }
+    { return micro_sec_since_epoch_ > 0; }
 
     static Timestamp now();
 
     static Timestamp invalid()
     { return Timestamp(); }
 
-    static const int k_ms_per_sec = 1000 * 1000;
+    static const int k_micro_sec_per_sec = 1000 * 1000;
 private:
-    uint64_t ms_since_epoch_;
+    uint64_t micro_sec_since_epoch_;
 };
 
 inline bool operator<(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() < rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() < rhs.micro_sec_since_epoch();
 }
 
 inline bool operator>(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() > rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() > rhs.micro_sec_since_epoch();
 }
 
 inline bool operator<=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() <= rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() <= rhs.micro_sec_since_epoch();
 }
 
 inline bool operator>=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() >= rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() >= rhs.micro_sec_since_epoch();
 }
 
 inline bool operator==(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() == rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() == rhs.micro_sec_since_epoch();
 }
 
 inline bool operator!=(Timestamp lhs, Timestamp rhs)
 {
-    return lhs.ms_since_epoch() != rhs.ms_since_epoch();
+    return lhs.micro_sec_since_epoch() != rhs.micro_sec_since_epoch();
 }
 
 inline Timestamp operator+(Timestamp lhs, uint64_t ms)
 {
-    return Timestamp(lhs.ms_since_epoch() + ms);
+    return Timestamp(lhs.micro_sec_since_epoch() + ms);
 }
 
 inline Timestamp operator+(Timestamp lhs, double seconds)
 {
-    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_ms_per_sec);
-    return Timestamp(lhs.ms_since_epoch() + delta);
+    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_micro_sec_per_sec);
+    return Timestamp(lhs.micro_sec_since_epoch() + delta);
 }
 
 inline Timestamp operator-(Timestamp lhs, uint64_t ms)
 {
-    return Timestamp(lhs.ms_since_epoch() - ms);
+    return Timestamp(lhs.micro_sec_since_epoch() - ms);
 }
 
 inline Timestamp operator-(Timestamp lhs, double seconds)
 {
-    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_ms_per_sec);
-    return Timestamp(lhs.ms_since_epoch() - delta);
+    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_micro_sec_per_sec);
+    return Timestamp(lhs.micro_sec_since_epoch() - delta);
 }
 
 inline double operator-(Timestamp high, Timestamp low)
 {
-    uint64_t diff = high.ms_since_epoch() - low.ms_since_epoch();
-    return static_cast<double>(diff) / Timestamp::k_ms_per_sec;
+    uint64_t diff = high.micro_sec_since_epoch() - low.micro_sec_since_epoch();
+    return static_cast<double>(diff) / Timestamp::k_micro_sec_per_sec;
 }
 
 }  // namespace wfrest

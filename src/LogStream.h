@@ -15,8 +15,8 @@ namespace wfrest
 {
 namespace detail
 {
-const int kSmallBuffer = 4000;
-const int kLargeBuffer = 4000 * 1000;
+static constexpr size_t k_small_buf = 4000;
+static constexpr size_t k_large_buf = 4000 * 1000;
 
 template<int SIZE>
 class FixedBuffer
@@ -30,7 +30,7 @@ public:
 
     FixedBuffer &operator=(const FixedBuffer &) = delete;
 
-    void append(const char * /*restrict*/ buf, size_t len);
+    bool append(const char * /*restrict*/ buf, size_t len);
 
     const char *data() const
     { return data_; }
@@ -41,7 +41,7 @@ public:
     char *current()
     { return cur_; }
 
-    int avail() const
+    int available() const
     { return static_cast<int>(end() - cur_); }
 
     void add(size_t len)
@@ -51,10 +51,10 @@ public:
     { cur_ = data_; }
 
     void bzero()
-    { memZero(data_, sizeof data_); }
+    { memset(data_, 0, sizeof data_); }
 
-    void set_cookie(std::function<void()> cookie)
-    { cookie_ = std::move(cookie); }
+    void set_cookie(void (*cookie)())
+    { cookie_ = cookie; }
 
     // for used by GDB
     const char *debug_string();
@@ -71,11 +71,14 @@ private:
     { return data_ + sizeof data_; }
 
     // Must be outline function for cookies.
-    static void cookieStart();
+    static void cookie_start();
 
-    static void cookieEnd();
+    static void cookie_end();
 
-    std::function<void()> cookie_;
+    // By looking for cookies in the core dump file (you can find messages that have not yet been written to disk
+    // cookie is the address of the function
+    void (*cookie_)();
+
     char data_[SIZE];
     char *cur_;
 };
@@ -87,7 +90,7 @@ class LogStream
 public:
     using self = LogStream;
 
-    using Buffer = detail::FixedBuffer<detail::kSmallBuffer>;
+    using Buffer = detail::FixedBuffer<detail::k_small_buf>;
 
     // overload stream opt <<
     // input data into FixedBuffer(not terminal or file ...)
@@ -144,8 +147,7 @@ private:
 
 private:
     Buffer buffer_;
-
-    static const int k_max_num_size = 48;
+    static const int k_max_numeric_size = 32;
 };
 
 class Fmt
@@ -181,7 +183,6 @@ inline LogStream &operator<<(LogStream &s, const Fmt &fmt)
 }
 
 // Explicit instantiations
-
 template Fmt::Fmt(const char *fmt, char);
 
 template Fmt::Fmt(const char *fmt, short);

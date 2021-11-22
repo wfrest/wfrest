@@ -8,12 +8,10 @@
 using namespace wfrest;
 using namespace wfrest::detail;
 
-namespace wfrest
+namespace
 {
-namespace detail
-{
-
 const char digits[] = "9876543210123456789";
+// The two sides of zero are symmetric, because the remainder may be negative
 const char *zero = digits + 9;
 static_assert(sizeof(digits) == 20, "wrong number of digits");
 
@@ -61,31 +59,31 @@ size_t convertHex(char buf[], uintptr_t value)
 
     return p - buf;
 }
-
-}  // namespace detail
-}  // namespace wfrest
+}  // namespace
 
 template<int SIZE>
 FixedBuffer<SIZE>::FixedBuffer()
         : cur_(data_)
 {
-    set_cookie(cookieStart);
+    set_cookie(cookie_start);
 }
 
 template<int SIZE>
 FixedBuffer<SIZE>::~FixedBuffer()
 {
-    set_cookie(cookieEnd);
+    set_cookie(cookie_end);
 }
 
 template<int SIZE>
-void FixedBuffer<SIZE>::append(const char *buf, size_t len)
+bool FixedBuffer<SIZE>::append(const char *buf, size_t len)
 {
-    if (static_cast<size_t>(avail()) > len)
+    if (static_cast<size_t>(available()) > len)
     {
         memcpy(cur_, buf, len);
         cur_ += len;
+        return true;
     }
+    return false;
 }
 
 template<int SIZE>
@@ -96,12 +94,12 @@ const char *FixedBuffer<SIZE>::debug_string()
 }
 
 template<int SIZE>
-void FixedBuffer<SIZE>::cookieStart()
+void FixedBuffer<SIZE>::cookie_start()
 {
 }
 
 template<int SIZE>
-void FixedBuffer<SIZE>::cookieEnd()
+void FixedBuffer<SIZE>::cookie_end()
 {
 }
 
@@ -132,7 +130,7 @@ LogStream::self &LogStream::operator<<(int v)
 template<typename T>
 void LogStream::formatInteger(T v)
 {
-    if (buffer_.avail() >= k_max_num_size)
+    if (buffer_.available() >= k_max_numeric_size)
     {
         size_t len = convert(buffer_.current(), v);
         buffer_.add(len);
@@ -172,7 +170,7 @@ LogStream::self &LogStream::operator<<(unsigned long long v)
 LogStream::self &LogStream::operator<<(const void *p)
 {
     auto v = reinterpret_cast<uintptr_t>(p);
-    if (buffer_.avail() >= k_max_num_size)
+    if (buffer_.available() >= k_max_numeric_size)
     {
         char *buf = buffer_.current();
         buf[0] = '0';
@@ -191,9 +189,9 @@ LogStream::self &LogStream::operator<<(float v)
 
 LogStream::self &LogStream::operator<<(double)
 {
-    if (buffer_.avail() >= k_max_num_size)
+    if (buffer_.available() >= k_max_numeric_size)
     {
-        int len = snprintf(buffer_.current(), k_max_num_size, "%.12g", v);
+        int len = snprintf(buffer_.current(), k_max_numeric_size, "%.12g", v);
         buffer_.add(len);
     }
     return *this;
@@ -210,8 +208,7 @@ LogStream::self &LogStream::operator<<(const char *str)
     if (str)
     {
         buffer_.append(str, strlen(str));
-    }
-    else
+    } else
     {
         buffer_.append("(null)", 6);
     }
@@ -220,7 +217,7 @@ LogStream::self &LogStream::operator<<(const char *str)
 
 LogStream::self &LogStream::operator<<(const unsigned char *str)
 {
-    return operator<<(reinterpret_cast<const char*>(str));
+    return operator<<(reinterpret_cast<const char *>(str));
 }
 
 LogStream::self &LogStream::operator<<(const std::string &str)
@@ -243,13 +240,13 @@ LogStream::self &LogStream::operator<<(const LogStream::Buffer &buf)
 
 void LogStream::static_check()
 {
-    static_assert(k_max_num_size - 10 > std::numeric_limits<double>::digits10,
+    static_assert(k_max_numeric_size - 10 > std::numeric_limits<double>::digits10,
                   "k_max_num_size is large enough");
-    static_assert(k_max_num_size - 10 > std::numeric_limits<long double>::digits10,
+    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long double>::digits10,
                   "k_max_num_size is large enough");
-    static_assert(k_max_num_size - 10 > std::numeric_limits<long>::digits10,
+    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long>::digits10,
                   "k_max_num_size is large enough");
-    static_assert(k_max_num_size - 10 > std::numeric_limits<long long>::digits10,
+    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long long>::digits10,
                   "k_max_num_size is large enough");
 }
 

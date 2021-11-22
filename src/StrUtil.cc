@@ -6,7 +6,7 @@
 
 using namespace wfrest;
 
-const std::string StrUtil::sk_pairs_ = R"({}[]()<>""''``)";
+const std::string StrUtil::k_pairs_ = R"({}[]()<>""''``)";
 
 StringPiece StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
 {
