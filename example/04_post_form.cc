@@ -5,7 +5,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
 
 using namespace wfrest;
 
@@ -31,7 +30,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        auto form_kv = req->kv;
+        std::unordered_map<std::string, std::string>& form_kv = req->kv;
         for(auto& kv : form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
@@ -48,8 +47,16 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        fprintf(stderr, "123\n");
-        auto form_kv = req->form;
+        // form_kv's type is MultiPart
+        // MultiPart = std::unordered_map<std::string, FormData>;
+        /*
+            struct FormData
+            {
+                std::string filename;
+                std::string content;
+            };
+        */
+        auto& form_kv = req->form;
         for(auto & it : form_kv)
         {
             fprintf(stderr, "%s : %s = %s",
@@ -59,7 +66,7 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

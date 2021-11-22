@@ -2,10 +2,9 @@
 // Created by Chanchan on 11/8/21.
 //
 
-#include "HttpServer.h"
-#include "HttpMsg.h"
 #include "workflow/WFFacilities.h"
 #include <csignal>
+#include "HttpServer.h"
 
 using namespace wfrest;
 
@@ -34,7 +33,7 @@ int main()
     });
 
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

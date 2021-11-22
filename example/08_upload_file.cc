@@ -5,7 +5,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
 #include "PathUtil.h"
 
 using namespace wfrest;
@@ -29,7 +28,7 @@ int main()
     // Then you find the file is store in the parent dir, which is dangerous
     svr.Post("/upload", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -49,7 +48,7 @@ int main()
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     svr.Post("/upload_fix", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -69,7 +68,7 @@ int main()
     // -H "Content-Type: multipart/form-data"
     svr.Post("/upload_multiple", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -82,7 +81,7 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

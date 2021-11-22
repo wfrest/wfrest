@@ -5,7 +5,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
 
 using namespace wfrest;
 
@@ -25,7 +24,7 @@ int main()
     // The request responds to a url matching:  /query_list?username=chanchann&password=yyy
     svr.Get("/query_list", [](HttpReq *req, HttpResp *resp)
     {
-        auto query_list = req->query_list();
+        std::unordered_map<std::string, std::string> query_list = req->query_list();
         for(auto& query : query_list)
         {
             fprintf(stderr, "%s : %s\n", query.first.c_str(), query.second.c_str());
@@ -57,7 +56,7 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

@@ -5,7 +5,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
 
 using namespace wfrest;
 
@@ -36,7 +35,7 @@ int main()
         resp->Save("test1.txt", std::move(content));
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

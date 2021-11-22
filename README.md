@@ -1,16 +1,16 @@
-# wfrest Web Framework
+# wfrest: C++ Web Framework REST API
 
-The c++ async micro framework for building web applications based on workflow
+The c++ async micro web framework for building web applications based on workflow
 
 ## Contents
 
-- [wfrest Web Framework](#wfrest-web-framework)
+- [wfrest: C++ Web Framework REST API](#wfrest:-c++-web-framework-rest-api)
     - [Contents](#contents)
     - [Build](#build)
     - [Quick start](#quick-start)
     - [API Examples](#api-examples)
       - [Parameters in path](#parameters-in-path)
-      - [Querystring parameters](#querystring-parameters)
+      - [Query string parameters](#querystring-parameters)
       - [Post Form](#post-form)
       - [Header](#header)
       - [Send File](#send-file)
@@ -43,25 +43,11 @@ make install
 ## Quick start
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include "workflow/HttpUtil.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // curl -v http://ip:port/hello
@@ -74,7 +60,7 @@ int main()
     {
         resp->String("Hello world\n", 12);
     });
-    
+
     // curl -v http://ip:port/post -d 'post hello world'
     svr.Post("/post", [](const HttpReq *req, HttpResp *resp)
     {
@@ -82,9 +68,9 @@ int main()
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -100,24 +86,11 @@ int main()
 ### Parameters in path
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // This handler will match /user/chanchan but will not match /user/ or /user
@@ -160,9 +133,9 @@ int main()
         resp->String(req->full_path());
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -176,31 +149,17 @@ int main()
 ### Querystring parameters
 
 ```cpp
-
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // The request responds to a url matching:  /query_list?username=chanchann&password=yyy
     svr.Get("/query_list", [](HttpReq *req, HttpResp *resp)
     {
-        auto query_list = req->query_list();
+        std::unordered_map<std::string, std::string> query_list = req->query_list();
         for(auto& query : query_list)
         {
             fprintf(stderr, "%s : %s\n", query.first.c_str(), query.second.c_str());
@@ -232,9 +191,9 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -248,24 +207,11 @@ int main()
 ### Post Form
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // Urlencoded Form
@@ -277,7 +223,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        auto form_kv = req->kv;
+        auto& form_kv = req->kv;
         for(auto& kv : form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
@@ -295,7 +241,7 @@ int main()
             return;
         }
         fprintf(stderr, "123\n");
-        auto form_kv = req->form;
+        auto& form_kv = req->form;
         for(auto & it : form_kv)
         {
             fprintf(stderr, "%s : %s = %s",
@@ -305,9 +251,9 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -322,23 +268,10 @@ int main()
 
 ```cpp
 #include "HttpServer.h"
-#include "HttpMsg.h"
-#include "workflow/WFFacilities.h"
-#include <csignal>
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     svr.Post("/post", [](HttpReq *req, HttpResp *resp)
@@ -353,9 +286,9 @@ int main()
     });
 
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -369,24 +302,11 @@ int main()
 ### Send File
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
     svr.mount("static");
 
@@ -428,9 +348,9 @@ int main()
         resp->File(file_list);
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -444,24 +364,11 @@ int main()
 ### Save File
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
@@ -478,9 +385,9 @@ int main()
         resp->Save("test1.txt", std::move(content));
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -494,25 +401,13 @@ int main()
 ### Upload Files 
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
+
 #include "HttpServer.h"
-#include "HttpMsg.h"
 #include "PathUtil.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
     svr.mount("/static");
 
@@ -521,7 +416,7 @@ int main()
     // Then you find the file is store in the parent dir, which is dangerous
     svr.Post("/upload", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -541,7 +436,7 @@ int main()
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     svr.Post("/upload_fix", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -561,7 +456,7 @@ int main()
     // -H "Content-Type: multipart/form-data"
     svr.Post("/upload_multiple", [](HttpReq *req, HttpResp *resp)
     {
-        auto files = req->post_files();
+        std::vector<FormData *> files = req->post_files();
         if(files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
@@ -574,9 +469,9 @@ int main()
         }
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
@@ -590,24 +485,11 @@ int main()
 ### Json
 
 ```cpp
-#include "workflow/WFFacilities.h"
-#include <csignal>
 #include "HttpServer.h"
-#include "HttpMsg.h"
-
 using namespace wfrest;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main()
 {
-    signal(SIGINT, sig_handler);
-
     HttpServer svr;
 
     // curl -v http://ip:port/json1
@@ -655,9 +537,9 @@ int main()
         fprintf(stderr, "Json : %s", req->json.dump(4).c_str());
     });
 
-    if (svr.start(9001) == 0)
+    if (svr.start(8888) == 0)
     {
-        wait_group.wait();
+        getchar();
         svr.stop();
     } else
     {
