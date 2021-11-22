@@ -42,7 +42,7 @@ if (NOT workflow_FOUND)
     include(ExternalProject)
     ExternalProject_Add(
         workflow_repo
-        GIT_REPOSITORY git@github.com:sogou/workflow.git
+        GIT_REPOSITORY https://github.com/sogou/workflow.git
         INSTALL_DIR ${PROJECT_BINARY_DIR}
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         GIT_SHALLOW         TRUE
