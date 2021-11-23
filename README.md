@@ -7,6 +7,8 @@ The c++ async micro web framework for building web applications based on workflo
 - [wfrest: C++ Web Framework REST API](#wfrest:-c++-web-framework-rest-api)
     - [Contents](#contents)
     - [Build](#build)
+        - [CMake](#cmake)
+        - [Docker](#docker)
     - [Quick start](#quick-start)
     - [API Examples](#api-examples)
       - [Parameters in path](#parameters-in-path)
@@ -21,23 +23,29 @@ The c++ async micro web framework for building web applications based on workflo
 
 ## Build
 
-```
-Step 1 : install workflow
-git clone git@github.com:sogou/workflow.git
-cd workflow
-make
-make install
-```
+### Cmake
 
 ```
-Step 2 : install wfrest
-
-git clone git@github.com:chanchann/wfrest.git
+git clone https://github.com/sogou/workflow.git
 cd wfrest
 mkdir build && cd build
 cmake ..
 make -j 
 make install
+```
+
+### Docker
+
+Use dockerfile
+
+```
+docker build -t wfrest:v1 .
+```
+
+Or you can Pull from DockerHub 
+
+```
+docker pull shiyuyi/wfrest
 ```
 
 ## Quick start

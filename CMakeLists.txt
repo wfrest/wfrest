@@ -36,6 +36,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+find_package(OpenSSL REQUIRED)
 find_package(workflow QUIET)
 if (NOT workflow_FOUND)  
     MESSAGE("-- Third Party workflow not found, build target") 
@@ -43,13 +44,10 @@ if (NOT workflow_FOUND)
     ExternalProject_Add(
         workflow_repo
         GIT_REPOSITORY https://github.com/sogou/workflow.git
-        # SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/workflow
         CONFIGURE_COMMAND mkdir -p build
-        BUILD_IN_SOURCE 1 
+        BUILD_IN_SOURCE TRUE
         BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
-        INSTALL_COMMAND cd build && ls -l && make install && cd ../ && rm -rf build
-        # INSTALL_DIR ${PROJECT_BINARY_DIR}
-        # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
         GIT_SHALLOW         TRUE
     )
     add_library(workflow STATIC IMPORTED GLOBAL)                                                                                                      
@@ -65,7 +63,6 @@ else()
     MESSAGE("-- Third Party workflow exist, not build")  
 endif()
 
-find_package(OpenSSL REQUIRED)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
