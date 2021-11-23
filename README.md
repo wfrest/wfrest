@@ -1,16 +1,17 @@
-# wfrest: C++ Web Framework REST API
+# ✨ wfrest: C++ Web Framework REST API
 
 The c++ async micro web framework for building web applications based on workflow
 
-## Contents
+## 🌟 Contents
 
-- [wfrest: C++ Web Framework REST API](#wfrest:-c++-web-framework-rest-api)
-    - [Contents](#contents)
-    - [Build](#build)
+- [wfrest: C++ Web Framework REST API](#✨-wfrest:-c++-web-framework-rest-api)
+    - [Discussion](#💥-dicssussion)
+    - [Contents](#🌟-contents)
+    - [Build](#⌛️-build)
         - [CMake](#cmake)
         - [Docker](#docker)
-    - [Quick start](#quick-start)
-    - [API Examples](#api-examples)
+    - [Quick start](#🚀-quick-start)
+    - [API Examples](#🎆-api-examples)
       - [Parameters in path](#parameters-in-path)
       - [Query string parameters](#querystring-parameters)
       - [Post Form](#post-form)
@@ -19,9 +20,14 @@ The c++ async micro web framework for building web applications based on workflo
       - [Save File](#save-file)
       - [Upload Files](#upload-files)
       - [Json](#json)
-    - [Discussion](#-dicssussion)
 
-## Build
+## 💥 Dicssussion
+
+For more information, you can first see discussions:
+
+**https://github.com/chanchann/wfrest/discussions**
+
+## ⌛️ Build
 
 ### Cmake
 
@@ -39,7 +45,7 @@ make install
 Use dockerfile
 
 ```
-docker build -t wfrest:v1 .
+docker build -t wfrest .
 ```
 
 Or you can Pull from DockerHub 
@@ -48,7 +54,7 @@ Or you can Pull from DockerHub
 docker pull shiyuyi/wfrest
 ```
 
-## Quick start
+## 🚀 Quick start
 
 ```cpp
 #include "HttpServer.h"
@@ -89,7 +95,7 @@ int main()
 }
 ```
 
-## API Examples
+## 🎆 API Examples
 
 ### Parameters in path
 
@@ -558,8 +564,3 @@ int main()
 }
 ```
 
-## ✨ Dicssussion
-
-For more information, you can first see discussions:
-
-**https://github.com/chanchann/wfrest/discussions**
