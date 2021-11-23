@@ -59,8 +59,8 @@ if (NOT workflow_FOUND)
         IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                                       
         INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
     )
-    # include_directories(${PROJECT_BINARY_DIR}/include)
-    # link_directories(${PROJECT_BINARY_DIR}/lib)
+    include_directories(${PROJECT_BINARY_DIR}/include)
+    link_directories(${PROJECT_BINARY_DIR}/lib)
 else()
     MESSAGE("-- Third Party workflow exist, not build")  
 endif()
