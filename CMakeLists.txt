@@ -38,21 +38,30 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(workflow QUIET)
 if (NOT workflow_FOUND)  
-    MESSAGE("[/third-party] workflow not found, build target") 
+    MESSAGE("-- Third Party workflow not found, build target") 
     include(ExternalProject)
     ExternalProject_Add(
         workflow_repo
         GIT_REPOSITORY https://github.com/sogou/workflow.git
-        INSTALL_DIR ${PROJECT_BINARY_DIR}
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        CONFIGURE_COMMAND mkdir -p build
+        BUILD_IN_SOURCE 1 
+        BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
+        INSTALL_COMMAND cd build && ls -l && make install && cd ../ && rm -rf build
+        # INSTALL_DIR ${PROJECT_BINARY_DIR}
+        # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         GIT_SHALLOW         TRUE
     )
     add_library(workflow STATIC IMPORTED GLOBAL)                                                                                                      
     add_dependencies(workflow workflow_repo)  
-    include_directories(${PROJECT_BINARY_DIR}/include)
-    link_directories(${PROJECT_BINARY_DIR}/lib)
+    set_target_properties(
+        workflow PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                                       
+        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include)
+    )
+    # include_directories(${PROJECT_BINARY_DIR}/include)
+    # link_directories(${PROJECT_BINARY_DIR}/lib)
 else()
-    MESSAGE("[/third-party] workflow exist, not build")  
+    MESSAGE("-- Third Party workflow exist, not build")  
 endif()
 
 find_package(OpenSSL REQUIRED)
