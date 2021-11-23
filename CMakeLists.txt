@@ -43,6 +43,7 @@ if (NOT workflow_FOUND)
     ExternalProject_Add(
         workflow_repo
         GIT_REPOSITORY https://github.com/sogou/workflow.git
+        # SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/workflow
         CONFIGURE_COMMAND mkdir -p build
         BUILD_IN_SOURCE 1 
         BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j

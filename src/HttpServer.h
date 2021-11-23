@@ -1,7 +1,7 @@
 #ifndef _HTTPSERVER_H_
 #define _HTTPSERVER_H_
 
-#include <workflow/WFHttpServer.h>
+#include "workflow/WFHttpServer.h"
 
 #include <unordered_map>
 #include <string>

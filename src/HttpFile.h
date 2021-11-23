@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include <workflow/HttpMessage.h>
+#include "workflow/HttpMessage.h"
 
 namespace wfrest
 {
