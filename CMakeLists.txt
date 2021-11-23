@@ -56,7 +56,7 @@ if (NOT workflow_FOUND)
     set_target_properties(
         workflow PROPERTIES
         IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                                       
-        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include)
+        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
     )
     # include_directories(${PROJECT_BINARY_DIR}/include)
     # link_directories(${PROJECT_BINARY_DIR}/lib)
