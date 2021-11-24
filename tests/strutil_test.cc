@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/7/21.
-//
-
 #include "StrUtil.h"
 
 using namespace wfrest;

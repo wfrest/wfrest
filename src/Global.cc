@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/11/21.
-//
-
 #include "Global.h"
 #include "HttpFile.h"
 

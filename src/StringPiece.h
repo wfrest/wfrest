@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 10/30/21.
-//
-
 // Taken from PCRE pcre_stringpiece.h
 //
 // Copyright (c) 2005, Google Inc.

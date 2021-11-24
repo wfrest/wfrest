@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/19/21.
-//
-
 #ifndef _TIMESTAMP_H_
 #define _TIMESTAMP_H_
 

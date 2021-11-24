@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/4/21.
-//
-
 #ifndef _URIUTIL_H_
 #define _URIUTIL_H_
 

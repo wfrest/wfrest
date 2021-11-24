@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/5/21.
-//
-
 #include "HttpContent.h"
 #include "workflow/StringUtil.h"
 #include <cstring>

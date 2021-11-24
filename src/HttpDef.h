@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/5/21.
-//
-
 #ifndef _HTTPDEF_H_
 #define _HTTPDEF_H_
 
@@ -10,7 +6,7 @@
 namespace wfrest
 {
 
-// Taken from libhv : https://github.com/ithewei/libhv
+// Taken from libhv
 // MIME: https://www.iana.org/assignments/media-types/media-types.xhtml
 // http_content_type
 // XX(name, mime, suffix)
@@ -50,8 +46,6 @@ public:
     static std::string to_string_by_suffix(const char *str);
 
     static enum http_content_type to_enum(const std::string &content_type_str);
-
-
 };
 
 

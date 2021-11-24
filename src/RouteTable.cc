@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/3/21.
-//
-
 #include "RouteTable.h"
 
 namespace wfrest
@@ -107,6 +103,6 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     return end();
 }
 
-}   // detail
+}   // namespace detail
 
-}  // wfrest
+}  // namespace wfrest

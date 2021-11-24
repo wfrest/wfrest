@@ -90,7 +90,7 @@ void HttpReq::parse_body()
             json = Json::parse(chunked_body);
         }
         default:
-            break;// do nothing
+            break;
     }
 }
 
@@ -208,7 +208,7 @@ void HttpResp::Json(const std::string &str)
         return;
     }
     this->add_header_pair("Content-Type", "application/json");
-    // should we just don't care format?
+    // todo : should we just don't care format?
     // this->String(str);
     this->String(Json::parse(str).dump());
 }

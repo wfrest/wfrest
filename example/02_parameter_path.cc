@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/4/21.
-//
-
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"

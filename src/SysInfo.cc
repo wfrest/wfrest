@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/20/21.
-//
-
 #include <type_traits>
 #include "SysInfo.h"
 

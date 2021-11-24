@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/12/21.
-//
-
 #include "PathUtil.h"
 
 using namespace wfrest;

@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/18/21.
-//
-
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
 
@@ -40,7 +36,7 @@ void HttpServer::proc(HttpTask *task)
         return;
     }
 
-    std::string request_uri = "http://" + host + req->get_request_uri();    // or can't parse URI
+    std::string request_uri = "http://" + host + req->get_request_uri();  // or can't parse URI
     ParsedURI uri;
     if (URIParser::parse(request_uri, uri) < 0)
     {

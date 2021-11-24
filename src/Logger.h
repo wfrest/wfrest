@@ -1,6 +1,4 @@
-//
-// Created by Chanchan on 11/18/21.
-//
+// Modified from muduo
 
 #ifndef _LOGGER_H_
 #define _LOGGER_H_

@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 10/30/21.
-//
-
 #include "StringPiece.h"
 #include <string>
 #include <iostream>

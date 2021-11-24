@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/3/21.
-//
-
 #ifndef _VERBHANDLER_H_
 #define _VERBHANDLER_H_
 

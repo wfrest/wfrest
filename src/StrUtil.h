@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/6/21.
-//
-
 #ifndef _STRUTIL_H_
 #define _STRUTIL_H_
 

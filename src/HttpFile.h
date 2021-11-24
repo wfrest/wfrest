@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/8/21.
-//
-
 #ifndef _HTTPFILE_H_
 #define _HTTPFILE_H_
 
@@ -40,8 +36,5 @@ private:
 };
 
 }  // namespace wfrest
-
-
-
 
 #endif //_HTTPFILE_H_

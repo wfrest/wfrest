@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/11/21.
-//
-
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 

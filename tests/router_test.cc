@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/1/21.
-//
-
 #include "Router.h"
 #include "VerbHandler.h"
 

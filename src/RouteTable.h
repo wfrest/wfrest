@@ -1,8 +1,4 @@
-//
-// Created by Chanchan on 10/30/21.
-//
-// Taken from lithium
-//
+// Modified from lithium
 
 #ifndef _ROUTETABLE_H_
 #define _ROUTETABLE_H_

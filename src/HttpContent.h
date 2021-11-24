@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/5/21.
-//
-
 #ifndef _HTTPCONTENT_H_
 #define _HTTPCONTENT_H_
 
@@ -32,8 +28,7 @@ struct FormData
     { return !filename.empty(); }
 };
 
-// Taken From
-// libhv : https://github.com/ithewei/libhv
+// Modified From libhv
 class MultiPartForm
 {
 public:

@@ -1,7 +1,3 @@
-//
-// Created by Chanchan on 11/4/21.
-//
-
 #include "UriUtil.h"
 
 using namespace wfrest;
