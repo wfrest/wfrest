@@ -2,32 +2,29 @@
 
 using namespace wfrest;
 
+// static member init
+uint64_t AsyncFileLogger::LogFile::file_seq_ = 0;
+const std::chrono::seconds AsyncFileLogger::k_flush_interval = std::chrono::seconds(1);
+
 AsyncFileLogger::AsyncFileLogger()
+        : log_buf_(new Buffer),
+          next_buf_(new Buffer),
+          bufs_(16),
+          tmp_buf1_(new Buffer),
+          tmp_buf2_(new Buffer),
+          bufs_to_write_(16)
 {
     log_buf_->bzero();
     next_buf_->bzero();
+    tmp_buf1_->bzero();
+    tmp_buf2_->bzero();
 }
 
 AsyncFileLogger::~AsyncFileLogger()
 {
-    stop_flag = true;
-    if (p_thread_)
+    if (running_)
     {
-        cv_.notify_all();
-        p_thread_->join();
-    }
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (log_buf_->length() > 0)
-        {
-            bufs_.emplace(std::move(log_buf_));
-        }
-        while (!bufs_.empty())
-        {
-            BufferPtr tmp_buf = std::move(bufs_.front());
-            bufs_.pop();
-            write_log_to_file(std::move(tmp_buf));
-        }
+        stop();
     }
 }
 
@@ -46,7 +43,136 @@ void AsyncFileLogger::write_log_to_file(BufferPtr buf)
     }
 }
 
-uint64_t AsyncFileLogger::LogFile::file_seq_ = 0;
+void AsyncFileLogger::set_file_name(const std::string &base_name,
+                                    const std::string &extension,
+                                    const std::string &path)
+{
+    file_base_name_ = base_name;
+    extension[0] == '.' ? file_extension_ = extension : file_extension_ = "." + extension;
+    file_path_ = path;
+    if (file_path_.length() == 0)
+    {
+        file_path_ = "./";
+    }
+    if (file_path_[file_path_.length() - 1] != '/')
+    {
+        file_path_ = file_path_ + "/";
+    }
+}
+
+void AsyncFileLogger::start()
+{
+    running_ = true;
+    thread_ = std::thread(std::bind(&AsyncFileLogger::thread_func, this));
+    // todo : wait here ?
+}
+
+void AsyncFileLogger::thread_func()
+{
+    while (!running_)
+    {
+        wait_for_buffer();
+        erase_extra_buffer();
+        bufs_write();
+        bufs_to_write_.clear();
+        if (p_log_file_)
+        {
+            p_log_file_->flush();
+        }
+    }
+}
+
+void AsyncFileLogger::output(const char *msg, int len)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (log_buf_->available() > len)
+    {
+        log_buf_->append(msg, len);
+    } else
+    {
+        bufs_.emplace_back(std::move(log_buf_));
+        if (next_buf_)
+        {
+            log_buf_ = std::move(next_buf_);
+        } else
+        {
+            log_buf_.reset(new Buffer);
+        }
+        log_buf_->append(msg, len);
+        cv_.notify_one();
+    }
+}
+
+void AsyncFileLogger::wait_for_buffer()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (bufs_.empty())
+    {
+        cv_.wait_for(lock, k_flush_interval);
+    }
+    bufs_.emplace_back(std::move(log_buf_));
+    log_buf_ = std::move(tmp_buf1_);   // put back one buffer
+    bufs_to_write_.swap(bufs_);
+    if (!next_buf_)
+    {
+        next_buf_ = std::move(tmp_buf2_);  // put back one buffer
+    }
+}
+
+void AsyncFileLogger::erase_extra_buffer()
+{
+    // The production speed exceeds the consumption speed, which will cause the accumulation of data in the memory
+    // If the messages pile up, delete the extra data
+    if (bufs_to_write_.size() > 25)
+    {
+        char buf[256];
+        snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
+                 Timestamp::now().to_format_str().c_str(),
+                 bufs_to_write_.size() - 2);
+        fputs(buf, stderr);
+        BufferPtr tmp_buf;
+        tmp_buf->append(buf, strlen(buf));
+        write_log_to_file(std::move(tmp_buf));
+        bufs_to_write_.erase(bufs_to_write_.begin() + 2, bufs_to_write_.end());
+    }
+}
+
+void AsyncFileLogger::bufs_write()
+{
+    for (auto &buf: bufs_to_write_)
+    {
+        write_log_to_file(std::move(buf));
+    }
+    if (bufs_to_write_.size() > 2)
+    {
+        bufs_to_write_.resize(2);
+    }
+}
+
+void AsyncFileLogger::put_back_tmp_buf()
+{
+    if (!tmp_buf1_)
+    {
+        tmp_buf1_ = std::move(bufs_to_write_.back());
+        bufs_to_write_.pop_back();
+        tmp_buf1_->reset();
+    }
+
+    if (!tmp_buf2_)
+    {
+        tmp_buf2_ = std::move(bufs_to_write_.back());
+        bufs_to_write_.pop_back();
+        tmp_buf2_->reset();
+    }
+}
+
+void AsyncFileLogger::stop()
+{
+    running_ = false;
+    cv_.notify_one();
+    thread_.join();
+}
+
 
 AsyncFileLogger::LogFile::LogFile(const std::string &file_path,
                                   const std::string &file_base_name,
@@ -93,4 +219,12 @@ uint64_t AsyncFileLogger::LogFile::length()
     if (fp_)
         return ftell(fp_);
     return 0;
+}
+
+void AsyncFileLogger::LogFile::flush()
+{
+    if (fp_)
+    {
+        fflush(fp_);
+    }
 }

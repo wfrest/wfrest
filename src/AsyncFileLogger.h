@@ -7,6 +7,7 @@
 #include <queue>
 #include <memory>
 #include <thread>
+#include <chrono>
 
 #include "Logger.h"
 
@@ -19,11 +20,19 @@ public:
 
     ~AsyncFileLogger();
 
-    void set_file_name();
+    void set_file_name(const std::string &base_name,
+                       const std::string &extension = ".log",
+                       const std::string &path = "./");
+
+    void start();
+
+    void stop();
+
+    void output(const char *msg, int len);
 private:
     using Buffer = detail::FixedBuffer<detail::k_large_buf>;
-    using BufferQueue = std::queue<std::unique_ptr<Buffer>>;
-    using BufferPtr = BufferQueue::value_type;
+    using BufferVector = std::vector<std::unique_ptr<Buffer> >;
+    using BufferPtr = BufferVector::value_type;
 
     class LogFile
     {
@@ -35,7 +44,10 @@ private:
         ~LogFile();
 
         void write_log(const BufferPtr buf);
+
         uint64_t length();
+
+        void flush();
     private:
         FILE *fp_ = nullptr;
         Timestamp create_time_;
@@ -49,19 +61,35 @@ private:
 private:
     void write_log_to_file(BufferPtr buf);
 
+    void thread_func();
+
+    void wait_for_buffer();
+
+    void erase_extra_buffer();
+
+    void bufs_write();
+
+    void put_back_tmp_buf();
 private:
+    std::thread thread_;
     std::mutex mutex_;
     std::condition_variable cv_;
+    // front end
     BufferPtr log_buf_;
     BufferPtr next_buf_;
-    BufferQueue bufs_;
-    std::unique_ptr<std::thread> p_thread_;
-    bool stop_flag = false;
+    BufferVector bufs_;
+    // back end
+    BufferPtr tmp_buf1_;
+    BufferPtr tmp_buf2_;
+    BufferVector bufs_to_write_;
+
+    bool running_;
     std::unique_ptr<LogFile> p_log_file_;
     std::string file_path_ = "./";
     std::string file_base_name_ = "wfrest";
     std::string file_extension_ = ".log";
     uint64_t size_limit_ = 20 * 1024 * 1024;
+    static const std::chrono::seconds k_flush_interval;
 };
 
 } // namespace wfrest
