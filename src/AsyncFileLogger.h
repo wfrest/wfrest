@@ -31,6 +31,7 @@ public:
     void stop();
 
     void output(const char *msg, int len);
+
 private:
     using Buffer = detail::FixedBuffer<detail::k_large_buf>;
     using BufferVector = std::vector<std::unique_ptr<Buffer> >;
@@ -45,11 +46,12 @@ private:
 
         ~LogFile();
 
-        void write_log(const BufferPtr buf);
+        void write_log(const char *buf, int len);
 
         uint64_t length();
 
         void flush();
+
     private:
         FILE *fp_ = nullptr;
         Timestamp create_time_;
@@ -61,7 +63,7 @@ private:
     };
 
 private:
-    void write_log_to_file(BufferPtr buf);
+    void write_log_to_file(const char *buf, int len);
 
     void thread_func();
 
@@ -72,6 +74,7 @@ private:
     void bufs_write();
 
     void put_back_tmp_buf();
+
 private:
     std::thread thread_;
     std::mutex mutex_;

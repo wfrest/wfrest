@@ -16,7 +16,7 @@ set(SRCS
         LogStream.cc
         Timestamp.cc
         SysInfo.cc
-#        AsyncFileLogger.cc
+        AsyncFileLogger.cc
         )
 
 add_library(wfrest ${SRCS})
