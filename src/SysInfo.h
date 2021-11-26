@@ -1,5 +1,5 @@
-#ifndef _SYSINFO_H_
-#define _SYSINFO_H_
+#ifndef WFREST_SYSINFO_H_
+#define WFREST_SYSINFO_H_
 
 #include <ctime>
 #include <unistd.h>
@@ -45,5 +45,4 @@ static inline int tid_str_len() { return t_tid_str_len; }
 
 }  // wfrest
 
-
-#endif //_SYSINFO_H_
+#endif // WFREST_SYSINFO_H_

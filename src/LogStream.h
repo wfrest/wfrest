@@ -1,7 +1,7 @@
 // Modified from muduo
 
-#ifndef _LOGSTREAM_H_
-#define _LOGSTREAM_H_
+#ifndef WFREST_LOGSTREAM_H_
+#define WFREST_LOGSTREAM_H_
 
 #include <string>
 #include <functional>
@@ -190,6 +190,35 @@ private:
     static const int k_max_numeric_size = 32;
 };
 
+class Fmt
+{
+public:
+    template<typename T>
+    Fmt(const char* fmt, T val);
+
+    const char* data() const { return buf_; }
+    int length() const { return length_; }
+
+private:
+    char buf_[32];
+    int length_;
+};
+
+template<typename T>
+Fmt::Fmt(const char* fmt, T val)
+{
+    static_assert(std::is_arithmetic<T>::value == true, "Must be arithmetic type");
+
+    length_ = snprintf(buf_, sizeof buf_, fmt, val);
+    assert(static_cast<size_t>(length_) < sizeof buf_);
+}
+
+inline LogStream& operator<<(LogStream& s, const Fmt& fmt)
+{
+    s.append(fmt.data(), fmt.length());
+    return s;
+}
+
 }  // namespace wfrest
 
-#endif //_LOGSTREAM_H_
+#endif // WFREST_LOGSTREAM_H_

@@ -1,5 +1,5 @@
-#ifndef _STRUTIL_H_
-#define _STRUTIL_H_
+#ifndef WFREST_STRUTIL_H_
+#define WFREST_STRUTIL_H_
 
 #include "workflow/StringUtil.h"
 #include "StringPiece.h"
@@ -55,4 +55,4 @@ std::vector<OutputStringType> StrUtil::split_piece(const StringPiece &str, char 
 }  // namespace wfrest
 
 
-#endif //_STRUTIL_H_
+#endif // WFREST_STRUTIL_H_

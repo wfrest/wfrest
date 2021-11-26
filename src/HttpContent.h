@@ -1,5 +1,5 @@
-#ifndef _HTTPCONTENT_H_
-#define _HTTPCONTENT_H_
+#ifndef WFREST_HTTPCONTENT_H_
+#define WFREST_HTTPCONTENT_H_
 
 #include <string>
 #include <unordered_map>
@@ -74,4 +74,4 @@ using Json = nlohmann::json;
 
 }  // wfrest
 
-#endif //_HTTPCONTENT_H_
+#endif // WFREST_HTTPCONTENT_H_

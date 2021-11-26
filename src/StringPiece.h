@@ -3,8 +3,8 @@
 // Copyright (c) 2005, Google Inc.
 // All rights reserved.
 
-#ifndef _STRINGPIECE_H_
-#define _STRINGPIECE_H_
+#ifndef WFREST_STRINGPIECE_H_
+#define WFREST_STRINGPIECE_H_
 
 #include <cstring>
 #include <string>
@@ -210,4 +210,4 @@ struct StringPieceHashImpl
 
 using StringPieceHash = StringPieceHashImpl<wfrest::StringPiece>;
 
-#endif // _STRINGPIECE_H_
+#endif // WFREST_STRINGPIECE_H_

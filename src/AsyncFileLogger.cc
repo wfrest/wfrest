@@ -7,7 +7,8 @@ uint64_t AsyncFileLogger::LogFile::file_seq_ = 0;
 const std::chrono::seconds AsyncFileLogger::k_flush_interval = std::chrono::seconds(1);
 
 AsyncFileLogger::AsyncFileLogger()
-        : log_buf_(new Buffer),
+        : wait_group_(1),
+          log_buf_(new Buffer),
           next_buf_(new Buffer),
           bufs_(16),
           tmp_buf1_(new Buffer),
@@ -37,7 +38,7 @@ void AsyncFileLogger::write_log_to_file(BufferPtr buf)
         );
     }
     p_log_file_->write_log(std::move(buf));
-    if (p_log_file_->length() > size_limit_)
+    if (p_log_file_->length() > roll_size_)
     {
         p_log_file_.reset();
     }
@@ -64,16 +65,18 @@ void AsyncFileLogger::start()
 {
     running_ = true;
     thread_ = std::thread(std::bind(&AsyncFileLogger::thread_func, this));
-    // todo : wait here ?
+    wait_group_.wait();
 }
 
 void AsyncFileLogger::thread_func()
 {
-    while (!running_)
+    wait_group_.done();
+    while (running_)
     {
         wait_for_buffer();
         erase_extra_buffer();
         bufs_write();
+        put_back_tmp_buf();
         bufs_to_write_.clear();
         if (p_log_file_)
         {
@@ -111,24 +114,25 @@ void AsyncFileLogger::wait_for_buffer()
         cv_.wait_for(lock, k_flush_interval);
     }
     bufs_.emplace_back(std::move(log_buf_));
-    log_buf_ = std::move(tmp_buf1_);   // put back one buffer
+    log_buf_ = std::move(tmp_buf1_);   // put a tmp buffer to a new log_buf
     bufs_to_write_.swap(bufs_);
     if (!next_buf_)
     {
-        next_buf_ = std::move(tmp_buf2_);  // put back one buffer
+        next_buf_ = std::move(tmp_buf2_);
     }
 }
 
 void AsyncFileLogger::erase_extra_buffer()
 {
-    // The production speed exceeds the consumption speed, which will cause the accumulation of data in the memory
+    // The production speed exceeds the consumption speed,
+    // which will cause the accumulation of data in the memory
     // If the messages pile up, delete the extra data
     if (bufs_to_write_.size() > 25)
     {
         char buf[256];
         snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
                  Timestamp::now().to_format_str().c_str(),
-                 bufs_to_write_.size() - 2);
+                 bufs_to_write_.size() - 2);   // reserve 2 buffers
         fputs(buf, stderr);
         BufferPtr tmp_buf;
         tmp_buf->append(buf, strlen(buf));
@@ -172,7 +176,6 @@ void AsyncFileLogger::stop()
     cv_.notify_one();
     thread_.join();
 }
-
 
 AsyncFileLogger::LogFile::LogFile(const std::string &file_path,
                                   const std::string &file_base_name,

@@ -3,8 +3,8 @@
  * MIT License - http://www.opensource.org/licenses/mit-license.php
  */
 
-#ifndef _MULTIPARTPARSER_H_
-#define _MULTIPARTPARSER_H_
+#ifndef WFREST_MULTIPARTPARSER_H_
+#define WFREST_MULTIPARTPARSER_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -47,4 +47,4 @@ void *multipart_parser_get_data(multipart_parser *p);
 } /* extern "C" */
 #endif
 
-#endif //_MULTIPARTPARSER_H_
+#endif // WFREST_MULTIPARTPARSER_H_

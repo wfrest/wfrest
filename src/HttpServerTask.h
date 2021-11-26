@@ -1,5 +1,5 @@
-#ifndef _HTTPSERVERTASK_H_
-#define _HTTPSERVERTASK_H_
+#ifndef WFREST_HTTPSERVERTASK_H_
+#define WFREST_HTTPSERVERTASK_H_
 
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
@@ -42,4 +42,4 @@ private:
 } // namespace wfrest
 
 
-#endif // _HTTPSERVERTASK_H_
+#endif // WFREST_HTTPSERVERTASK_H_

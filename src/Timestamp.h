@@ -1,5 +1,5 @@
-#ifndef _TIMESTAMP_H_
-#define _TIMESTAMP_H_
+#ifndef WFREST_TIMESTAMP_H_
+#define WFREST_TIMESTAMP_H_
 
 #include <chrono>
 #include <string>
@@ -103,6 +103,4 @@ inline double operator-(Timestamp high, Timestamp low)
 
 }  // namespace wfrest
 
-
-
-#endif //_TIMESTAMP_H_
+#endif // WFREST_TIMESTAMP_H_

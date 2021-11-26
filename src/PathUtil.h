@@ -1,5 +1,5 @@
-#ifndef _PATHUTIL_H_
-#define _PATHUTIL_H_
+#ifndef WFREST_PATHUTIL_H_
+#define WFREST_PATHUTIL_H_
 
 #include <string>
 
@@ -17,4 +17,4 @@ public:
 
 
 
-#endif //_PATHUTIL_H_
+#endif // WFREST_PATHUTIL_H_

@@ -1,5 +1,5 @@
-#ifndef _HTTPFILE_H_
-#define _HTTPFILE_H_
+#ifndef WFREST_HTTPFILE_H_
+#define WFREST_HTTPFILE_H_
 
 #include <string>
 #include <vector>
@@ -37,4 +37,4 @@ private:
 
 }  // namespace wfrest
 
-#endif //_HTTPFILE_H_
+#endif // WFREST_HTTPFILE_H_

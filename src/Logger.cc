@@ -173,13 +173,13 @@ Logger::FlushFunc &Logger::flush_func_()
     return flush_func;
 }
 
-void Logger::set_log_output(const Logger::OutputFunc &output_func, const Logger::FlushFunc &flush_func)
+void Logger::set_output(const Logger::OutputFunc &output_func, const Logger::FlushFunc &flush_func)
 {
     output_func_() = output_func;
     flush_func_() = flush_func;
 }
 
-void Logger::set_log_output(Logger::OutputFunc &&output_func, Logger::FlushFunc &&flush_func)
+void Logger::set_output(Logger::OutputFunc &&output_func, Logger::FlushFunc &&flush_func)
 {
     output_func_() = std::move(output_func);
     flush_func_() = std::move(flush_func);

@@ -1,7 +1,7 @@
 // Modified from muduo
 
-#ifndef _LOGGER_H_
-#define _LOGGER_H_
+#ifndef WFREST_LOGGER_H_
+#define WFREST_LOGGER_H_
 
 #include <functional>
 
@@ -28,9 +28,13 @@ public:
     using OutputFunc = std::function<void(const char *msg, int len)>;
     using FlushFunc = std::function<void()>;
 
-    static void set_log_output(const OutputFunc &output_func, const FlushFunc &flush_func);
+    static void set_output(const OutputFunc &output_func) { output_func_() = output_func; }
 
-    static void set_log_output(OutputFunc &&output_func, FlushFunc &&flush_func);
+    static void set_output(OutputFunc &&output_func) { output_func_() = std::move(output_func); }
+
+    static void set_output(const OutputFunc &output_func, const FlushFunc &flush_func);
+
+    static void set_output(OutputFunc &&output_func, FlushFunc &&flush_func);
 
     // compile time calculation of basename of source file
     class SourceFile
@@ -131,4 +135,4 @@ Logger::SourceFile::SourceFile(const char (&arr)[N])
 
 
 
-#endif //_LOGGER_H_
+#endif // WFREST_LOGGER_H_

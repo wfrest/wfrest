@@ -1,5 +1,5 @@
-#ifndef _HTTPDEF_H_
-#define _HTTPDEF_H_
+#ifndef WFREST_HTTPDEF_H_
+#define WFREST_HTTPDEF_H_
 
 #include <string>
 
@@ -48,9 +48,6 @@ public:
     static enum http_content_type to_enum(const std::string &content_type_str);
 };
 
-
 } // wfrest
 
-
-
-#endif //_HTTPDEF_H_
+#endif // WFREST_HTTPDEF_H_

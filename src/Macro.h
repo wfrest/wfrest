@@ -1,6 +1,6 @@
-#ifndef _MACRO_H_
-#define _MACRO_H_
+#ifndef WFREST_MACRO_H_
+#define WFREST_MACRO_H_
 
 #define OUT
 
-#endif //_MACRO_H_
+#endif // WFREST_MACRO_H_

@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_H_
-#define _GLOBAL_H_
+#ifndef c_GLOBAL_H_
+#define WFREST_GLOBAL_H_
 
 namespace wfrest
 {
@@ -14,4 +14,4 @@ public:
 }  // namespace wfrest
 
 
-#endif //_GLOBAL_H_
+#endif // WFREST_GLOBAL_H_

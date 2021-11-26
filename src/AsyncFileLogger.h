@@ -1,5 +1,7 @@
-#ifndef _ASYNCFILELOGGER_H_
-#define _ASYNCFILELOGGER_H_
+#ifndef WFREST_ASYNCFILELOGGER_H_
+#define WFREST_ASYNCFILELOGGER_H_
+
+#include "workflow/WFFacilities.h"
 
 #include <string>
 #include <condition_variable>
@@ -74,6 +76,7 @@ private:
     std::thread thread_;
     std::mutex mutex_;
     std::condition_variable cv_;
+    WFFacilities::WaitGroup wait_group_;
     // front end
     BufferPtr log_buf_;
     BufferPtr next_buf_;
@@ -83,17 +86,15 @@ private:
     BufferPtr tmp_buf2_;
     BufferVector bufs_to_write_;
 
-    bool running_;
+    std::atomic<bool> running_;
     std::unique_ptr<LogFile> p_log_file_;
     std::string file_path_ = "./";
     std::string file_base_name_ = "wfrest";
     std::string file_extension_ = ".log";
-    uint64_t size_limit_ = 20 * 1024 * 1024;
+    uint64_t roll_size_ = 20 * 1024 * 1024;
     static const std::chrono::seconds k_flush_interval;
 };
 
 } // namespace wfrest
 
-
-
-#endif // _ASYNCFILELOGGER_H_
+#endif // WFREST_ASYNCFILELOGGER_H_

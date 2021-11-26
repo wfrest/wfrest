@@ -1,5 +1,5 @@
-#ifndef _URIUTIL_H_
-#define _URIUTIL_H_
+#ifndef WFREST_URIUTIL_H_
+#define WFREST_URIUTIL_H_
 
 #include "workflow/URIParser.h"
 #include <unordered_map>
@@ -17,4 +17,4 @@ public:
 
 }  // wfrest
 
-#endif //_URIUTIL_H_
+#endif // WFREST_URIUTIL_H_

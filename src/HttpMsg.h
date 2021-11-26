@@ -1,5 +1,5 @@
-#ifndef _HTTPMSG_H_
-#define _HTTPMSG_H_
+#ifndef WFREST_HTTPMSG_H_
+#define WFREST_HTTPMSG_H_
 
 #include "workflow/HttpMessage.h"
 #include "workflow/WFTaskFactory.h"
@@ -184,4 +184,4 @@ private:
 } // namespace wfrest
 
 
-#endif // _HTTPMSG_H_
+#endif // WFREST_HTTPMSG_H_

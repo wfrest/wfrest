@@ -1,7 +1,7 @@
 // Modified from lithium
 
-#ifndef _ROUTETABLE_H_
-#define _ROUTETABLE_H_
+#ifndef WFREST_ROUTETABLE_H_
+#define WFREST_ROUTETABLE_H_
 
 #include <vector>
 #include <memory>
@@ -97,4 +97,4 @@ private:
 
 } // namespace wfrest
 
-#endif // _ROUTETABLE_H_
+#endif // WFREST_ROUTETABLE_H_

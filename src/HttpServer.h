@@ -1,5 +1,5 @@
-#ifndef _HTTPSERVER_H_
-#define _HTTPSERVER_H_
+#ifndef WFREST_HTTPSERVER_H_
+#define WFREST_HTTPSERVER_H_
 
 #include "workflow/WFHttpServer.h"
 
@@ -37,4 +37,4 @@ private:
 
 }  // namespace wfrest
 
-#endif // _HTTPSERVER_H_
+#endif // WFREST_HTTPSERVER_H_

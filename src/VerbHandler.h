@@ -1,5 +1,5 @@
-#ifndef _VERBHANDLER_H_
-#define _VERBHANDLER_H_
+#ifndef WFREST_VERBHANDLER_H_
+#define WFREST_VERBHANDLER_H_
 
 #include <functional>
 #include "HttpMsg.h"
@@ -19,6 +19,6 @@ struct VerbHandler
     Handler handler;
     std::string path;
 };
-}
+}  // namespace wfrest
 
-#endif //_VERBHANDLER_H_
+#endif // WFREST_VERBHANDLER_H_

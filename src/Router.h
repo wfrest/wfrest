@@ -1,5 +1,5 @@
-#ifndef _ROUTER_H_
-#define _ROUTER_H_
+#ifndef WFREST_ROUTER_H_
+#define WFREST_ROUTER_H_
 
 #include "VerbHandler.h"
 #include "HttpMsg.h"
@@ -28,4 +28,4 @@ private:
 
 }  // wfrest
 
-#endif //_ROUTER_H_
+#endif // WFREST_ROUTER_H_
