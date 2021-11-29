@@ -1,5 +1,4 @@
 // Modified from muduo
-
 #ifndef WFREST_LOGGER_H_
 #define WFREST_LOGGER_H_
 
@@ -10,27 +9,49 @@
 
 namespace wfrest
 {
+
+enum class LogLevel
+{
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    FATAL
+};
+
+struct LoggerSettings
+{
+    LogLevel level;
+    const char *file_path;
+    const char *file_base_name;
+    const char *file_extension;
+    uint64_t roll_size;
+    std::chrono::seconds flush_interval;
+};
+
+static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
+{
+        .level = LogLevel::INFO,
+        .file_path = "./",
+        .file_base_name = "wfrest",
+        .file_extension = ".log",
+        .roll_size = 20 * 1024 * 1024,
+        .flush_interval = std::chrono::seconds(3),
+};
+
 class Logger
 {
 public:
-    enum LogLevel
-    {
-        TRACE,
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        FATAL,
-        NUM_LOG_LEVELS,
-    };
-
     // Two std::funcion set output location
     using OutputFunc = std::function<void(const char *msg, int len)>;
     using FlushFunc = std::function<void()>;
 
-    static void set_output(const OutputFunc &output_func) { output_func_() = output_func; }
+    static void set_output(const OutputFunc &output_func)
+    { output_func_() = output_func; }
 
-    static void set_output(OutputFunc &&output_func) { output_func_() = std::move(output_func); }
+    static void set_output(OutputFunc &&output_func)
+    { output_func_() = std::move(output_func); }
 
     static void set_output(const OutputFunc &output_func, const FlushFunc &flush_func);
 
@@ -64,15 +85,9 @@ public:
     LogStream &stream()
     { return impl_.stream_; }
 
-    static LogLevel log_level()
-    { return log_level_(); }
-
-    static void set_log_level(LogLevel level)
-    { log_level_() = level; }
+    static LogLevel log_level();
 
 protected:
-    static LogLevel &log_level_();
-
     // default write to stdout
     // Can set to file
     static void default_output(const char *msg, int len);
@@ -87,8 +102,6 @@ private:
     class Impl
     {
     public:
-        using LogLevel = Logger::LogLevel;
-
         Impl(LogLevel level, int old_errno, const SourceFile &file, int line);
 
         void formatTime();
@@ -115,16 +128,15 @@ Logger::SourceFile::SourceFile(const char (&arr)[N])
     }
 }
 
-
-#define LOG_TRACE if (wfrest::Logger::log_level() <= wfrest::Logger::TRACE) \
-  wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::TRACE, __func__).stream()
-#define LOG_DEBUG if (wfrest::Logger::log_level() <= wfrest::Logger::DEBUG) \
-  wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::DEBUG, __func__).stream()
-#define LOG_INFO if (wfrest::Logger::log_level() <= wfrest::Logger::INFO) \
+#define LOG_TRACE if (wfrest::Logger::log_level() <= wfrest::LogLevel::TRACE) \
+  wfrest::Logger(__FILE__, __LINE__, wfrest::LogLevel::TRACE, __func__).stream()
+#define LOG_DEBUG if (wfrest::Logger::log_level() <= wfrest::LogLevel::DEBUG) \
+  wfrest::Logger(__FILE__, __LINE__, wfrest::LogLevel::DEBUG, __func__).stream()
+#define LOG_INFO if (wfrest::Logger::log_level() <= wfrest::LogLevel::INFO) \
   wfrest::Logger(__FILE__, __LINE__).stream()
-#define LOG_WARN wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::WARN).stream()
-#define LOG_ERROR wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::ERROR).stream()
-#define LOG_FATAL wfrest::Logger(__FILE__, __LINE__, wfrest::Logger::FATAL).stream()
+#define LOG_WARN wfrest::Logger(__FILE__, __LINE__, wfrest::LogLevel::WARN).stream()
+#define LOG_ERROR wfrest::Logger(__FILE__, __LINE__, wfrest::LogLevel::ERROR).stream()
+#define LOG_FATAL wfrest::Logger(__FILE__, __LINE__, wfrest::LogLevel::FATAL).stream()
 #define LOG_SYSERR wfrest::Logger(__FILE__, __LINE__, false).stream()
 #define LOG_SYSFATAL wfrest::Logger(__FILE__, __LINE__, true).stream()
 

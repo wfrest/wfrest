@@ -1,10 +1,10 @@
 #include "AsyncFileLogger.h"
+#include "Global.h"
 
 using namespace wfrest;
 
 // static member init
 uint64_t AsyncFileLogger::LogFile::file_seq_ = 0;
-const std::chrono::seconds AsyncFileLogger::k_flush_interval = std::chrono::seconds(1);
 
 AsyncFileLogger::AsyncFileLogger()
         : wait_group_(1),
@@ -31,34 +31,19 @@ AsyncFileLogger::~AsyncFileLogger()
 
 void AsyncFileLogger::write_log_to_file(const char *buf, int len)
 {
+    auto log_settings = Global::get_logger_settings();
     if (!p_log_file_)
     {
         p_log_file_ = std::unique_ptr<LogFile>(
-                new LogFile(file_path_, file_base_name_, file_extension_)
+                new LogFile(log_settings->file_path,
+                            log_settings->file_base_name,
+                            log_settings->file_extension)
         );
     }
     p_log_file_->write_log(buf, len);
-    if (p_log_file_->length() > roll_size_)
+    if (p_log_file_->length() > log_settings->roll_size)
     {
         p_log_file_.reset();
-    }
-}
-
-
-void AsyncFileLogger::set_file_name(const std::string &base_name,
-                                    const std::string &extension,
-                                    const std::string &path)
-{
-    file_base_name_ = base_name;
-    extension[0] == '.' ? file_extension_ = extension : file_extension_ = "." + extension;
-    file_path_ = path;
-    if (file_path_.length() == 0)
-    {
-        file_path_ = "./";
-    }
-    if (file_path_[file_path_.length() - 1] != '/')
-    {
-        file_path_ = file_path_ + "/";
     }
 }
 
@@ -75,9 +60,9 @@ void AsyncFileLogger::thread_func()
     wait_group_.done();
     while (running_)
     {
-        wait_for_buffer();
-        erase_extra_buffer();
-        bufs_write();
+        wait_for_buf();
+        erase_extra_buf();
+        write_bufs();
         put_back_tmp_buf();
         if (p_log_file_)
         {
@@ -107,12 +92,12 @@ void AsyncFileLogger::output(const char *msg, int len)
     }
 }
 
-void AsyncFileLogger::wait_for_buffer()
+void AsyncFileLogger::wait_for_buf()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (bufs_.empty())
     {
-        cv_.wait_for(lock, k_flush_interval);
+        cv_.wait_for(lock, Global::get_logger_settings()->flush_interval);
     }
     bufs_.emplace_back(std::move(log_buf_));
     log_buf_ = std::move(tmp_buf1_);   // put a tmp buffer to a new log_buf
@@ -123,7 +108,7 @@ void AsyncFileLogger::wait_for_buffer()
     }
 }
 
-void AsyncFileLogger::erase_extra_buffer()
+void AsyncFileLogger::erase_extra_buf()
 {
     // The production speed exceeds the consumption speed,
     // which will cause the accumulation of data in the memory
@@ -140,7 +125,7 @@ void AsyncFileLogger::erase_extra_buffer()
     }
 }
 
-void AsyncFileLogger::bufs_write()
+void AsyncFileLogger::write_bufs()
 {
     for (const auto &buf: bufs_to_write_)
     {
@@ -174,7 +159,6 @@ void AsyncFileLogger::stop()
     cv_.notify_one();
     thread_.join();
 }
-
 
 AsyncFileLogger::LogFile::LogFile(const std::string &file_path,
                                   const std::string &file_base_name,

@@ -1,19 +1,11 @@
 #include "Logger.h"
 #include "SysInfo.h"
+#include "Global.h"
 
 namespace wfrest
 {
 
-const char *log_level_str[Logger::NUM_LOG_LEVELS] =
-        {
-                " [TRACE] ",
-                " [DEBUG] ",
-                " [INFO]  ",
-                " [WARN]  ",
-                " [ERROR] ",
-                " [FATAL] ",
-        };
-
+// for optimizing time buf
 thread_local char t_errnobuf[512];
 thread_local time_t t_last_sec;
 thread_local char t_time[64];
@@ -21,6 +13,27 @@ thread_local char t_time[64];
 const char *strerror_tl(int savedErrno)
 {
     return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
+}
+
+const char* log_level_to_str(const LogLevel& level)
+{
+    switch (level)
+    {
+        case LogLevel::TRACE:
+            return " [TRACE] ";
+        case LogLevel::DEBUG:
+            return " [DEBUG] ";
+        case LogLevel::INFO:
+            return " [INFO]  ";
+        case LogLevel::WARN:
+            return " [WARN]  ";
+        case LogLevel::ERROR:
+            return " [ERROR] ";
+        case LogLevel::FATAL:
+            return " [FATAL] ";
+        default:
+            return "[UNKNOWN]";
+    }
 }
 
 // helper class for known string length at compile time
@@ -55,7 +68,6 @@ inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v)
 
 using namespace wfrest;
 
-
 Logger::SourceFile::SourceFile(const char *filename)
         : data_(filename)
 {
@@ -68,23 +80,23 @@ Logger::SourceFile::SourceFile(const char *filename)
 }
 
 Logger::Logger(Logger::SourceFile file, int line)
-        : impl_(INFO, 0, file, line)
+        : impl_(LogLevel::INFO, 0, file, line)
 {
 }
 
-Logger::Logger(Logger::SourceFile file, int line, Logger::LogLevel level)
+Logger::Logger(Logger::SourceFile file, int line, LogLevel level)
         : impl_(level, 0, file, line)
 {
 }
 
-Logger::Logger(Logger::SourceFile file, int line, Logger::LogLevel level, const char *func)
+Logger::Logger(Logger::SourceFile file, int line, LogLevel level, const char *func)
         : impl_(level, 0, file, line)
 {
     impl_.stream_ << "[" << func << "] ";
 }
 
 Logger::Logger(Logger::SourceFile file, int line, bool toAbort)
-        : impl_(toAbort ? FATAL : ERROR, errno, file, line)
+        : impl_(toAbort ? LogLevel::FATAL : LogLevel::ERROR, errno, file, line)
 {
 }
 
@@ -94,14 +106,14 @@ Logger::~Logger()
     const LogStream::Buffer &buf(stream().buffer());
     // Call g_output to output the log data (stored in buf).
     output_func_()(buf.data(), buf.length());
-    if (impl_.level_ == FATAL)
+    if (impl_.level_ == LogLevel::FATAL)
     {
         flush_func_()();
         abort();
     }
 }
 
-Logger::Impl::Impl(Logger::LogLevel level, int savedErrno, const Logger::SourceFile &file, int line)
+Logger::Impl::Impl(LogLevel level, int savedErrno, const Logger::SourceFile &file, int line)
         : time_(Timestamp::now()),
           stream_(),
           level_(level),
@@ -111,7 +123,7 @@ Logger::Impl::Impl(Logger::LogLevel level, int savedErrno, const Logger::SourceF
     formatTime();
     CurrentThread::tid();
     stream_ << T(CurrentThread::tid_str(), CurrentThread::tid_str_len());
-    stream_ << T(log_level_str[level], 9);
+    stream_ << T(log_level_to_str(level), 9);
     stream_ << " [" << basename_ << ':' << line_ << "] ";
     if (savedErrno != 0)
     {
@@ -151,16 +163,6 @@ void Logger::default_flush()
     fflush(stdout);
 }
 
-Logger::LogLevel &Logger::log_level_()
-{
-#ifdef RELEASE
-    static LogLevel log_level = LogLevel::INFO;
-#else
-    static LogLevel log_level = LogLevel::DEBUG;
-#endif
-    return log_level;
-}
-
 Logger::OutputFunc &Logger::output_func_()
 {
     static OutputFunc output_func = Logger::default_output;
@@ -183,6 +185,11 @@ void Logger::set_output(Logger::OutputFunc &&output_func, Logger::FlushFunc &&fl
 {
     output_func_() = std::move(output_func);
     flush_func_() = std::move(flush_func);
+}
+
+LogLevel Logger::log_level()
+{
+    return Global::get_logger_settings()->level;
 }
 
 

@@ -15,16 +15,13 @@
 
 namespace wfrest
 {
+
 class AsyncFileLogger
 {
 public:
     AsyncFileLogger();
 
     ~AsyncFileLogger();
-
-    void set_file_name(const std::string &base_name,
-                       const std::string &extension = ".log",
-                       const std::string &path = "./");
 
     void start();
 
@@ -67,11 +64,11 @@ private:
 
     void thread_func();
 
-    void wait_for_buffer();
+    void wait_for_buf();
 
-    void erase_extra_buffer();
+    void erase_extra_buf();
 
-    void bufs_write();
+    void write_bufs();
 
     void put_back_tmp_buf();
 
@@ -91,11 +88,6 @@ private:
 
     std::atomic<bool> running_;
     std::unique_ptr<LogFile> p_log_file_;
-    std::string file_path_ = "./";
-    std::string file_base_name_ = "wfrest";
-    std::string file_extension_ = ".log";
-    uint64_t roll_size_ = 20 * 1024 * 1024;
-    static const std::chrono::seconds k_flush_interval;
 };
 
 } // namespace wfrest

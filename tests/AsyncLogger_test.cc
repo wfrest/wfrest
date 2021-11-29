@@ -6,7 +6,6 @@ using namespace wfrest;
 int main()
 {
     AsyncFileLogger logger;
-    logger.set_file_name("test");
     logger.start();
 
     Logger::set_output([&](const char *msg, int len)
