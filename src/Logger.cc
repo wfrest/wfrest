@@ -64,6 +64,13 @@ inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v)
     return s;
 }
 
+void WFREST_init_logger(struct LoggerSettings *settings)
+{
+    Global::set_logger_settings(settings);
+    if(settings->log_in_file)
+        Global::get_async_file_logger()->start();
+}
+
 }  // namespace wfrest
 
 using namespace wfrest;
@@ -155,17 +162,24 @@ void Logger::Impl::formatTime()
 
 void Logger::default_output(const char *msg, int len)
 {
-    size_t n = fwrite(msg, 1, len, stdout);
+    size_t n = fwrite(msg, 1, len, stderr);
+}
+
+void Logger::file_output(const char *msg, int len)
+{
+    Global::get_async_file_logger()->output(msg, len);
 }
 
 void Logger::default_flush()
 {
-    fflush(stdout);
+    fflush(stderr);
 }
 
 Logger::OutputFunc &Logger::output_func_()
 {
-    static OutputFunc output_func = Logger::default_output;
+    static OutputFunc output_func =
+            Global::get_logger_settings()->log_in_file ?
+            Logger::file_output : Logger::default_output;
     return output_func;
 }
 
@@ -191,6 +205,8 @@ LogLevel Logger::log_level()
 {
     return Global::get_logger_settings()->level;
 }
+
+
 
 
 

@@ -1,13 +1,14 @@
-#ifndef c_GLOBAL_H_
+#ifndef WFREST_GLOBAL_H_
 #define WFREST_GLOBAL_H_
+
+#include "Logger.h"
+#include "AsyncFileLogger.h"
 
 namespace wfrest
 {
 class HttpFile;
 
-struct LoggerSettings;
-
-void WFREST_logger_init(const struct LoggerSettings *settings);
+extern void WFREST_logger_init(const struct LoggerSettings *settings);
 
 class Global
 {
@@ -17,6 +18,8 @@ public:
     static LoggerSettings *get_logger_settings();
 
     static void set_logger_settings(const struct LoggerSettings *log_settings);
+
+    static AsyncFileLogger *get_async_file_logger();
 private:
     static struct LoggerSettings log_settings_;
 };
