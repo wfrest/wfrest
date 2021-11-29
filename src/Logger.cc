@@ -66,6 +66,28 @@ inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v)
 
 void WFREST_init_logger(struct LoggerSettings *settings)
 {
+    std::string extension = settings->file_extension;
+    if(!extension.empty() && extension[0] != '.') 
+    {
+        extension.insert(0, 1, '.');
+        settings->file_extension = extension.c_str();
+    }
+
+    if (strlen(settings->file_path) == 0)
+    {
+        settings->file_path = "./";
+    }
+    std::string file_path = settings->file_path;
+    if (file_path[file_path.length() - 1] != '/')
+    {
+        file_path = file_path + "/";
+        settings->file_path = file_path.c_str();
+    }
+    if(settings->roll_size > 100 * 1024 * 1024)
+    {
+        fprintf(stderr, "roll size is too large, we set 20 MB...");
+        settings->roll_size = 20 * 1024 * 1024;
+    }
     Global::set_logger_settings(settings);
     if(settings->log_in_file)
         Global::get_async_file_logger()->start();
@@ -111,8 +133,11 @@ Logger::~Logger()
 {
     impl_.stream_ << "\n";
     const LogStream::Buffer &buf(stream().buffer());
-    // Call g_output to output the log data (stored in buf).
     output_func_()(buf.data(), buf.length());
+    
+    if(Global::get_logger_settings()->log_in_file)
+        file_output(buf.data(), buf.length());
+
     if (impl_.level_ == LogLevel::FATAL)
     {
         flush_func_()();
@@ -177,9 +202,7 @@ void Logger::default_flush()
 
 Logger::OutputFunc &Logger::output_func_()
 {
-    static OutputFunc output_func =
-            Global::get_logger_settings()->log_in_file ?
-            Logger::file_output : Logger::default_output;
+    static OutputFunc output_func = Logger::default_output;
     return output_func;
 }
 

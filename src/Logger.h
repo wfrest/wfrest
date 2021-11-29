@@ -31,7 +31,6 @@ struct LoggerSettings
     std::chrono::seconds flush_interval;
 };
 
-// todo : if user write in the wrong way?
 static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
 {
     .level = LogLevel::INFO,

@@ -11,7 +11,8 @@ AsyncFileLogger::AsyncFileLogger()
           log_buf_(new Buffer),
           next_buf_(new Buffer),
           tmp_buf1_(new Buffer),
-          tmp_buf2_(new Buffer)
+          tmp_buf2_(new Buffer),
+          running_(false)
 {
     log_buf_->bzero();
     next_buf_->bzero();
@@ -31,17 +32,8 @@ AsyncFileLogger::~AsyncFileLogger()
 
 void AsyncFileLogger::write_log_to_file(const char *buf, int len)
 {
-    auto log_settings = Global::get_logger_settings();
-    if (!p_log_file_)
-    {
-        p_log_file_ = std::unique_ptr<LogFile>(
-                new LogFile(log_settings->file_path,
-                            log_settings->file_base_name,
-                            log_settings->file_extension)
-        );
-    }
     p_log_file_->write_log(buf, len);
-    if (p_log_file_->length() > log_settings->roll_size)
+    if (p_log_file_->length() > Global::get_logger_settings()->roll_size)
     {
         p_log_file_.reset();
     }
@@ -58,16 +50,22 @@ void AsyncFileLogger::start()
 void AsyncFileLogger::thread_func()
 {
     wait_group_.done();
+    auto *log_settings = Global::get_logger_settings();
+
+    p_log_file_ = std::unique_ptr<LogFile>(
+            new LogFile(log_settings->file_path,
+                        log_settings->file_base_name,
+                        log_settings->file_extension)
+    );
+
     while (running_)
     {
         wait_for_buf();
         erase_extra_buf();
         write_bufs();
         put_back_tmp_buf();
-        if (p_log_file_)
-        {
-            p_log_file_->flush();
-        }
+        bufs_to_write_.clear();
+        p_log_file_->flush();
     }
 }
 
@@ -182,11 +180,13 @@ AsyncFileLogger::LogFile::~LogFile()
     {
         fclose(fp_);
         char seq[12];
-        snprintf(seq, sizeof(seq), ".%06llu",
+        snprintf(seq, sizeof seq, ".%06llu",
                  static_cast<long long unsigned int>(file_seq_ % 1000000));
         ++file_seq_;
         std::string new_name = file_path_ + file_base_name_ + "." +
-                               create_time_.to_format_str() + std::string(seq) + file_extension_;
+                               create_time_.to_format_str() + 
+                               std::string(seq) + file_extension_;
+                               
         rename(file_full_name_.c_str(), new_name.c_str());
     }
 }
