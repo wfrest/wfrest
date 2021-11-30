@@ -46,12 +46,3 @@ StringPiece StrUtil::trim(const StringPiece &str)
 {
     return ltrim(rtrim(str));
 }
-
-std::string StrUtil::trim(const std::string &str, const char *chars)
-{
-    std::string::size_type pos1 = str.find_first_not_of(chars);
-    if (pos1 == std::string::npos) return "";
-
-    std::string::size_type pos2 = str.find_last_not_of(chars);
-    return str.substr(pos1, pos2 - pos1 + 1);
-}

@@ -18,8 +18,6 @@ public:
 
     static StringPiece trim(const StringPiece &str);
 
-    static std::string trim(const std::string &str, const char *chars);
-
     template<class OutputStringType>
     static std::vector<OutputStringType> split_piece(const StringPiece &str, char sep);
 
