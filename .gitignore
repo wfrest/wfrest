@@ -1,12 +1,8 @@
-# Ignore all
-depre/wfrest/docs
-
 # Unignore all with extensions
 !*.*
 
 # Unignore all dirs
 !*/
-
 
 .DS_Store
 */.DS_Store
@@ -85,6 +81,5 @@ bin/lib-bash
 # Ignore log
 *.log 
 */logs/*
-*/*log*
 
 _include/*

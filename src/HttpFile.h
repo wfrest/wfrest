@@ -12,27 +12,16 @@ class HttpResp;
 class HttpFile
 {
 public:
-    static HttpFile *get_instance()
-    {
-        static HttpFile kInstance;
-        return &kInstance;
-    }
+    static void send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
 
-    void send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
+    static void send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp);
 
-    void send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp);
+    static void mount(std::string &&root);
 
-    void mount(std::string &&root);
-
-    void save_file(const std::string &dst_path, const void *content, size_t size, HttpResp *resp);
+    static void save_file(const std::string &dst_path, const void *content, size_t size, HttpResp *resp);
 
 private:
-    HttpFile() = default;
-
-    ~HttpFile() = default;
-
-private:
-    std::string root_ = ".";
+    static std::string root;
 };
 
 }  // namespace wfrest

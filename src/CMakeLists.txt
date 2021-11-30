@@ -8,7 +8,6 @@ set(SRCS
         MultiPartParser.c
         StrUtil.cc
         HttpFile.cc
-        Global.cc
         PathUtil.cc
         HttpServerTask.cc
         HttpServer.cc

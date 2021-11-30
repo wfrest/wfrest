@@ -6,7 +6,6 @@
 #include "HttpServer.h"
 #include "HttpServerTask.h"
 #include "UriUtil.h"
-#include "Global.h"
 
 using namespace wfrest;
 
@@ -85,5 +84,5 @@ CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 
 void HttpServer::mount(std::string &&path)
 {
-    Global::get_http_file()->mount(std::move(path));
+    HttpFile::mount(std::move(path));
 }

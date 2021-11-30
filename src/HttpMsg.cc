@@ -7,7 +7,6 @@
 #include "HttpMsg.h"
 #include "UriUtil.h"
 #include "StrUtil.h"
-#include "Global.h"
 #include "PathUtil.h"
 #include "HttpServerTask.h"
 
@@ -147,7 +146,7 @@ void HttpResp::String(const char *data, size_t len)
 
 void HttpResp::File(const std::string &path, int start, int end)
 {
-    Global::get_http_file()->send_file(path, start, end, this);
+    HttpFile::send_file(path, start, end, this);
 }
 
 void HttpResp::File(const std::vector<std::string> &path_list)
@@ -155,7 +154,7 @@ void HttpResp::File(const std::vector<std::string> &path_list)
     this->add_header_pair("Content-Type", "multipart/form-data");
     for (int i = 0; i < path_list.size(); i++)
     {
-        Global::get_http_file()->send_file_for_multi(path_list, i, this);
+        HttpFile::send_file_for_multi(path_list, i, this);
     }
 }
 
@@ -168,7 +167,7 @@ void HttpResp::Save(const std::string &file_dst, const void *content, size_t len
 {
     auto *ctx = new save_context;
     ctx->content = std::string(static_cast<const char *>(content), len);
-    Global::get_http_file()->save_file(file_dst, content, len, this);
+    HttpFile::save_file(file_dst, content, len, this);
     server_task_->add_callback([ctx](const HttpTask *)
                                {
                                    delete ctx;
@@ -184,7 +183,7 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
 {
     auto *ctx = new save_context;
     ctx->content = std::move(content);
-    Global::get_http_file()->save_file(file_dst,
+    HttpFile::save_file(file_dst,
                                        static_cast<const void *>(ctx->content.c_str()),
                                        ctx->content.size(),
                                        this);
@@ -212,6 +211,7 @@ void HttpResp::Json(const std::string &str)
     // this->String(str);
     this->String(Json::parse(str).dump());
 }
+
 
 
 

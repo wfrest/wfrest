@@ -10,6 +10,8 @@
 namespace wfrest
 {
 
+class AsyncFileLogger;
+
 enum class LogLevel
 {
     TRACE,
@@ -63,6 +65,16 @@ public:
 
     static void set_output(OutputFunc &&output_func, FlushFunc &&flush_func);
 
+    static LogLevel log_level();
+
+    static LoggerSettings *get_logger_settings()
+    { return &log_settings_; }
+
+    static void set_logger_settings(const struct LoggerSettings *log_settings)
+    { log_settings_ = *log_settings; }
+
+    static AsyncFileLogger *get_async_file_logger();
+
     // compile time calculation of basename of source file
     class SourceFile
     {
@@ -91,8 +103,6 @@ public:
     LogStream &stream()
     { return impl_.stream_; }
 
-    static LogLevel log_level();
-
 protected:
     // default write to stderr
     static void default_output(const char *msg, int len);
@@ -120,6 +130,8 @@ private:
         int line_;
         SourceFile basename_;
     } impl_;
+
+    static struct LoggerSettings log_settings_;
 };
 
 template<int N>

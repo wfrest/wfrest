@@ -140,10 +140,13 @@ std::string concat_path(std::string &root, const std::string &path)
 
 }  // namespace
 
+// static member init
+std::string HttpFile::root = ".";
+
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
     auto *server_task = resp->get_task();
-    std::string file_path = concat_path(root_, path);
+    std::string file_path = concat_path(root, path);
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
     if (end == -1 || start < 0)
@@ -191,7 +194,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp)
 {
     auto *server_task = resp->get_task();
-    std::string file_path = concat_path(root_, path_list[path_idx]);
+    std::string file_path = concat_path(root, path_list[path_idx]);
     fprintf(stderr, "file path : %s\n", file_path.c_str());
 
     auto *ctx = new pread_multi_context;
@@ -227,15 +230,15 @@ void HttpFile::mount(std::string &&root)
 {
     if (root.front() != '.' and root.front() != '/')
     {
-        root_ = "./" + root;
+        root = "./" + root;
     } else if (root.front() != '.')
     {
-        root_ = "." + root;
+        root = "." + root;
     } else
     {
-        root_ = std::move(root);
+        root = std::move(root);
     }
-    if (root_.back() == '/') root_.pop_back();
+    if (root.back() == '/') root.pop_back();
     // ./xxx/xx
 }
 
@@ -243,7 +246,7 @@ void HttpFile::save_file(const std::string &dst_path, const void *content, size_
 {
     auto *server_task = resp->get_task();
 
-    std::string file_path = concat_path(root_, dst_path);
+    std::string file_path = concat_path(root, dst_path);
 
     // fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
 

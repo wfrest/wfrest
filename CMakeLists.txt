@@ -37,6 +37,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
+
+find_package(GTest)
+if(GTest_FOUND)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
+endif()
+
 find_package(workflow QUIET)
 if (NOT workflow_FOUND)  
     MESSAGE("-- Third Party workflow not found, build target") 
@@ -72,6 +78,5 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 #if(WFREST_BUILD_EXAMPLES)
 add_subdirectory(${PROJECT_SOURCE_DIR}/example)
-add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
 #endif()

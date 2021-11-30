@@ -1,6 +1,6 @@
 #include "Logger.h"
 #include "SysInfo.h"
-#include "Global.h"
+#include "AsyncFileLogger.h"
 
 namespace wfrest
 {
@@ -89,14 +89,17 @@ void logger_init(struct LoggerSettings *settings)
         settings->roll_size = 20 * 1024 * 1024;
     }
 
-    Global::set_logger_settings(settings);
+    Logger::set_logger_settings(settings);
     if(settings->log_in_file)
-        Global::get_async_file_logger()->start();
+        Logger::get_async_file_logger()->start();
 }
 
 }  // namespace wfrest
 
 using namespace wfrest;
+
+// static member var
+struct LoggerSettings Logger::log_settings_ = LOGGER_SETTINGS_DEFAULT;
 
 Logger::SourceFile::SourceFile(const char *filename)
         : data_(filename)
@@ -135,10 +138,10 @@ Logger::~Logger()
     impl_.stream_ << "\n";
     const LogStream::Buffer &buf(stream().buffer());
 
-    if(Global::get_logger_settings()->log_in_console)
+    if(log_settings_.log_in_console)
         output_func_()(buf.data(), buf.length());
     
-    if(Global::get_logger_settings()->log_in_file)
+    if(log_settings_.log_in_file)
         file_output(buf.data(), buf.length());
 
     if (impl_.level_ == LogLevel::FATAL)
@@ -197,7 +200,7 @@ void Logger::default_output(const char *msg, int len)
 
 void Logger::file_output(const char *msg, int len)
 {
-    Global::get_async_file_logger()->output(msg, len);
+    Logger::get_async_file_logger()->output(msg, len);
 }
 
 void Logger::default_flush()
@@ -231,7 +234,13 @@ void Logger::set_output(Logger::OutputFunc &&output_func, Logger::FlushFunc &&fl
 
 LogLevel Logger::log_level()
 {
-    return Global::get_logger_settings()->level;
+    return log_settings_.level;
+}
+
+AsyncFileLogger *Logger::get_async_file_logger()
+{
+    static AsyncFileLogger async_file_logger;
+    return &async_file_logger;
 }
 
 
