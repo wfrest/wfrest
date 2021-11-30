@@ -25,3 +25,7 @@ target_link_libraries(08_upload_file wfrest)
 add_executable(09_json 09_json.cc)
 target_link_libraries(09_json wfrest)
 
+add_executable(10_logger 10_logger.cc)
+target_link_libraries(10_logger wfrest)
+
+

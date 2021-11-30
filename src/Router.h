@@ -21,7 +21,7 @@ public:
     static int parse_verb(const std::string &verb);
 
     void print_routes();   // for test
-
+    void all_routes();   // for test
 private:
     RouteTable routes_map_;
 };

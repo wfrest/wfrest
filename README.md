@@ -20,7 +20,8 @@ The c++ async micro web framework for building web applications based on workflo
       - [Save File](#save-file)
       - [Upload Files](#upload-files)
       - [Json](#json)
-
+    - [How to use logger](#how-to-use-logger)
+  
 ## 💥 Dicssussion
 
 For more information, you can first see discussions:
@@ -562,5 +563,78 @@ int main()
     }
     return 0;
 }
+```
+
+## How to use logger
+
+```cpp
+#include "Logger.h"
+using namespace wfrest;
+
+int main()
+{
+    // set the logger config
+    LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
+    settings.level = LogLevel::TRACE;
+    settings.log_in_file = true;
+    LOGGER(&settings);
+
+    int i = 1;
+    LOG_DEBUG << (float)3.14;
+    LOG_DEBUG << (const char)'8';
+    LOG_DEBUG << &i;
+    LOG_DEBUG << wfrest::Fmt("%.3f", 3.1415926);
+    LOG_DEBUG << "debug";
+    LOG_TRACE << "trace";
+    LOG_INFO << "info";
+    LOG_WARN << "warning";
+
+    FILE *fp = fopen("/not_exist_file", "rb");
+    if (fp == nullptr)
+    {
+        LOG_SYSERR << "syserr log!";
+    }
+    LOG_DEBUG  << abc << 123.345 << "chanchan" << '\n'
+               << std::string("name");
+    return 0;
+}
+```
+
+All the configure fields are:
+
+```cpp
+struct LoggerSettings
+{
+    LogLevel level;    
+    bool log_in_console;    
+    bool log_in_file;
+    const char *file_path;
+    const char *file_base_name;
+    const char *file_extension;
+    uint64_t roll_size;
+    std::chrono::seconds flush_interval;
+};
+```
+
+Default configure :
+
+```cpp
+static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
+{
+    .level = LogLevel::INFO,
+    .log_in_console = true,
+    .log_in_file = false,
+    .file_path = "./",
+    .file_base_name = "wfrest",
+    .file_extension = ".log",
+    .roll_size = 20 * 1024 * 1024,
+    .flush_interval = std::chrono::seconds(3),
+};
+```
+
+Sample Output
+
+```
+2021-11-30 22:36:21.422271 822380  [ERROR]  [logger_test.cc:84] No such file or directory (errno=2) syserr log
 ```
 

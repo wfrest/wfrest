@@ -4,6 +4,7 @@
 
 using namespace wfrest;
 
+// Basic use of logger
 void test01()
 {
     LOG_TRACE << "trace ...";
@@ -17,6 +18,7 @@ void test01()
     //LOG_SYSFATAL<<"sysfatal ...";
 }
 
+// how to set the setting
 void test02()
 {
     LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
@@ -35,6 +37,7 @@ void test02()
     //LOG_SYSFATAL<<"sysfatal ...";
 }
 
+// some other types
 void test03()
 {
     LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
@@ -60,6 +63,7 @@ void test03()
                << std::string("12356");
 }
 
+// multi thread
 void test04()
 {
     int i = 1;

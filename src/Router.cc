@@ -64,3 +64,8 @@ void Router::print_routes()
                            });
 //    routes_map_.all_routes([](auto r, auto h) { std::cout << r << '\n'; });
 }
+
+void Router::all_routes()
+{
+
+}
