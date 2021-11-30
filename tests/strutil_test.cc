@@ -2,8 +2,7 @@
 
 using namespace wfrest;
 
-
-void test09()
+void test01()
 {
     StringPiece str1("  name=\"avatar\"  ");
     StringPiece trim1 = StrUtil::trim(str1);
@@ -21,11 +20,5 @@ void test09()
 int main()
 {
 
-//    test03();
-//    test04();
-//    test05();
-//    test06();
-//    test07();
-
-    test09();
+    test01();
 }

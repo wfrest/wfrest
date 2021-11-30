@@ -45,6 +45,7 @@ void proc_param(StringPiece& str)
     while(str[j] == ' ') j--;
     str.shrink(i, str.size() - 1 - j);
 }
+
 void test03()
 {
     StringPiece str1("<    name   >");

@@ -34,8 +34,5 @@ int main()
         printf("pong");
     }, GET);
 
-
     router.print_routes();
-
-
 }

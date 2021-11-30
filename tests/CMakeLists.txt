@@ -15,11 +15,8 @@ target_link_libraries(strutil_split wfrest)
 add_executable(strutil_trim strutil_trim.cc)
 target_link_libraries(strutil_trim wfrest)
 
-add_executable(logger_test logger_test.cc)
-target_link_libraries(logger_test wfrest)
-
-add_executable(logger_test_02 logger_test_02.cc)
-target_link_libraries(logger_test_02 wfrest)
+add_executable(logger_test_01 logger_test_01.cc)
+target_link_libraries(logger_test_01 wfrest)
 
 add_executable(AsyncLogger_test AsyncLogger_test.cc)
 target_link_libraries(AsyncLogger_test wfrest)

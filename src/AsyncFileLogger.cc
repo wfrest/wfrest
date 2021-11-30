@@ -210,7 +210,7 @@ void AsyncFileLogger::LogFile::write_log(const char *buf, int len)
 {
     if (fp_)
     {
-        // https://stackoverflow.com/questions/19410230/fread-fwrite-size-and-count
+        // https://stackoverflow.com/questions/10564562/fwrite-effect-of-size-and-count-on-performance
         // fprintf(stderr, "write %d bytes to file\n", len);
         fwrite(buf, 1, len, fp_);
     }

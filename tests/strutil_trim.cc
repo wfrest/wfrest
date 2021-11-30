@@ -1,7 +1,5 @@
 #include "StrUtil.h"
-
 using namespace wfrest;
-
 
 void test01()
 {
