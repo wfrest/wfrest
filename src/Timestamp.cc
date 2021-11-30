@@ -39,9 +39,14 @@ std::string Timestamp::to_str() const
 
 std::string Timestamp::to_format_str() const
 {
+    return to_format_str("%Y-%m-%d %X");
+}
+
+std::string Timestamp::to_format_str(const char *fmt) const
+{
     std::time_t time = micro_sec_since_epoch_ / k_micro_sec_per_sec;  // ms --> s
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&time), "%Y-%m-%d %X");
+    ss << std::put_time(std::localtime(&time), fmt);
     return ss.str();
 }
 
@@ -55,3 +60,4 @@ Timestamp Timestamp::now()
     uint64_t timestamp = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
     return Timestamp(timestamp);
 }
+

@@ -23,6 +23,7 @@ enum class LogLevel
 struct LoggerSettings
 {
     LogLevel level;
+    bool log_in_console;
     bool log_in_file;
     const char *file_path;
     const char *file_base_name;
@@ -34,6 +35,7 @@ struct LoggerSettings
 static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
 {
     .level = LogLevel::INFO,
+    .log_in_console = true,
     .log_in_file = false,
     .file_path = "./",
     .file_base_name = "wfrest",
@@ -42,7 +44,7 @@ static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
     .flush_interval = std::chrono::seconds(3),
 };
 
-extern void WFREST_init_logger(struct LoggerSettings *settings);
+void logger_init(struct LoggerSettings *settings);
 
 class Logger
 {
@@ -92,8 +94,7 @@ public:
     static LogLevel log_level();
 
 protected:
-    // default write to stdout
-    // Can set to file
+    // default write to stderr
     static void default_output(const char *msg, int len);
 
     static void file_output(const char *msg, int len);
@@ -149,7 +150,7 @@ Logger::SourceFile::SourceFile(const char (&arr)[N])
 // note: LOG_TRACE << "the server has read the client message";
 // equals wfrest::Logger(__FILE__,__LINE__,wfrest::Logger::TRACE,__func__).stream()<<"the server has read the client message";
 
-#define LOGGER(settings) WFREST_init_logger(settings)
+#define LOGGER(settings) logger_init(settings)
 
 }  // namespace wfrest
 

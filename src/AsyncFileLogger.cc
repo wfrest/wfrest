@@ -180,11 +180,11 @@ AsyncFileLogger::LogFile::~LogFile()
     {
         fclose(fp_);
         char seq[12];
-        snprintf(seq, sizeof seq, ".%06llu",
+        snprintf(seq, sizeof seq, "_%06llu",
                  static_cast<long long unsigned int>(file_seq_ % 1000000));
         ++file_seq_;
-        std::string new_name = file_path_ + file_base_name_ + "." +
-                               create_time_.to_format_str() + 
+        std::string new_name = file_path_ + file_base_name_ + "_" +
+                               create_time_.to_format_str("%Y-%m-%d_%X") +
                                std::string(seq) + file_extension_;
                                
         rename(file_full_name_.c_str(), new_name.c_str());
@@ -210,6 +210,7 @@ void AsyncFileLogger::LogFile::write_log(const char *buf, int len)
 {
     if (fp_)
     {
+        // https://stackoverflow.com/questions/19410230/fread-fwrite-size-and-count
         // fprintf(stderr, "write %d bytes to file\n", len);
         fwrite(buf, 1, len, fp_);
     }

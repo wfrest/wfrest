@@ -193,21 +193,8 @@ LogStream::self &LogStream::operator<<(const LogStream::Buffer &buf)
     return *this;
 }
 
-void LogStream::static_check()
-{
-    static_assert(k_max_numeric_size - 10 > std::numeric_limits<double>::digits10,
-                  "k_max_num_size is large enough");
-    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long double>::digits10,
-                  "k_max_num_size is large enough");
-    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long>::digits10,
-                  "k_max_num_size is large enough");
-    static_assert(k_max_numeric_size - 10 > std::numeric_limits<long long>::digits10,
-                  "k_max_num_size is large enough");
-}
-
 // Explicit instantiations Fmt
 template Fmt::Fmt(const char* fmt, char);
-
 template Fmt::Fmt(const char* fmt, short);
 template Fmt::Fmt(const char* fmt, unsigned short);
 template Fmt::Fmt(const char* fmt, int);
@@ -216,7 +203,6 @@ template Fmt::Fmt(const char* fmt, long);
 template Fmt::Fmt(const char* fmt, unsigned long);
 template Fmt::Fmt(const char* fmt, long long);
 template Fmt::Fmt(const char* fmt, unsigned long long);
-
 template Fmt::Fmt(const char* fmt, float);
 template Fmt::Fmt(const char* fmt, double);
 

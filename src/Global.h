@@ -8,8 +8,6 @@ namespace wfrest
 {
 class HttpFile;
 
-extern void WFREST_logger_init(const struct LoggerSettings *settings);
-
 class Global
 {
 public:

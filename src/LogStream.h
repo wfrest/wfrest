@@ -28,7 +28,7 @@ public:
 
     FixedBuffer &operator=(const FixedBuffer &) = delete;
 
-    bool append(const char * /*restrict*/ buf, size_t len);
+    bool append(const char *buf, size_t len);
 
     const char *data() const
     { return data_; }
@@ -182,8 +182,6 @@ public:
 private:
     template<typename T>
     void formatInteger(T);
-
-    void static_check();
 
 private:
     Buffer buffer_;

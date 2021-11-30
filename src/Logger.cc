@@ -64,7 +64,7 @@ inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v)
     return s;
 }
 
-void WFREST_init_logger(struct LoggerSettings *settings)
+void logger_init(struct LoggerSettings *settings)
 {
     std::string extension = settings->file_extension;
     if(!extension.empty() && extension[0] != '.') 
@@ -73,21 +73,22 @@ void WFREST_init_logger(struct LoggerSettings *settings)
         settings->file_extension = extension.c_str();
     }
 
-    if (strlen(settings->file_path) == 0)
+    std::string file_path = settings->file_path;
+    if (file_path.empty())
     {
         settings->file_path = "./";
-    }
-    std::string file_path = settings->file_path;
-    if (file_path[file_path.length() - 1] != '/')
+    } else if (file_path[file_path.length() - 1] != '/')
     {
         file_path = file_path + "/";
         settings->file_path = file_path.c_str();
     }
+
     if(settings->roll_size > 100 * 1024 * 1024)
     {
         fprintf(stderr, "roll size is too large, we set 20 MB...");
         settings->roll_size = 20 * 1024 * 1024;
     }
+
     Global::set_logger_settings(settings);
     if(settings->log_in_file)
         Global::get_async_file_logger()->start();
@@ -133,7 +134,9 @@ Logger::~Logger()
 {
     impl_.stream_ << "\n";
     const LogStream::Buffer &buf(stream().buffer());
-    output_func_()(buf.data(), buf.length());
+
+    if(Global::get_logger_settings()->log_in_console)
+        output_func_()(buf.data(), buf.length());
     
     if(Global::get_logger_settings()->log_in_file)
         file_output(buf.data(), buf.length());
@@ -165,18 +168,20 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const Logger::SourceFile &fil
 
 void Logger::Impl::formatTime()
 {
-    int64_t ms_since_epoch = time_.micro_sec_since_epoch();
+    uint64_t ms_since_epoch = time_.micro_sec_since_epoch();
     time_t sec = static_cast<time_t>(ms_since_epoch / Timestamp::k_micro_sec_per_sec);
     int ms = static_cast<int>(ms_since_epoch % Timestamp::k_micro_sec_per_sec);
     if (sec != t_last_sec)
     {
         t_last_sec = sec;
         struct tm tm_time;
-        ::gmtime_r(&sec, &tm_time);
+        // ::gmtime_r(&sec, &tm_time);  // utc
+        ::localtime_r(&sec, &tm_time);
 
-        int len = snprintf(t_time, sizeof(t_time), "%4d-%02d-%02d %02d:%02d:%02d",
+        int len = snprintf(t_time, sizeof t_time, "%4d-%02d-%02d %02d:%02d:%02d",
                            tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
                            tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+        // fprintf(stderr, "time : %s\n", t_time);
         assert(len == 19);
     }
 
@@ -228,9 +233,6 @@ LogLevel Logger::log_level()
 {
     return Global::get_logger_settings()->level;
 }
-
-
-
 
 
 
