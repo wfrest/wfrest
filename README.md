@@ -20,6 +20,8 @@ The c++ async micro web framework for building web applications based on workflo
       - [Save File](#save-file)
       - [Upload Files](#upload-files)
       - [Json](#json)
+      - [Computing task](#computing-task)
+      - [Series Interface](#series-interface)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -550,6 +552,87 @@ int main()
             return;
         }
         fprintf(stderr, "Json : %s", req->json.dump(4).c_str());
+    });
+
+    if (svr.start(8888) == 0)
+    {
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server");
+        exit(1);
+    }
+    return 0;
+}
+```
+
+### Computing task
+
+```cpp
+#include "HttpServer.h"
+using namespace wfrest;
+
+void Fibonacci(int n, HttpResp *resp)
+{
+    unsigned long long x = 0, y = 1;
+    if (n <= 0 || n > 94)
+    {
+        fprintf(stderr, "invalid parameter");
+        return;
+    }
+    for (int i = 2; i < n; i++)
+    {
+        y = x + y;
+        x = y - x;
+    }
+    if (n == 1)
+        y = 0;
+    resp->String("fib(" + std::to_string(n) + ") is : " + std::to_string(y) + "\n");
+}
+
+int main()
+{
+    HttpServer svr;
+    // Second parameter means this computing queue id is 1
+    // Then this handler become a computing task
+    // curl -v http://ip:port/compute_task?num=20
+    svr.GET("/compute_task", 1, [](HttpReq *req, HttpResp *resp)
+    {
+        int num = std::stoi(req->query("num"));
+        Fibonacci(num, resp);
+    });
+
+    if (svr.start(8888) == 0)
+    {
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server");
+        exit(1);
+    }
+    return 0;
+}
+```
+
+### Series Interface
+
+```cpp
+#include "HttpServer.h"
+using namespace wfrest;
+
+int main()
+{
+    HttpServer svr;
+
+    svr.GET("/series", [](const HttpReq *req, HttpResp *resp, SeriesWork* series)
+    {
+        auto *timer = WFTaskFactory::create_timer_task(5000000, [](WFTimerTask *) {
+            printf("timer task complete(5s).\n");
+        });
+
+        series->push_back(timer);
     });
 
     if (svr.start(8888) == 0)

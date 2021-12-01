@@ -14,30 +14,19 @@ void sig_handler(int signo)
 void Fibonacci(int n, HttpResp *resp)
 {
     unsigned long long x = 0, y = 1;
-    char buf[256];
-    int i;
-
     if (n <= 0 || n > 94)
     {
-        resp->append_output_body_nocopy("<html>Invalid Number.</html>",
-                                        strlen("<html>Invalid Number.</html>"));
+        fprintf(stderr, "invalid parameter");
         return;
     }
-
-    resp->append_output_body_nocopy("<html>", strlen("<html>"));
-    for (i = 2; i < n; i++)
+    for (int i = 2; i < n; i++)
     {
-        sprintf(buf, "<p>%llu + %llu = %llu.</p>", x, y, x + y);
-        resp->append_output_body(buf);
         y = x + y;
         x = y - x;
     }
-
     if (n == 1)
         y = 0;
-    sprintf(buf, "<p>The No. %d Fibonacci number is: %llu.</p>", n, y);
-    resp->append_output_body(buf);
-    resp->append_output_body_nocopy("</html>", strlen("</html>"));
+    resp->String("fib(" + std::to_string(n) + ") is : " + std::to_string(y) + "\n");
 }
 
 int main()
@@ -46,9 +35,13 @@ int main()
 
     HttpServer svr;
 
-    svr.GET("/compute_task", 1,[](const HttpReq *req, HttpResp *resp)
+    // Second parameter means this computing queue id is 1
+    // Then this handler become a computing task
+    // curl -v http://ip:port/compute_task?num=20
+    svr.GET("/compute_task", 1, [](HttpReq *req, HttpResp *resp)
     {
-        Fibonacci(20, resp);
+        int num = std::stoi(req->query("num"));
+        Fibonacci(num, resp);
     });
 
     if (svr.start(8888) == 0)
