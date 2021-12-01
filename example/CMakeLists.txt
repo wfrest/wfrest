@@ -28,4 +28,5 @@ target_link_libraries(09_json wfrest)
 add_executable(10_logger 10_logger.cc)
 target_link_libraries(10_logger wfrest)
 
-
+add_executable(11_go_task 11_go_task.cc)
+target_link_libraries(11_go_task wfrest)

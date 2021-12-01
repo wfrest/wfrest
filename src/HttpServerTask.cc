@@ -7,6 +7,8 @@ using namespace protocol;
 #define HTTP_KEEPALIVE_DEFAULT    (60 * 1000)
 #define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
+static thread_local HttpServerTask *t_task = nullptr;
+
 HttpServerTask::HttpServerTask(CommService *service,
                                ProcFunc &process) :
         WFServerTask(service, WFGlobal::get_scheduler(), process),
@@ -143,3 +145,14 @@ CommMessageOut *HttpServerTask::message_out()
 
     return this->WFServerTask::message_out();
 }
+
+void HttpServerTask::set_thread_local_task(HttpServerTask *task)
+{
+    t_task = task;
+}
+
+HttpServerTask *HttpServerTask::get_thread_local_task()
+{
+    return t_task;
+}
+

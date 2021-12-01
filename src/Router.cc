@@ -1,4 +1,5 @@
 #include "Router.h"
+#include "HttpServerTask.h"
 
 using namespace wfrest;
 
@@ -30,6 +31,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
         {
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
+            HttpServerTask::set_thread_local_task(req->get_task());
             it->second.handler(req, resp);
         } else
         {

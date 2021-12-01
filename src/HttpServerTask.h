@@ -8,6 +8,7 @@
 
 namespace wfrest
 {
+
 class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
 {
 public:
@@ -21,6 +22,10 @@ public:
 
     void add_callback(ServerCallBack &&cb)
     { cb_list_.emplace_back(std::move(cb)); }
+
+    static void set_thread_local_task(HttpServerTask *task);
+
+    static HttpServerTask *get_thread_local_task();
 
 protected:
     void handle(int state, int error) override;
