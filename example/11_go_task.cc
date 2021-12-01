@@ -1,7 +1,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "HttpServer.h"
-#include "GoTaskWrapper.h"
 
 using namespace wfrest;
 
@@ -12,20 +11,34 @@ void sig_handler(int signo)
     wait_group.done();
 }
 
-void foo()
+void Fibonacci(int n, HttpResp *resp)
 {
-    fprintf(stderr,"function pointer\n");
-}
+    unsigned long long x = 0, y = 1;
+    char buf[256];
+    int i;
 
-void func(HttpResp* resp)
-{
-    resp->String("foo resp");
-}
+    if (n <= 0 || n > 94)
+    {
+        resp->append_output_body_nocopy("<html>Invalid Number.</html>",
+                                        strlen("<html>Invalid Number.</html>"));
+        return;
+    }
 
-struct A {
-    void fA() { fprintf(stderr, "std::bind\n"); }
-    void fB() { fprintf(stderr, "std::function\n"); }
-};
+    resp->append_output_body_nocopy("<html>", strlen("<html>"));
+    for (i = 2; i < n; i++)
+    {
+        sprintf(buf, "<p>%llu + %llu = %llu.</p>", x, y, x + y);
+        resp->append_output_body(buf);
+        y = x + y;
+        x = y - x;
+    }
+
+    if (n == 1)
+        y = 0;
+    sprintf(buf, "<p>The No. %d Fibonacci number is: %llu.</p>", n, y);
+    resp->append_output_body(buf);
+    resp->append_output_body_nocopy("</html>", strlen("</html>"));
+}
 
 int main()
 {
@@ -33,22 +46,9 @@ int main()
 
     HttpServer svr;
 
-//    svr.GET("go", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
-
-    svr.GET("/go_foo", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/compute_task", 1,[](const HttpReq *req, HttpResp *resp)
     {
-        go foo;
-    });
-
-    svr.GET("/go_bind", [](const HttpReq *req, HttpResp *resp)
-    {
-        go std::bind(&A::fA, A());
-    });
-
-    svr.GET("/go_functional", [](const HttpReq *req, HttpResp *resp)
-    {
-        std::function<void()> fn(std::bind(&A::fB, A()));
-        go fn;
+        Fibonacci(20, resp);
     });
 
     if (svr.start(8888) == 0)

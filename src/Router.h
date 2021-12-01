@@ -14,14 +14,17 @@ namespace wfrest
 class Router
 {
 public:
-    void handle(const char *route, const Handler &handler, Verb verb = Verb::GET);
+    void handle(const char *route, const Handler &handler, const SeriesHandler &series_handler, Verb verb);
+
+    void handle(const char *route, int compute_queue_id, const Handler &handler,
+                const SeriesHandler &series_handler, Verb verb);
 
     void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
 
     static Verb parse_verb(const std::string &verb);
 
     void print_routes();   // for test
-    void all_routes();   // for test
+//    void all_routes();   // for test
 private:
     RouteTable routes_map_;
 };

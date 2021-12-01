@@ -21,7 +21,19 @@ public:
 
     void GET(const char *route, const Handler &handler);
 
+    void GET(const char *route, const SeriesHandler &series_handler);
+
+    void GET(const char *route, int compute_queue_id, const Handler &handler);
+
+    void GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
+
     void POST(const char *route, const Handler &handler);
+
+    void POST(const char *route, const SeriesHandler &series_handler);
+
+    void POST(const char *route, int compute_queue_id, const Handler &handler);
+
+    void POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
 
     void mount(std::string &&path);
 

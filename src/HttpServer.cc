@@ -64,12 +64,42 @@ void HttpServer::proc(HttpTask *task)
 
 void HttpServer::GET(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, Verb::GET);
+    router_.handle(route, handler, nullptr, Verb::GET);
+}
+
+void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
+{
+    router_.handle(route, nullptr, series_handler, Verb::GET);
+}
+
+void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
+{
+    router_.handle(route, compute_queue_id, handler, nullptr, Verb::GET);
+}
+
+void HttpServer::GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
+{
+    router_.handle(route, compute_queue_id, nullptr, series_handler, Verb::GET);
 }
 
 void HttpServer::POST(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, Verb::POST);
+    router_.handle(route, handler, nullptr, Verb::POST);
+}
+
+void HttpServer::POST(const char *route, const SeriesHandler &series_handler)
+{
+    router_.handle(route, nullptr, series_handler, Verb::POST);
+}
+
+void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)
+{
+    router_.handle(route, compute_queue_id, handler, nullptr, Verb::POST);
+}
+
+void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
+{
+    router_.handle(route, compute_queue_id, nullptr, series_handler, Verb::POST);
 }
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
@@ -86,3 +116,4 @@ void HttpServer::mount(std::string &&path)
 {
     HttpFile::mount(std::move(path));
 }
+

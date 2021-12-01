@@ -30,3 +30,6 @@ target_link_libraries(10_logger wfrest)
 
 add_executable(11_go_task 11_go_task.cc)
 target_link_libraries(11_go_task wfrest)
+
+add_executable(12_series_interface 12_series_interface.cc)
+target_link_libraries(12_series_interface wfrest)
