@@ -17,6 +17,11 @@ void foo()
     fprintf(stderr,"function pointer\n");
 }
 
+void func(HttpResp* resp)
+{
+    resp->String("foo resp");
+}
+
 struct A {
     void fA() { fprintf(stderr, "std::bind\n"); }
     void fB() { fprintf(stderr, "std::function\n"); }
@@ -28,22 +33,19 @@ int main()
 
     HttpServer svr;
 
-    svr.Get("/go", [](const HttpReq *req, HttpResp *resp)
-    {
-        go [resp](){ resp->String("go task\n"); };
-    });
+//    svr.GET("go", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
 
-    svr.Get("/go_foo", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/go_foo", [](const HttpReq *req, HttpResp *resp)
     {
         go foo;
     });
 
-    svr.Get("/go_bind", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/go_bind", [](const HttpReq *req, HttpResp *resp)
     {
         go std::bind(&A::fA, A());
     });
 
-    svr.Get("/go_functional", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/go_functional", [](const HttpReq *req, HttpResp *resp)
     {
         std::function<void()> fn(std::bind(&A::fB, A()));
         go fn;

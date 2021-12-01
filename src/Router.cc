@@ -3,7 +3,7 @@
 
 using namespace wfrest;
 
-void Router::handle(const char *route, const Handler &handler, int verb)
+void Router::handle(const char *route, const Handler &handler, Verb verb)
 {
     auto &vh = routes_map_[route];
     vh.verb = verb;
@@ -27,7 +27,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
     {
         // match verb
         // it == <StringPiece : path, VerbHandler>
-        if (it->second.verb == ANY or parse_verb(verb) == it->second.verb)
+        if (it->second.verb == Verb::ANY or parse_verb(verb) == it->second.verb)
         {
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
@@ -45,17 +45,17 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
     }
 }
 
-int Router::parse_verb(const std::string &verb)
+Verb Router::parse_verb(const std::string &verb)
 {
     if (strcasecmp(verb.c_str(), "GET") == 0)
-        return GET;
+        return Verb::GET;
     if (strcasecmp(verb.c_str(), "PUT") == 0)
-        return PUT;
+        return Verb::PUT;
     if (strcasecmp(verb.c_str(), "POST") == 0)
-        return POST;
+        return Verb::POST;
     if (strcasecmp(verb.c_str(), "HTTP_DELETE") == 0)
-        return HTTP_DELETE;
-    return ANY;
+        return Verb::HTTP_DELETE;
+    return Verb::ANY;
 }
 
 void Router::print_routes()

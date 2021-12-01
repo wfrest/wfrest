@@ -18,18 +18,18 @@ int main()
     HttpServer svr;
 
     // curl -v http://ip:port/hello
-    svr.Get("/hello", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/hello", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("world\n");
     });
     // curl -v http://ip:port/data
-    svr.Get("/data", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/data", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("Hello world\n", 12);
     });
 
     // curl -v http://ip:port/post -d 'post hello world'
-    svr.Post("/post", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         std::string body = req->Body();
         fprintf(stderr, "post data : %s\n", body.c_str());

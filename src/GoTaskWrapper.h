@@ -12,11 +12,11 @@ namespace wfrest
 struct GoTaskWrapper
 {
     template <typename Function>
-    inline void operator-(Function func)
+    inline void operator-(Function&& func)
     {
-        auto* go_task = new __WFGoTask(WFGlobal::get_exec_queue("go"),
+        auto* go_task = new __WFGoTask(WFGlobal::get_exec_queue("server"),
                               WFGlobal::get_compute_executor(),
-                              std::move(func));
+                              std::forward<Function>(func));
         auto *server_task = HttpServerTask::get_thread_local_task();
         **server_task << go_task;
     }

@@ -19,9 +19,9 @@ public:
             WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
     {}
 
-    void Get(const char *route, const Handler &handler);
+    void GET(const char *route, const Handler &handler);
 
-    void Post(const char *route, const Handler &handler);
+    void POST(const char *route, const Handler &handler);
 
     void mount(std::string &&path);
 

@@ -17,11 +17,11 @@ int main()
 
     HttpServer svr;
 
-    svr.Post("/post", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
     {
         std::string host = req->header("Host");
         std::string content_type = req->header("Content-Type");
-        if(req->has_header("User-Agent"))
+        if (req->has_header("User-Agent"))
         {
             fprintf(stderr, "Has User-Agent...");
         }

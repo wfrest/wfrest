@@ -22,10 +22,10 @@ int main()
     // An expriment (Upload a file to parent dir is really dangerous.):
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     // Then you find the file is store in the parent dir, which is dangerous
-    svr.Post("/upload", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload", [](HttpReq *req, HttpResp *resp)
     {
         std::vector<FormData *> files = req->post_files();
-        if(files.empty())
+        if (files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
@@ -42,10 +42,10 @@ int main()
 
     // Here is the right way:
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
-    svr.Post("/upload_fix", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload_fix", [](HttpReq *req, HttpResp *resp)
     {
         std::vector<FormData *> files = req->post_files();
-        if(files.empty())
+        if (files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
@@ -62,15 +62,15 @@ int main()
     // -F "file1=@file1" \
     // -F "file2=@file2" \
     // -H "Content-Type: multipart/form-data"
-    svr.Post("/upload_multiple", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload_multiple", [](HttpReq *req, HttpResp *resp)
     {
         std::vector<FormData *> files = req->post_files();
-        if(files.empty())
+        if (files.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            for(auto& file : files)
+            for (auto &file: files)
             {
                 resp->Save(PathUtil::base(file->filename), std::move(file->content));
             }

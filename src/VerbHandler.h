@@ -8,14 +8,14 @@ namespace wfrest
 {
 using Handler = std::function<void(HttpReq * , HttpResp * )>;
 
-enum
+enum class Verb
 {
     ANY, GET, POST, PUT, HTTP_DELETE
 };
 
 struct VerbHandler
 {
-    int verb = GET;
+    Verb verb = Verb::GET;
     Handler handler;
     std::string path;
 };

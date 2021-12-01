@@ -62,14 +62,14 @@ void HttpServer::proc(HttpTask *task)
 }
 
 
-void HttpServer::Get(const char *route, const Handler &handler)
+void HttpServer::GET(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, GET);
+    router_.handle(route, handler, Verb::GET);
 }
 
-void HttpServer::Post(const char *route, const Handler &handler)
+void HttpServer::POST(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, POST);
+    router_.handle(route, handler, Verb::POST);
 }
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)

@@ -19,38 +19,38 @@ int main()
     svr.mount("static");
 
     // single files
-    svr.Get("/file1", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file1", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt");
     });
 
-    svr.Get("/file2", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file2", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("html/index.html");
     });
 
-    svr.Get("/file3", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file3", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("/html/index.html");
     });
 
-    svr.Get("/file4", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file4", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt", 0);
     });
 
-    svr.Get("/file5", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file5", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt", 0, 10);
     });
 
-    svr.Get("/file6", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file6", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt", 5, 10);
     });
 
     // multiple files
-    svr.Get("/multi_files", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/multi_files", [](const HttpReq *req, HttpResp *resp)
     {
         std::vector<std::string> file_list = {"test.txt", "todo.txt", "test1.txt"};
         resp->File(file_list);

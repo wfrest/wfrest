@@ -18,7 +18,7 @@ int main()
     HttpServer svr;
 
     // curl -v http://ip:port/json1
-    svr.Get("/json1", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/json1", [](const HttpReq *req, HttpResp *resp)
     {
         Json json;
         json["test"] = 123;
@@ -27,7 +27,7 @@ int main()
     });
 
     // curl -v http://ip:port/json2
-    svr.Get("/json2", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/json2", [](const HttpReq *req, HttpResp *resp)
     {
         std::string valid_text = R"(
         {
@@ -38,7 +38,7 @@ int main()
     });
 
     // curl -v http://ip:port/json3
-    svr.Get("/json3", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/json3", [](const HttpReq *req, HttpResp *resp)
     {
         std::string invalid_text = R"(
         {
@@ -52,9 +52,9 @@ int main()
     //   curl -X POST http://ip:port/json4
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.Post("/json4", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
     {
-        if(req->content_type != APPLICATION_JSON)
+        if (req->content_type != APPLICATION_JSON)
         {
             resp->String("NOT APPLICATION_JSON");
             return;
