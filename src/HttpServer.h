@@ -9,6 +9,7 @@
 #include "HttpMsg.h"
 #include "Router.h"
 #include "VerbHandler.h"
+#include "Logger.h"
 
 namespace wfrest
 {
@@ -37,6 +38,12 @@ public:
 
     void mount(std::string &&path);
 
+    template <typename ... Args>
+    int start(Args... args)
+    {
+        router_.print_routes();
+        return WFServerBase::start(args...);
+    }
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 
@@ -44,7 +51,7 @@ private:
     void proc(HttpTask *task);
 
 private:
-    Router router_{};
+    Router router_;
 };
 
 }  // namespace wfrest

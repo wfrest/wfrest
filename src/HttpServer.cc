@@ -22,9 +22,9 @@ void HttpServer::proc(HttpTask *task)
     auto *header_map_ptr = new protocol::HttpHeaderMap(req);
     req->set_header_map(header_map_ptr);
     server_task->add_callback([header_map_ptr](const HttpTask *)
-                              {
-                                  delete header_map_ptr;
-                              });
+    {
+        delete header_map_ptr;
+    });
 
     std::string host = req->header("Host");
 
@@ -64,12 +64,12 @@ void HttpServer::proc(HttpTask *task)
 
 void HttpServer::GET(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, nullptr, Verb::GET);
+    router_.handle(route, -1, handler, nullptr, Verb::GET);
 }
 
 void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
 {
-    router_.handle(route, nullptr, series_handler, Verb::GET);
+    router_.handle(route, -1, nullptr, series_handler, Verb::GET);
 }
 
 void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
@@ -84,12 +84,12 @@ void HttpServer::GET(const char *route, int compute_queue_id, const SeriesHandle
 
 void HttpServer::POST(const char *route, const Handler &handler)
 {
-    router_.handle(route, handler, nullptr, Verb::POST);
+    router_.handle(route, -1, handler, nullptr, Verb::POST);
 }
 
 void HttpServer::POST(const char *route, const SeriesHandler &series_handler)
 {
-    router_.handle(route, nullptr, series_handler, Verb::POST);
+    router_.handle(route, -1, nullptr, series_handler, Verb::POST);
 }
 
 void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)

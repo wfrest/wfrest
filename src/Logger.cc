@@ -160,12 +160,15 @@ Logger::Impl::Impl(LogLevel level, int savedErrno, const Logger::SourceFile &fil
 {
     formatTime();
     CurrentThread::tid();
-    stream_ << T(CurrentThread::tid_str(), CurrentThread::tid_str_len());
-    stream_ << T(log_level_to_str(level), 9);
-    stream_ << " [" << basename_ << ':' << line_ << "] ";
-    if (savedErrno != 0)
+    if(level_ != LogLevel::INFO)
     {
-        stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
+        stream_ << T(CurrentThread::tid_str(), CurrentThread::tid_str_len());
+        stream_ << T(log_level_to_str(level), 9);
+        stream_ << " [" << basename_ << ':' << line_ << "] ";
+        if (savedErrno != 0)
+        {
+            stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
+        }
     }
 }
 

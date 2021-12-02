@@ -1,18 +1,36 @@
+#include <arpa/inet.h>
 #include "Router.h"
 #include "HttpServerTask.h"
-
+#include "Logger.h"
 using namespace wfrest;
 
-void Router::handle(const char *route, const Handler &handler, const SeriesHandler &series_handler, Verb verb)
+namespace
 {
-    auto &vh = routes_map_[route];
-    vh.verb = verb;
-    vh.path = route;
-    vh.handler = handler;
-    vh.series_handler = series_handler;
-    vh.compute_queue_id = -1;
-}
+static std::string get_peer_addr_str(HttpTask *server_task)
+{
+    static const int ADDR_STR_LEN = 128;
+    char addrstr[ADDR_STR_LEN];
+    struct sockaddr_storage addr;
+    socklen_t addr_len = sizeof addr;
+    unsigned short port = 0;
 
+    server_task->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (addr.ss_family == AF_INET)
+    {
+        auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
+        inet_ntop(AF_INET, &sin->sin_addr, addrstr, ADDR_STR_LEN);
+        port = ntohs(sin->sin_port);
+    } else if (addr.ss_family == AF_INET6)
+    {
+        auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
+        inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, ADDR_STR_LEN);
+        port = ntohs(sin6->sin6_port);
+    } else
+        strcpy(addrstr, "Unknown");
+
+    return addrstr;
+}
+}
 void Router::handle(const char *route, int compute_queue_id, const Handler &handler,
                     const SeriesHandler &series_handler, Verb verb)
 {
@@ -28,7 +46,6 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
 {
     // skip the last / of the url.
     // /hello ==  /hello/
-    fprintf(stderr, "route : %s\n", route.c_str());
     StringPiece route2(route);
     if (!route2.empty() and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
@@ -41,10 +58,16 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
         auto *server_task = req->get_task();
         // match verb
         // it == <StringPiece : path, VerbHandler>
-        if (it->second.verb == Verb::ANY or parse_verb(verb) == it->second.verb)
+        if (it->second.verb == Verb::ANY or str_to_verb(verb) == it->second.verb)
         {
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
+
+            server_task->add_callback([server_task, verb, route](HttpTask *) {
+                LOG_INFO << "| " << get_peer_addr_str(server_task)
+                         << " | " << verb << " : " << route << " |";
+            });
+
             if (it->second.compute_queue_id == -1)
             {
                 if (it->second.handler)
@@ -71,7 +94,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
     }
 }
 
-Verb Router::parse_verb(const std::string &verb)
+Verb Router::str_to_verb(const std::string &verb)
 {
     if (strcasecmp(verb.c_str(), "GET") == 0)
         return Verb::GET;
@@ -86,11 +109,30 @@ Verb Router::parse_verb(const std::string &verb)
 
 void Router::print_routes()
 {
-    routes_map_.all_routes([](const std::string &prefix, const VerbHandler &h)
-                           {
-                               fprintf(stderr, "%s\n", prefix.c_str());
-                           });
+    routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
+   {
+       fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+   });
 //    routes_map_.all_routes([](auto r, auto h) { std::cout << r << '\n'; });
+}
+
+const char *Router::verb_to_str(const Verb &verb)
+{
+    switch (verb)
+    {
+        case Verb::ANY:
+            return "ANY";
+        case Verb::GET:
+            return "GET";
+        case Verb::POST:
+            return "POST";
+        case Verb::PUT:
+            return "PUT";
+        case Verb::HTTP_DELETE:
+            return "DELETE";
+        default:
+            return "[UNKNOWN]";
+    }
 }
 
 //void Router::all_routes()

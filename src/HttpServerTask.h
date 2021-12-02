@@ -23,17 +23,13 @@ public:
     void add_callback(ServerCallBack &&cb)
     { cb_list_.emplace_back(std::move(cb)); }
 
-    static void set_thread_local_task(HttpServerTask *task);
-
-    static HttpServerTask *get_thread_local_task();
-
 protected:
     void handle(int state, int error) override;
 
     CommMessageOut *message_out() override;
 
 private:
-    // for hidning set_callback
+//     for hidning set_callback
     void set_callback()
     {}
 

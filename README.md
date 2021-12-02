@@ -229,7 +229,7 @@ using namespace wfrest;
 
 int main()
 {
-    HttpServer svr;POST
+    HttpServer svr;
 
     // Urlencoded Form
     // curl -v http://ip:port/post -H "content-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
