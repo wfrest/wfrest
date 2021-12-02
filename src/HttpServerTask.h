@@ -15,6 +15,8 @@ public:
     using ProcFunc = std::function<void(HttpTask *)>;
     using ServerCallBack = std::function<void(HttpTask *)>;
 
+    using WFServerTask::Series;
+
     HttpServerTask(CommService *service, ProcFunc &process);
 
     void add_callback(const ServerCallBack &cb)
@@ -39,6 +41,8 @@ private:
     std::string req_keep_alive_;
     std::vector<ServerCallBack> cb_list_;
 };
+
+using Series = HttpServerTask::Series;
 
 } // namespace wfrest
 

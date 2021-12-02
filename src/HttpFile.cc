@@ -6,6 +6,7 @@
 #include "HttpMsg.h"
 #include "PathUtil.h"
 #include "HttpServerTask.h"
+#include "Logger.h"
 
 using namespace wfrest;
 
@@ -30,7 +31,7 @@ void pread_callback(WFFileIOTask *pread_task)
     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("<html>503 Internal Server Error.</html>\r\n", 41);
+        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
     } else
     {
         resp->append_output_body_nocopy(args->buf, ret);
@@ -43,9 +44,10 @@ struct pread_multi_context
     std::string file_name;
     int file_index;
     bool last = false;
+    HttpResp *resp;
 };
 
-std::string build_multi_part_one(const std::string &file_name, int idx)
+std::string build_multi_part_first(const std::string &file_name, int idx)
 {
     std::string str;
     str.reserve(256);  // reserve space avoid copy
@@ -75,51 +77,57 @@ std::string build_multi_part_one(const std::string &file_name, int idx)
     return str;
 }
 
+std::string build_multi_part_last()
+{
+    std::string multi_part_last;
+    multi_part_last.reserve(128);
+    multi_part_last.append("--");
+    // RFC1521 says that a boundary "must be no longer than 70 characters, not counting the two leading hyphens".
+    multi_part_last.append(MultiPartForm::default_boundary);
+    multi_part_last.append("--");
+    return multi_part_last;
+}
+
 void pread_multi_callback(WFFileIOTask *pread_task)
 {
     FileIOArgs *args = pread_task->get_args();
     long ret = pread_task->get_retval();
     auto *ctx = static_cast<pread_multi_context *>(pread_task->user_data);
-    auto *resp = static_cast<HttpResp *>(series_of(pread_task)->get_context());
+    HttpResp *resp = ctx->resp;
 
-    std::string part_one = build_multi_part_one(ctx->file_name, ctx->file_index);
-    resp->append_output_body(part_one);
+    std::string multi_part_first = build_multi_part_first(ctx->file_name, ctx->file_index);
+    resp->append_output_body(multi_part_first);
 
     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("<html>503 Internal Server Error.</html>\r\n", 41);
+        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
     } else
     {
         resp->append_output_body_nocopy(args->buf, ret);
-        resp->append_output_body_nocopy("\r\n", 2);
     }
+
     if (ctx->last)   // last one
     {
-        std::string multi_part_end;
-        multi_part_end.reserve(128);
-        multi_part_end.append("--");
-        // RFC1521 says that a boundary "must be no longer than 70 characters, not counting the two leading hyphens".
-        multi_part_end.append(MultiPartForm::default_boundary);
-        multi_part_end.append("--");
+        std::string multi_part_end = build_multi_part_last();
         resp->append_output_body(multi_part_end);
     }
-    delete ctx;
 }
 
 void pwrite_callback(WFFileIOTask *pwrite_task)
 {
     long ret = pwrite_task->get_retval();
-    auto *resp = static_cast<HttpResp *>(pwrite_task->user_data);
+    auto *series = static_cast<Series *>(series_of(pwrite_task));
+    auto *resp = series->task->get_resp();
+    delete static_cast<std::string *>(pwrite_task->user_data);
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("<html>503 Internal Server Error.</html>\r\n", 41);
+        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
     } else
     {
-        resp->set_status_code("200");
-        resp->append_output_body_nocopy("<html>save 200 success.</html>\r\n", 32);
+        resp->append_output_body_nocopy("Save 200 success.", 17);
     }
 }
 
@@ -137,17 +145,17 @@ std::string concat_path(std::string &root, const std::string &path)
     return res;
 }
 
-
 }  // namespace
 
 // static member init
 std::string HttpFile::root = ".";
 
+// note : [start, end)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
     auto *server_task = resp->get_task();
     std::string file_path = concat_path(root, path);
-    fprintf(stderr, "file path : %s\n", file_path.c_str());
+    LOG_DEBUG << "File Path : " << file_path;
 
     if (end == -1 || start < 0)
     {
@@ -156,8 +164,8 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
         int ret = stat(file_path.c_str(), &st);
         if (ret == -1)
         {
-            fprintf(stderr, "File has something wrong\n");
-            resp->append_output_body_nocopy("File has something wrong", 24);
+            LOG_SYSERR << "File Error occurs";
+            resp->append_output_body_nocopy("File Error occurs", 17);
             return;
         }
         size_t file_size = st.st_size;
@@ -195,25 +203,34 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
 {
     auto *server_task = resp->get_task();
     std::string file_path = concat_path(root, path_list[path_idx]);
-    fprintf(stderr, "file path : %s\n", file_path.c_str());
+    LOG_DEBUG << "File Path : " << file_path;
 
     auto *ctx = new pread_multi_context;
     ctx->file_name = PathUtil::base(path_list[path_idx]);
     ctx->file_index = path_idx;
+    ctx->resp = resp;
     if (path_idx == path_list.size() - 1)
     {
         // last one
         ctx->last = true;
     }
 
-    struct stat st{};
-    stat(file_path.c_str(), &st);
+    struct stat st;
+    int ret = stat(file_path.c_str(), &st);
+    if (ret == -1)
+    {
+        LOG_SYSERR << "File Error occurs";
+        resp->append_output_body_nocopy("File Error occurs", 17);
+        return;
+    }
+
     size_t size = st.st_size;
 
     void *buf = malloc(size);
-    server_task->add_callback([buf](HttpTask *server_task)
+    server_task->add_callback([buf, ctx](HttpTask *server_task)
                               {
                                   free(buf);
+                                  delete ctx;
                               });
     WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file_path,
                                                                 buf,
@@ -221,9 +238,7 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
                                                                 0,
                                                                 pread_multi_callback);
     pread_task->user_data = ctx;
-    auto series = series_of(server_task);
-    series->push_back(pread_task);
-    if (path_idx == 0) series->set_context(resp);
+    **server_task << pread_task;
 }
 
 void HttpFile::mount(std::string &&root)
@@ -242,23 +257,42 @@ void HttpFile::mount(std::string &&root)
     // ./xxx/xx
 }
 
-void HttpFile::save_file(const std::string &dst_path, const void *content, size_t size, HttpResp *resp)
+void HttpFile::save_file(const std::string &dst_path, const std::string &content, HttpResp *resp)
 {
-    auto *server_task = resp->get_task();
-
+    HttpServerTask *server_task = resp->get_task();
     std::string file_path = concat_path(root, dst_path);
 
-    // fprintf(stderr, "content :: %s to %s\n", static_cast<const char *>(content), file_path.c_str());
+    auto *save_content = new std::string;
+    *save_content = content;
 
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
-                                                                  content,
-                                                                  size,
+                                                                  static_cast<const void *>(save_content->c_str()),
+                                                                  save_content->size(),
                                                                   0,
                                                                   pwrite_callback);
-    pwrite_task->user_data = resp;
     **server_task << pwrite_task;
-
+    pwrite_task->user_data = save_content;
 }
+
+void HttpFile::save_file(const std::string &dst_path, std::string &&content, HttpResp *resp)
+{
+    HttpServerTask *server_task = resp->get_task();
+    std::string file_path = concat_path(root, dst_path);
+
+    auto *save_content = new std::string;
+    *save_content = std::move(content);
+
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
+                                                                  static_cast<const void *>(save_content->c_str()),
+                                                                  save_content->size(),
+                                                                  0,
+                                                                  pwrite_callback);
+    **server_task << pwrite_task;
+    pwrite_task->user_data = save_content;
+}
+
+
+
 
 
 

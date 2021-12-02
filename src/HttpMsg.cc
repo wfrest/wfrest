@@ -179,16 +179,7 @@ void HttpResp::Save(const std::string &file_dst, const std::string &content)
 
 void HttpResp::Save(const std::string &file_dst, std::string &&content)
 {
-    auto *ctx = new save_context;
-    ctx->content = std::move(content);
-    HttpFile::save_file(file_dst,
-                       static_cast<const void *>(ctx->content.c_str()),
-                       ctx->content.size(),
-                       this);
-    server_task_->add_callback([ctx](const HttpTask *)
-                               {
-                                   delete ctx;
-                               });
+    HttpFile::save_file(file_dst, std::move(content), this);
 }
 
 void HttpResp::Json(const ::Json &json)

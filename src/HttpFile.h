@@ -18,7 +18,9 @@ public:
 
     static void mount(std::string &&root);
 
-    static void save_file(const std::string &dst_path, const void *content, size_t size, HttpResp *resp);
+    static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
+
+    static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
 
 private:
     static std::string root;
