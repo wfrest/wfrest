@@ -25,13 +25,14 @@ int main()
     // curl -v http://ip:port/data
     svr.GET("/data", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->String("Hello world\n", 12);
+        std::string str = "Hello world";
+        resp->String(std::move(str));
     });
 
     // curl -v http://ip:port/post -d 'post hello world'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->Body();
+        std::string body = req->body();
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 

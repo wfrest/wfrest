@@ -22,7 +22,7 @@ struct save_context
 } // namespace
 
 
-std::string HttpReq::Body() const
+std::string HttpReq::body() const
 {
     return protocol::HttpUtil::decode_chunked_body(this);
 }
@@ -61,7 +61,7 @@ void HttpReq::parse_body()
     if ((this->is_chunked() && (content_type == X_WWW_FORM_URLENCODED || content_type == MULTIPART_FORM_DATA))
         || content_type == APPLICATION_JSON)
     {
-        chunked_body = this->Body();
+        chunked_body = this->body();
         body_piece = StringPiece(chunked_body);
     }
 
@@ -139,9 +139,9 @@ void HttpResp::String(const std::string &str)
     this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
 }
 
-void HttpResp::String(const char *data, size_t len)
+void HttpResp::String(std::string &&str)
 {
-    this->append_output_body(static_cast<const void *>(data), len);
+    this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
 }
 
 void HttpResp::File(const std::string &path, int start, int end)
@@ -163,20 +163,18 @@ void HttpResp::set_status(int status_code)
     protocol::HttpUtil::set_response_status(this, status_code);
 }
 
-void HttpResp::Save(const std::string &file_dst, const void *content, size_t len)
+void HttpResp::Save(const std::string &file_dst, const std::string &content)
 {
     auto *ctx = new save_context;
-    ctx->content = std::string(static_cast<const char *>(content), len);
-    HttpFile::save_file(file_dst, content, len, this);
+    ctx->content = content;
+    HttpFile::save_file(file_dst,
+                        static_cast<const void *>(ctx->content.c_str()),
+                        ctx->content.size(),
+                        this);
     server_task_->add_callback([ctx](const HttpTask *)
                                {
                                    delete ctx;
                                });
-}
-
-void HttpResp::Save(const std::string &file_dst, const std::string &content)
-{
-    Save(file_dst, static_cast<const void *>(content.c_str()), content.size());
 }
 
 void HttpResp::Save(const std::string &file_dst, std::string &&content)
@@ -184,9 +182,9 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
     auto *ctx = new save_context;
     ctx->content = std::move(content);
     HttpFile::save_file(file_dst,
-                                       static_cast<const void *>(ctx->content.c_str()),
-                                       ctx->content.size(),
-                                       this);
+                       static_cast<const void *>(ctx->content.c_str()),
+                       ctx->content.size(),
+                       this);
     server_task_->add_callback([ctx](const HttpTask *)
                                {
                                    delete ctx;

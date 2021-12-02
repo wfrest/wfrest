@@ -30,7 +30,7 @@ class HttpReq : public protocol::HttpRequest
 {
 public:
     // chunked body
-    std::string Body() const;
+    std::string body() const;
 
     // body -> structured content
     void parse_body();
@@ -145,7 +145,7 @@ public:
     // send string
     void String(const std::string &str);
 
-    void String(const char *data, size_t len);
+    void String(std::string &&str);
 
     // file
     void File(const std::string &path, int start = 0, int end = -1);
@@ -153,8 +153,6 @@ public:
     void File(const std::vector<std::string> &path_list);
 
     // save file
-    void Save(const std::string &file_dst, const void *content, size_t len);
-
     void Save(const std::string &file_dst, const std::string &content);
 
     void Save(const std::string &file_dst, std::string &&content);

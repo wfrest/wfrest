@@ -75,13 +75,14 @@ int main()
     // curl -v http://ip:port/data
     svr.GET("/data", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->String("Hello world\n", 12);
+        std::string str = "Hello world";
+        resp->String(std::move(str));
     });
 
     // curl -v http://ip:port/post -d 'post hello world'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->Body();
+        std::string body = req->body();
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
@@ -391,7 +392,7 @@ int main()
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
     svr.POST("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->Body();   // multipart/form - body has boundary
+        std::string body = req->body();   // multipart/form - body has boundary
         resp->Save("test.txt", std::move(body));
     });
 
