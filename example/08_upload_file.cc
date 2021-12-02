@@ -30,7 +30,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            auto *file = files[0];
+            FormData *file = files[0];
             // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
             // The filename is always optional and must not be used blindly by the application:
@@ -50,7 +50,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            auto *file = files[0];
+            FormData *file = files[0];
             // simple solution to fix the problem above
             // This will restrict the upload file to current directory.
             resp->Save(PathUtil::base(file->filename), std::move(file->content));
