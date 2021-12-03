@@ -12,41 +12,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout wfrest source code
-      uses: actions/checkout@v2
 
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y vim git g++ cmake make libssl-dev
     
-    - name: Install workflow
+    - name: Checkout workflow
       uses: actions/checkout@master
       with:
         repository: sogou/workflow    
-        run: |
-          sudo make && make install
 
-    - name: Install googletest
+    - name: Install workflow
+      shell: bash
+      run: |
+        sudo make && make install
+
+    - name: Checkout googletest
       uses: actions/checkout@main
       with:
         repository: google/googletest 
-        run: |
-          sudo mkdir build && cd build && make .. && make -j $(nproc) && make install
+    
+    - name: Install googletest
+      shell: bash
+      working-directory: ./build
+      run: |
+        sudo cmake .. && make -j $(nproc) && make install
+
+    - name: Checkout wfrest source code
+      uses: actions/checkout@v2
 
     - name: Create build directory
       run: |
         mkdir build
+
     - name: Create Build Environment & Configure Cmake
       shell: bash
       working-directory: ./build
       run: |
         cmake .. 
+
     - name: Build
       working-directory: ./build
       shell: bash
       run: |
         sudo make -j $(nproc) && sudo make install
+
     - name: Test
       working-directory: ./build
       shell: bash
