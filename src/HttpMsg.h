@@ -148,7 +148,11 @@ public:
     void String(std::string &&str);
 
     // file
-    void File(const std::string &path, int start = 0, int end = -1);
+    void File(const std::string &path);
+
+    void File(const std::string &path, size_t start);
+
+    void File(const std::string &path, size_t start, size_t end);
 
     void File(const std::vector<std::string> &path_list);
 

@@ -133,7 +133,17 @@ void HttpResp::String(std::string &&str)
     this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
 }
 
-void HttpResp::File(const std::string &path, int start, int end)
+void HttpResp::File(const std::string &path)
+{
+    HttpFile::send_file(path, 0, -1, this);
+}
+
+void HttpResp::File(const std::string &path, size_t start)
+{
+    HttpFile::send_file(path, start, -1, this);
+}
+
+void HttpResp::File(const std::string &path, size_t start, size_t end)
 {
     HttpFile::send_file(path, start, end, this);
 }
