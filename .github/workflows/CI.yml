@@ -19,6 +19,21 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y vim git g++ cmake make libssl-dev
+    
+    - name: Install workflow
+      uses: actions/checkout@master
+      with:
+        repository: sogou/workflow    
+        run: |
+          sudo make && make install
+
+    - name: Install googletest
+      uses: actions/checkout@main
+      with:
+        repository: google/googletest 
+        run: |
+          sudo mkdir build && cd build && make .. && make -j $(nproc) && make install
+
     - name: Create build directory
       run: |
         mkdir build
