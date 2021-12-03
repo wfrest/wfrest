@@ -138,7 +138,6 @@ inline double HttpReq::param<double>(const std::string &key) const
         return 0.0;
 }
 
-
 class HttpResp : public protocol::HttpResponse
 {
 public:

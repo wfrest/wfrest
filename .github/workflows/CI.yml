@@ -32,6 +32,9 @@ jobs:
       shell: bash
       run: |
         sudo make -j $(nproc) && sudo make install
-
-    
+    - name: Test
+      working-directory: ./build
+      shell: bash
+      run: |
+        sudo make test
       

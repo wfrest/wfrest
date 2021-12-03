@@ -11,9 +11,3 @@ target_link_libraries(logger_test wfrest)
 
 add_executable(AsyncLogger_test AsyncLogger_test.cc)
 target_link_libraries(AsyncLogger_test wfrest)
-
-add_executable(StrUtil_unittest StrUtil_unittest.cc)
-target_link_libraries(StrUtil_unittest wfrest GTest::GTest)
-
-add_executable(StringPiece_unittest StringPiece_unittest.cc)
-target_link_libraries(StringPiece_unittest wfrest GTest::GTest)

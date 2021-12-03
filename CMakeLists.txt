@@ -35,7 +35,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
-find_package(Brotli)
+find_package(Brotli QUIET)
 if (Brotli_FOUND)
     message(STATUS "Brotli found")
     add_definitions(-DUSE_BROTLI)
@@ -75,13 +75,14 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 #if(WFREST_BUILD_EXAMPLES)
 add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+add_subdirectory(${PROJECT_SOURCE_DIR}/tests/test)
 #endif()
 
-# test part
+
+# unit test part
 find_package(GTest)
 if(GTest_FOUND)
     message(STATUS "Building tests")
     enable_testing()
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests/unit_test)
 endif(GTest_FOUND)
-
