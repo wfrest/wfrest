@@ -1,8 +1,6 @@
 #include "workflow/HttpUtil.h"
 
 #include <unistd.h>
-#include <cstdlib>
-#include <fcntl.h>
 
 #include "HttpMsg.h"
 #include "UriUtil.h"
@@ -11,16 +9,6 @@
 #include "HttpServerTask.h"
 
 using namespace wfrest;
-
-namespace
-{
-struct save_context
-{
-    std::string content;
-};
-
-} // namespace
-
 
 std::string HttpReq::body() const
 {
@@ -58,7 +46,8 @@ void HttpReq::parse_body()
     fill_content_type();
 
     std::string chunked_body;
-    if ((this->is_chunked() && (content_type == X_WWW_FORM_URLENCODED || content_type == MULTIPART_FORM_DATA))
+    if ((this->is_chunked() &&
+        (content_type == X_WWW_FORM_URLENCODED || content_type == MULTIPART_FORM_DATA))
         || content_type == APPLICATION_JSON)
     {
         chunked_body = this->body();

@@ -118,7 +118,7 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 {
     long ret = pwrite_task->get_retval();
     auto *series = static_cast<Series *>(series_of(pwrite_task));
-    auto *resp = series->task->get_resp();
+    HttpResp *resp = series->task->get_resp();
     delete static_cast<std::string *>(pwrite_task->user_data);
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
@@ -153,10 +153,10 @@ std::string HttpFile::root = ".";
 // note : [start, end)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    auto *server_task = resp->get_task();
+    HttpServerTask *server_task = resp->get_task();
     std::string file_path = concat_path(root, path);
     LOG_DEBUG << "File Path : " << file_path;
-
+    
     if (end == -1 || start < 0)
     {
         struct stat st;
@@ -201,7 +201,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 
 void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp)
 {
-    auto *server_task = resp->get_task();
+    HttpServerTask *server_task = resp->get_task();
     std::string file_path = concat_path(root, path_list[path_idx]);
     LOG_DEBUG << "File Path : " << file_path;
 

@@ -16,6 +16,7 @@ set(SRCS
         Timestamp.cc
         SysInfo.cc
         AsyncFileLogger.cc
+        Compress.cc
         )
 
 add_library(wfrest ${SRCS})

@@ -110,10 +110,19 @@ Verb Router::str_to_verb(const std::string &verb)
 void Router::print_routes()
 {
     routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
-   {
-       fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
-   });
-//    routes_map_.all_routes([](auto r, auto h) { std::cout << r << '\n'; });
+    {
+        fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+    });
+}
+
+std::vector<std::pair<std::string, std::string> > Router::all_routes()
+{
+    std::vector<std::pair<std::string, std::string> > res;
+    routes_map_.all_routes([&res](const std::string &prefix, const VerbHandler &verb_handler)
+    {
+        res.push_back({verb_to_str(verb_handler.verb), prefix.c_str()});
+    });
+    return res;
 }
 
 const char *Router::verb_to_str(const Verb &verb)
@@ -135,7 +144,3 @@ const char *Router::verb_to_str(const Verb &verb)
     }
 }
 
-//void Router::all_routes()
-//{
-//
-//}

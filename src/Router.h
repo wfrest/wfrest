@@ -23,8 +23,9 @@ public:
 
     static const char *verb_to_str(const Verb &verb);
 
-    void print_routes();   // for test
-//    void all_routes();   // for test
+    void print_routes();   // for logging
+
+    std::vector<std::pair<std::string, std::string> > all_routes();   // for test
 private:
     RouteTable routes_map_;
 };

@@ -35,6 +35,13 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
+find_package(Brotli)
+if (Brotli_FOUND)
+    message(STATUS "Brotli found")
+    add_definitions(-DUSE_BROTLI)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Brotli_lib)
+endif (Brotli_FOUND)
+
 find_package(workflow QUIET)
 if (NOT workflow_FOUND)  
     MESSAGE("-- Third Party workflow not found, build target") 
