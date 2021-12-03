@@ -1,3 +1,6 @@
+// Modified from drogon
+// https://zlib.net/manual.html
+
 #ifndef WFREST_Compress_H_
 #define WFREST_Compress_H_
 
@@ -13,9 +16,10 @@ namespace wfrest
 
 class Compressor
 {
-    static std::string gzip_compress(const char *data, const size_t len);
+public:
+    static std::string gzip(const char *data, const size_t len);
 
-    std::string gzip_decompress(const char *data, const size_t len);
+    static std::string ungzip(const char *data, const size_t len);
 
 };
 }  // namespace wfrest

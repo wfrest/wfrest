@@ -35,6 +35,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
 find_package(Brotli QUIET)
 if (Brotli_FOUND)
     message(STATUS "Brotli found")
