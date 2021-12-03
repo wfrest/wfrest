@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y vim git g++ cmake make libssl-dev
+        sudo apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev
     
     - name: Checkout workflow
       uses: actions/checkout@master
@@ -28,16 +28,16 @@ jobs:
       run: |
         make -j $(nproc) && sudo make install
 
-    - name: Checkout googletest
-      uses: actions/checkout@main
-      with:
-        repository: google/googletest 
+    # - name: Checkout googletest
+    #   uses: actions/checkout@main
+    #   with:
+    #     repository: google/googletest 
     
-    - name: Install googletest
-      shell: bash
-      working-directory: ./build
-      run: |
-        cmake .. && make -j $(nproc) && sudo make install
+    # - name: Install googletest
+    #   shell: bash
+    #   working-directory: ./build
+    #   run: |
+    #     cmake .. && make -j $(nproc) && sudo make install
 
     - name: Checkout wfrest source code
       uses: actions/checkout@v2
