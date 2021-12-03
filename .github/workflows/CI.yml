@@ -26,7 +26,7 @@ jobs:
     - name: Install workflow
       shell: bash
       run: |
-        sudo make && make install
+        make -j $(nproc) && sudo make install
 
     - name: Checkout googletest
       uses: actions/checkout@main
@@ -37,7 +37,7 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
-        sudo cmake .. && make -j $(nproc) && make install
+        cmake .. && make -j $(nproc) && sudo make install
 
     - name: Checkout wfrest source code
       uses: actions/checkout@v2
