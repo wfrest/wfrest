@@ -1,0 +1,37 @@
+name: CMake
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: build-linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout wfrest source code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y vim git g++ cmake make libssl-dev
+    - name: Create build directory
+      run: |
+        mkdir build
+    - name: Create Build Environment & Configure Cmake
+      shell: bash
+      working-directory: ./build
+      run: |
+        cmake .. 
+    - name: Build
+      working-directory: ./build
+      shell: bash
+      run: |
+        sudo make -j $(nproc) && sudo make install
+
+    
+      
