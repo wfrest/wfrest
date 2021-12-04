@@ -185,9 +185,7 @@ public:
     { return server_task_; }
 
 public:
-    std::unordered_map<std::string, std::string,
-                        UnorderMapStringCaseLess::Hash,
-                        UnorderMapStringCaseLess::Comp> headers;
+    std::unordered_map<std::string, std::string> headers;
 
 private:
     HttpServerTask *server_task_ = nullptr;

@@ -79,24 +79,6 @@ TEST(StrUtil, split_piece)
     EXPECT_EQ("time=10000101", str_list[2]);
 }
 
-TEST(StringCaseLess, map)
-{
-    std::map<std::string, std::string, MapStringCaseLess> map;
-    map["Content-Encoding"] = "gzip";
-    map["content-encoding"] = "br";
-    EXPECT_TRUE(map.size() == 1); 
-}
-
-TEST(StringCaseLess, unordered_map)
-{
-    std::unordered_map<std::string, std::string,
-                        UnorderMapStringCaseLess::Hash,
-                        UnorderMapStringCaseLess::Comp> map;
-    map["Content-Encoding"] = "gzip";
-    map["content-encoding"] = "br";
-    EXPECT_TRUE(map.size() == 1);
-}
-
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

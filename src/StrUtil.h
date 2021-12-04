@@ -49,35 +49,6 @@ std::vector<OutputStringType> StrUtil::split_piece(const StringPiece &str, char 
     return res;
 }
 
-// std::map<std::string, std::string, MapStringCaseLess>
-class MapStringCaseLess {
-public:
-    bool operator()(const std::string& lhs, const std::string& rhs) const {
-        return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
-    }
-};
-
-// std::unordered_map<std::string, std::string
-//    , UnorderMapStringCaseLess::hash
-//    , UnorderMapStringCaseLess::comp>
-class UnorderMapStringCaseLess {
-public:
-    struct Comp {
-        bool operator() (const std::string& lhs, const std::string& rhs) const {
-            return strcasecmp(lhs.c_str(), rhs.c_str()) == 0;
-        }
-    };
-    struct Hash {
-        std::size_t operator() (std::string str) const {
-            for (std::size_t index = 0; index < str.size(); ++index) {
-                auto ch = static_cast<unsigned char>(str[index]);
-                str[index] = static_cast<unsigned char>(std::tolower(ch));
-            }
-            return std::hash<std::string>{}(str);
-        }
-    };
-};
-
 }  // namespace wfrest
 
 
