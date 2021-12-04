@@ -178,7 +178,7 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
 
 void HttpResp::File(const std::vector<std::string> &path_list)
 {
-    this->add_header_pair("Content-Type", "multipart/form-data");
+    this->headers["Content-Type"] = "multipart/form-data";
     for (int i = 0; i < path_list.size(); i++)
     {
         HttpFile::send_file_for_multi(path_list, i, this);
@@ -216,7 +216,7 @@ void HttpResp::Json(const std::string &str)
         this->String("JSON is invalid");
         return;
     }
-    this->add_header_pair("Content-Type", "application/json");
+    this->headers["Content-Type"] = "application/json";
     // todo : should we just don't care format?
     // this->String(str);
     this->String(Json::parse(str).dump());

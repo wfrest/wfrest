@@ -18,9 +18,11 @@ int main()
     HttpServer svr;
 
     // curl -v http://ip:port/gzip
-    svr.GET("/gzip", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/gzip", [](HttpReq *req, HttpResp *resp)
     {
-        resp->String("Test for sending gzip data\n", Compress::GZIP);
+        std::string ungzip_data = req->ungzip();
+        fprintf(stderr, "ungzip data : %s\n", ungzip_data.c_str());
+        resp->String("Test for server send gzip data\n", Compress::GZIP);
     });
 
     if (svr.start(8888) == 0)

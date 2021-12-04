@@ -51,5 +51,4 @@ std::vector<OutputStringType> StrUtil::split_piece(const StringPiece &str, char 
 
 }  // namespace wfrest
 
-
 #endif // WFREST_STRUTIL_H_

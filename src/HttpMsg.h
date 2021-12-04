@@ -151,7 +151,7 @@ public:
 
     void String(std::string &&str);
 
-     void String(const std::string &str, Compress compress);
+    void String(const std::string &str, Compress compress);
 
     // file
     void File(const std::string &path);
