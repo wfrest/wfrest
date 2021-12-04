@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "wfrest/Logger.h"
 
 using namespace wfrest;
 

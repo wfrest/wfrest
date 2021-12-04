@@ -1,5 +1,5 @@
-#include "Router.h"
-#include "VerbHandler.h"
+#include "wfrest/Router.h"
+#include "wfrest/VerbHandler.h"
 
 using namespace wfrest;
 

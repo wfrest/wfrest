@@ -2,10 +2,11 @@
 #define WFREST_VERBHANDLER_H_
 
 #include <functional>
-#include "HttpMsg.h"
+#include "wfrest/HttpMsg.h"
 
 namespace wfrest
 {
+
 using Handler = std::function<void(HttpReq * , HttpResp *)>;
 using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
 

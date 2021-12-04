@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <gtest/gtest.h>
-#include "StringPiece.h"
-#include "StrUtil.h"
+#include "wfrest/StringPiece.h"
+#include "wfrest/StrUtil.h"
 
 using namespace wfrest;
 

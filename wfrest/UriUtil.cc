@@ -1,4 +1,5 @@
 #include "UriUtil.h"
+#include "StrUtil.h"
 
 using namespace wfrest;
 

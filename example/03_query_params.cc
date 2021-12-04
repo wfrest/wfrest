@@ -1,6 +1,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 
 using namespace wfrest;
 

@@ -1,7 +1,7 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
-#include "HttpServer.h"
-#include "PathUtil.h"
+#include "wfrest/HttpServer.h"
+#include "wfrest/PathUtil.h"
 
 using namespace wfrest;
 

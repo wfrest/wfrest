@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <unordered_map>
-#include "StringPiece.h"
+#include "wfrest/StringPiece.h"
 
 using namespace wfrest;
 

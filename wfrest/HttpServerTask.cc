@@ -8,7 +8,7 @@ using namespace protocol;
 #define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
 HttpServerTask::HttpServerTask(CommService *service,
-                               ProcFunc &process) :
+                               ProcFunc process) :
         WFServerTask(service, WFGlobal::get_scheduler(), process),
         req_is_alive_(false),
         req_has_keep_alive_header_(false)

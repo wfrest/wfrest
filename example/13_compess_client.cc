@@ -1,7 +1,7 @@
 #include "workflow/WFTaskFactory.h"
 #include "workflow/WFFacilities.h"
-#include "Compress.h"
 #include <signal.h>
+#include "wfrest/Compress.h"
 
 using namespace protocol;
 using namespace wfrest;

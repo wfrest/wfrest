@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "wfrest/Logger.h"
 #include <cerrno>
 #include <thread>
 

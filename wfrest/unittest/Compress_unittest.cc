@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "Compress.h"
+#include "wfrest/Compress.h"
 
 using namespace wfrest;
 

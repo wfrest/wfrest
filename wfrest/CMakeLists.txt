@@ -26,5 +26,14 @@ target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt ZL
 
 install(TARGETS wfrest DESTINATION lib)
 
-file(GLOB HEADERS "*.h")
+# file(GLOB HEADERS "*.h")
+set(HEADERS
+        Compress.h
+        HttpMsg.h
+        HttpServer.h
+        Logger.h
+        StringPiece.h
+        PathUtil.h
+  )
+
 install(FILES ${HEADERS} DESTINATION include/wfrest)

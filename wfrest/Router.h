@@ -11,6 +11,8 @@
 namespace wfrest
 {
 
+class HttpServerTask;
+
 class Router
 {
 public:

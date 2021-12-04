@@ -44,6 +44,7 @@ public:
         router_.print_routes();
         return WFServerBase::start(args...);
     }
+    
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 

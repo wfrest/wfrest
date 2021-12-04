@@ -1,5 +1,5 @@
-#include "AsyncFileLogger.h"
-#include "Logger.h"
+#include "wfrest/AsyncFileLogger.h"
+#include "wfrest/Logger.h"
 
 using namespace wfrest;
 

@@ -26,12 +26,9 @@ class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
-class HttpServerTask;
-
 class HttpReq : public protocol::HttpRequest
 {
 public:
-    // chunked body
     std::string body() const;
 
     // body -> structured content
