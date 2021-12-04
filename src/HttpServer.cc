@@ -15,9 +15,6 @@ void HttpServer::proc(HttpTask *task)
 
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
-    // conntect msg to server task
-    req->set_task(server_task);
-    resp->set_task(server_task);
 
     auto *header_map_ptr = new protocol::HttpHeaderMap(req);
     req->set_header_map(header_map_ptr);
@@ -59,7 +56,7 @@ void HttpServer::proc(HttpTask *task)
     req->parse_body();
     req->set_parsed_uri(std::move(uri));
 
-    router_.call(req->get_method(), route, req, resp);
+    router_.call(req->get_method(), route, server_task);
 }
 
 

@@ -21,7 +21,7 @@ The c++ async micro web framework for building web applications based on workflo
       - [Upload Files](#upload-files)
       - [Json](#json)
       - [Computing task](#computing-task)
-      - [Series Interface](#series-interface)
+      - [ServerSeries Interface](#series-interface)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -617,7 +617,7 @@ int main()
 }
 ```
 
-### Series Interface
+### ServerSeries Interface
 
 ```cpp
 #include "HttpServer.h"

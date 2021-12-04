@@ -16,8 +16,7 @@ int main()
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
-
-    // curl -v http://ip:port/gzip
+    
     svr.POST("/gzip", [](HttpReq *req, HttpResp *resp)
     {
         std::string ungzip_data = req->ungzip();

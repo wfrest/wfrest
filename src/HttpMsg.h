@@ -82,13 +82,6 @@ public:
 
     bool has_query(const std::string &key);
 
-    // connect to server_task
-    void set_task(HttpServerTask *task)
-    { server_task_ = task; };
-
-    HttpServerTask *get_task() const
-    { return server_task_; }
-
     // multipart/form
     FormData *post_form(const std::string &key);
 
@@ -113,7 +106,6 @@ private:
     QueryParams query_params_;
     MultiPartForm multi_part_;
     protocol::HttpHeaderMap *header_;
-    HttpServerTask *server_task_ = nullptr;
 };
 
 template<>
@@ -177,19 +169,8 @@ public:
     void test()
     { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
-    // connect to server_task
-    void set_task(HttpServerTask *task)
-    { server_task_ = task; };
-
-    HttpServerTask *get_task() const
-    { return server_task_; }
-
 public:
     std::unordered_map<std::string, std::string> headers;
-
-private:
-    HttpServerTask *server_task_ = nullptr;
-
 };
 
 

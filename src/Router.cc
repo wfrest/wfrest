@@ -42,8 +42,11 @@ void Router::handle(const char *route, int compute_queue_id, const Handler &hand
     vh.compute_queue_id = compute_queue_id;
 }
 
-void Router::call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const
+void Router::call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const
 {
+    HttpReq *req = server_task->get_req();
+    HttpResp *resp = server_task->get_resp();
+
     // skip the last / of the url.
     // /hello ==  /hello/
     StringPiece route2(route);
@@ -55,7 +58,6 @@ void Router::call(const std::string &verb, const std::string &route, HttpReq *re
 
     if (it != routes_map_.end())   // has route
     {
-        auto *server_task = req->get_task();
         // match verb
         // it == <StringPiece : path, VerbHandler>
         if (it->second.verb == Verb::ANY or str_to_verb(verb) == it->second.verb)

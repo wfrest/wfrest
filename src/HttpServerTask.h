@@ -42,7 +42,43 @@ private:
     std::vector<ServerCallBack> cb_list_;
 };
 
-using Series = HttpServerTask::Series;
+namespace detail
+{
+class ServerTask : public WFServerTask<HttpReq, HttpResp>
+{
+public:
+	static size_t get_resp_offset()
+	{
+		ServerTask task(nullptr);
+
+		return task.resp_offset();
+	}
+private:
+	ServerTask(std::function<void (HttpTask *)> proc):
+		WFServerTask(nullptr, nullptr, proc)
+	{}
+
+	size_t resp_offset() const
+	{
+		return (const char *)(&this->resp) - (const char *)this;
+	}
+};
+
+}  // namespace detail
+
+template <typename T>
+inline HttpServerTask *task_of(T *task)
+{
+    auto *series = static_cast<HttpServerTask::Series *>(series_of(task));
+    return static_cast<HttpServerTask *>(series->task);
+}
+
+template <>
+inline HttpServerTask *task_of(HttpResp *resp)
+{
+    size_t http_resp_offset = detail::ServerTask::get_resp_offset();
+	return (HttpServerTask *)((char *)(resp) - http_resp_offset);
+} 
 
 } // namespace wfrest
 

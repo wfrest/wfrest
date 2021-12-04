@@ -117,8 +117,8 @@ void pread_multi_callback(WFFileIOTask *pread_task)
 void pwrite_callback(WFFileIOTask *pwrite_task)
 {
     long ret = pwrite_task->get_retval();
-    auto *series = static_cast<Series *>(series_of(pwrite_task));
-    HttpResp *resp = series->task->get_resp();
+    auto *server_task = task_of(pwrite_task);
+    HttpResp *resp = server_task->get_resp();
     delete static_cast<std::string *>(pwrite_task->user_data);
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
@@ -153,7 +153,7 @@ std::string HttpFile::root = ".";
 // note : [start, end)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    HttpServerTask *server_task = resp->get_task();
+    HttpServerTask *server_task = task_of(resp);
     std::string file_path = concat_path(root, path);
     LOG_DEBUG << "File Path : " << file_path;
     
@@ -164,7 +164,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
         int ret = stat(file_path.c_str(), &st);
         if (ret == -1)
         {
-            LOG_SYSERR << "File Error occurs";
+            LOG_SYSERR << "File Error occurs, path = " << file_path;
             resp->append_output_body_nocopy("File Error occurs", 17);
             return;
         }
@@ -201,7 +201,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 
 void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp)
 {
-    HttpServerTask *server_task = resp->get_task();
+    HttpServerTask *server_task = task_of(resp);
     std::string file_path = concat_path(root, path_list[path_idx]);
     LOG_DEBUG << "File Path : " << file_path;
 
@@ -241,17 +241,17 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
     **server_task << pread_task;
 }
 
-void HttpFile::mount(std::string &&root)
+void HttpFile::mount(std::string &&path)
 {
-    if (root.front() != '.' and root.front() != '/')
+    if (root.front() != '.' and path.front() != '/')
     {
-        root = "./" + root;
+        root = "./" + path;
     } else if (root.front() != '.')
     {
-        root = "." + root;
+        root = "." + path;
     } else
     {
-        root = std::move(root);
+        root = std::move(path);
     }
     if (root.back() == '/') root.pop_back();
     // ./xxx/xx
@@ -259,7 +259,7 @@ void HttpFile::mount(std::string &&root)
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, HttpResp *resp)
 {
-    HttpServerTask *server_task = resp->get_task();
+    HttpServerTask *server_task = task_of(resp);
     std::string file_path = concat_path(root, dst_path);
 
     auto *save_content = new std::string;
@@ -276,7 +276,7 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
 
 void HttpFile::save_file(const std::string &dst_path, std::string &&content, HttpResp *resp)
 {
-    HttpServerTask *server_task = resp->get_task();
+    HttpServerTask *server_task = task_of(resp);
     std::string file_path = concat_path(root, dst_path);
 
     auto *save_content = new std::string;

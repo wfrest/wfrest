@@ -16,7 +16,7 @@ public:
 
     static void send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp);
 
-    static void mount(std::string &&root);
+    static void mount(std::string &&path);
 
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
 

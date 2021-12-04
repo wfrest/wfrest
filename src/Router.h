@@ -17,7 +17,7 @@ public:
     void handle(const char *route, int compute_queue_id, const Handler &handler,
                 const SeriesHandler &series_handler, Verb verb);
 
-    void call(const std::string &verb, const std::string &route, HttpReq *req, HttpResp *resp) const;
+    void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 
     static Verb str_to_verb(const std::string &verb);
 
