@@ -7,6 +7,8 @@
 #include "StrUtil.h"
 #include "PathUtil.h"
 #include "HttpServerTask.h"
+#include "Compress.h"
+#include "Logger.h"
 
 using namespace wfrest;
 
@@ -122,6 +124,12 @@ std::vector<FormData *> HttpReq::post_files()
     return res;
 }
 
+std::string HttpReq::ungzip()
+{
+    std::string body = this->body();
+    return Compressor::ungzip(body.c_str(), body.size());
+}
+
 void HttpResp::String(const std::string &str)
 {
     // bool append_output_body(const void *buf, size_t size);
@@ -132,6 +140,26 @@ void HttpResp::String(std::string &&str)
 {
     this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
 }
+
+ void HttpResp::String(const std::string &str, Compress compress)
+ {
+     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+     this->headers["Content-Encoding"] = compress_method_to_str(compress);
+     std::string compress_str;
+     if(compress == Compress::GZIP)
+     {
+         compress_str = Compressor::gzip(str.c_str(), str.size());
+     } else if(compress == Compress::BROTLI)
+     {
+         // not implement yet
+         compress_str = std::move(str);
+     } else
+     {
+         LOG_DEBUG << "Dosen't support this compression, No Compression...";
+         compress_str = std::move(str);
+     }
+     this->String(std::move(compress_str));
+ }
 
 void HttpResp::File(const std::string &path)
 {
@@ -174,8 +202,10 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
 
 void HttpResp::Json(const ::Json &json)
 {
-    // todo : header repeat?
-    this->add_header_pair("Content-Type", "application/json");
+    // The header value itself does not allow for multiple values, 
+    // and it is also not allowed to send multiple Content-Type headers
+    // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
+    this->headers["Content-Type"] = "application/json";
     this->String(json.dump());
 }
 

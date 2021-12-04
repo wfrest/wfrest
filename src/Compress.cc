@@ -2,6 +2,22 @@
 #include "Compress.h"
 #include "Logger.h"
 
+namespace wfrest
+{
+const char* compress_method_to_str(const Compress& compress_method)
+{
+    switch (compress_method)
+    {
+        case Compress::GZIP:
+            return "gzip";
+        case Compress::BROTLI:
+            return "br";
+        default:
+            return "unsupport compression";
+    }
+}
+}  // namespace wfrest
+
 using namespace wfrest;
 
 // note : compress :  deflateInit2() ->deflate() ->deflateEnd()

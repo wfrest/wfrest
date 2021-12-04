@@ -33,3 +33,6 @@ target_link_libraries(11_go_task wfrest)
 
 add_executable(12_series_interface 12_series_interface.cc)
 target_link_libraries(12_series_interface wfrest)
+
+add_executable(13_compession 13_compession.cc)
+target_link_libraries(13_compession wfrest)

@@ -11,6 +11,8 @@
 #include "HttpDef.h"
 #include "HttpContent.h"
 #include "HttpFile.h"
+#include "Compress.h"
+#include "StrUtil.h"
 
 namespace wfrest
 {
@@ -92,6 +94,9 @@ public:
 
     std::vector<FormData *> post_files();
 
+    // decompress
+    std::string ungzip();
+
 private:
     void fill_content_type();
 
@@ -146,6 +151,8 @@ public:
 
     void String(std::string &&str);
 
+     void String(const std::string &str, Compress compress);
+
     // file
     void File(const std::string &path);
 
@@ -177,8 +184,14 @@ public:
     HttpServerTask *get_task() const
     { return server_task_; }
 
+public:
+    std::unordered_map<std::string, std::string,
+                        UnorderMapStringCaseLess::Hash,
+                        UnorderMapStringCaseLess::Comp> headers;
+
 private:
     HttpServerTask *server_task_ = nullptr;
+
 };
 
 

@@ -14,6 +14,14 @@
 namespace wfrest
 {
 
+enum class Compress 
+{
+    GZIP,
+    BROTLI
+};
+
+const char* compress_method_to_str(const Compress& compress_method);
+
 class Compressor
 {
 public:
@@ -22,6 +30,7 @@ public:
     static std::string ungzip(const char *data, const size_t len);
 
 };
+
 }  // namespace wfrest
 
 #endif // WFREST_Compress_H_

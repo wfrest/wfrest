@@ -16,7 +16,6 @@ HttpServerTask::HttpServerTask(CommService *service,
     WFServerTask::set_callback([this](HttpTask *task) {
         for(auto &cb : cb_list_)
         {
-            fprintf(stderr, "111\n");
             cb(task);
         }
     });
@@ -49,7 +48,18 @@ void HttpServerTask::handle(int state, int error)
 CommMessageOut *HttpServerTask::message_out()
 {
     HttpResp *resp = this->get_resp();
-    struct HttpMessageHeader header{};
+
+    struct HttpMessageHeader header;
+
+    // fill headers we set
+    for(auto &header_kv : resp->headers)
+    {
+        header.name = header_kv.first.c_str();
+        header.name_len = header_kv.first.size();
+        header.value = header_kv.second.c_str();
+        header.value_len = header_kv.second.size();
+        resp->add_header(&header);
+    }
 
     if (!resp->get_http_version())
         resp->set_http_version("HTTP/1.1");

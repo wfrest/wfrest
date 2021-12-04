@@ -27,14 +27,14 @@ void HttpServer::proc(HttpTask *task)
     });
 
     std::string host = req->header("Host");
-
+    
     if (host.empty())
     {
         //header Host not found
         resp->set_status(HttpStatusBadRequest);
         return;
     }
-
+    
     std::string request_uri = "http://" + host + req->get_request_uri();  // or can't parse URI
     ParsedURI uri;
     if (URIParser::parse(request_uri, uri) < 0)
@@ -42,6 +42,7 @@ void HttpServer::proc(HttpTask *task)
         resp->set_status(HttpStatusBadRequest);
         return;
     }
+
     std::string route;
 
     if (uri.path && uri.path[0])
