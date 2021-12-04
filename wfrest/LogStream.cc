@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "LogStream.h"
+#include "wfrest/LogStream.h"
 
 using namespace wfrest;
 using namespace wfrest::detail;

@@ -1,7 +1,9 @@
 #include <arpa/inet.h>
-#include "Router.h"
-#include "HttpServerTask.h"
-#include "Logger.h"
+#include "wfrest/Router.h"
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/Logger.h"
+#include "wfrest/HttpMsg.h"
+
 using namespace wfrest;
 
 namespace

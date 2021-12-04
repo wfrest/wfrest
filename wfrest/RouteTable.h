@@ -7,9 +7,10 @@
 #include <memory>
 #include <cassert>
 #include <unordered_map>
-#include "StringPiece.h"
-#include "Macro.h"
-#include "VerbHandler.h"
+
+#include "wfrest/StringPiece.h"
+#include "wfrest/Macro.h"
+#include "wfrest/VerbHandler.h"
 
 namespace wfrest
 {

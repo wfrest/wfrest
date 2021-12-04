@@ -4,8 +4,8 @@
 
 #include <functional>
 
-#include "LogStream.h"
-#include "Timestamp.h"
+#include "wfrest/LogStream.h"
+#include "wfrest/Timestamp.h"
 
 namespace wfrest
 {

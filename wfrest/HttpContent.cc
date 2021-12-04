@@ -1,7 +1,8 @@
-#include "HttpContent.h"
 #include "workflow/StringUtil.h"
 #include <cstring>
-#include "StrUtil.h"
+#include "wfrest/StrUtil.h"
+#include "wfrest/HttpContent.h"
+#include "wfrest/StringPiece.h"
 
 using namespace wfrest;
 

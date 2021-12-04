@@ -11,7 +11,7 @@
 #include <thread>
 #include <chrono>
 
-#include "Logger.h"
+#include "wfrest/Logger.h"
 
 namespace wfrest
 {

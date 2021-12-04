@@ -2,11 +2,11 @@
 
 #include <sys/stat.h>
 
-#include "HttpFile.h"
-#include "HttpMsg.h"
-#include "PathUtil.h"
-#include "HttpServerTask.h"
-#include "Logger.h"
+#include "wfrest/HttpFile.h"
+#include "wfrest/HttpMsg.h"
+#include "wfrest/PathUtil.h"
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/Logger.h"
 
 using namespace wfrest;
 

@@ -8,11 +8,10 @@
 #include <fcntl.h>
 #include <unordered_map>
 
-#include "HttpDef.h"
-#include "HttpContent.h"
-#include "HttpFile.h"
-#include "Compress.h"
-#include "StrUtil.h"
+#include "wfrest/StringPiece.h"
+#include "wfrest/HttpDef.h"
+#include "wfrest/HttpContent.h"
+#include "wfrest/Compress.h"
 
 namespace wfrest
 {
@@ -21,7 +20,7 @@ using RouteParams = std::unordered_map<std::string, std::string>;
 using QueryParams = std::unordered_map<std::string, std::string>;
 
 class HttpReq;
-
+enum class Compress;
 class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

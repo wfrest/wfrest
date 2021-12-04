@@ -1,4 +1,4 @@
-#include "RouteTable.h"
+#include "wfrest/RouteTable.h"
 
 namespace wfrest
 {

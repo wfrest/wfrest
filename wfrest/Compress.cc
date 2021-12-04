@@ -1,6 +1,6 @@
 
-#include "Compress.h"
-#include "Logger.h"
+#include "wfrest/Compress.h"
+#include "wfrest/Logger.h"
 
 namespace wfrest
 {

@@ -3,13 +3,14 @@
 
 #include <string>
 #include <unordered_map>
-#include "MultiPartParser.h"
-#include "Macro.h"
-#include "StringPiece.h"
-#include "json.hpp"
+#include "wfrest/MultiPartParser.h"
+#include "wfrest/Macro.h"
+#include "wfrest/json.hpp"
 
 namespace wfrest
 {
+
+class StringPiece;
 class Urlencode
 {
 public:

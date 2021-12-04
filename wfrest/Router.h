@@ -1,12 +1,12 @@
 #ifndef WFREST_ROUTER_H_
 #define WFREST_ROUTER_H_
 
-#include "VerbHandler.h"
-#include "HttpMsg.h"
-#include "Macro.h"
-#include "RouteTable.h"
 #include "workflow/HttpUtil.h"
+
 #include <functional>
+
+#include "wfrest/VerbHandler.h"
+#include "wfrest/RouteTable.h"
 
 namespace wfrest
 {

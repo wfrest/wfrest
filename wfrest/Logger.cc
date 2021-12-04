@@ -1,6 +1,6 @@
-#include "Logger.h"
-#include "SysInfo.h"
-#include "AsyncFileLogger.h"
+#include "wfrest/Logger.h"
+#include "wfrest/SysInfo.h"
+#include "wfrest/AsyncFileLogger.h"
 
 namespace wfrest
 {

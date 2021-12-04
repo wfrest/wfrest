@@ -1,4 +1,4 @@
-#include "PathUtil.h"
+#include "wfrest/PathUtil.h"
 
 using namespace wfrest;
 

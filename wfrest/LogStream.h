@@ -7,7 +7,7 @@
 #include <functional>
 #include <utility>
 #include <cassert>
-#include "StringPiece.h"
+#include "wfrest/StringPiece.h"
 
 namespace wfrest
 {

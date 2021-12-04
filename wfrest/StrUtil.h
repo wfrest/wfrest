@@ -2,8 +2,8 @@
 #define WFREST_STRUTIL_H_
 
 #include "workflow/StringUtil.h"
-#include "StringPiece.h"
 #include <string>
+#include "wfrest/StringPiece.h"
 
 namespace wfrest
 {

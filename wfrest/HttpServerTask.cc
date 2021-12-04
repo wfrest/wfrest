@@ -1,5 +1,7 @@
-#include "HttpServerTask.h"
-#include "StrUtil.h"
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/StrUtil.h"
+#include "workflow/HttpUtil.h"
+#include "workflow/HttpMessage.h"
 
 using namespace wfrest;
 using namespace protocol;

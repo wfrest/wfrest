@@ -1,5 +1,5 @@
 #include <type_traits>
-#include "SysInfo.h"
+#include "wfrest/SysInfo.h"
 
 namespace wfrest
 {

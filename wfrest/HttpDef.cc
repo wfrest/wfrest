@@ -1,4 +1,4 @@
-#include "HttpDef.h"
+#include "wfrest/HttpDef.h"
 #include <cstring>
 
 namespace wfrest

@@ -1,10 +1,7 @@
 #ifndef WFREST_HTTPSERVERTASK_H_
 #define WFREST_HTTPSERVERTASK_H_
 
-#include "workflow/HttpUtil.h"
-#include "workflow/HttpMessage.h"
-
-#include "HttpMsg.h"
+#include "wfrest/HttpMsg.h"
 
 namespace wfrest
 {

@@ -6,13 +6,13 @@
 #include <unordered_map>
 #include <string>
 
-#include "HttpMsg.h"
-#include "Router.h"
-#include "VerbHandler.h"
-#include "Logger.h"
+#include "wfrest/HttpMsg.h"
+#include "wfrest/Router.h"
+#include "wfrest/VerbHandler.h"
 
 namespace wfrest
 {
+
 class HttpServer : public WFServer<HttpReq, HttpResp>
 {
 public:
@@ -24,13 +24,15 @@ public:
 
     void GET(const char *route, const SeriesHandler &series_handler);
 
-    void GET(const char *route, int compute_queue_id, const Handler &handler);
-
-    void GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
-
     void POST(const char *route, const Handler &handler);
 
     void POST(const char *route, const SeriesHandler &series_handler);
+
+public:
+
+    void GET(const char *route, int compute_queue_id, const Handler &handler);
+
+    void GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
 
     void POST(const char *route, int compute_queue_id, const Handler &handler);
 
@@ -38,12 +40,11 @@ public:
 
     void mount(std::string &&path);
 
-    template <typename ... Args>
-    int start(Args... args)
-    {
+	int start(unsigned short port)
+	{
         router_.print_routes();
-        return WFServerBase::start(args...);
-    }
+        return WFServerBase::start(port);
+	}
     
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;

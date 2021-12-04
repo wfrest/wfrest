@@ -2,13 +2,13 @@
 
 #include <unistd.h>
 
-#include "HttpMsg.h"
-#include "UriUtil.h"
-#include "StrUtil.h"
-#include "PathUtil.h"
-#include "HttpServerTask.h"
-#include "Compress.h"
-#include "Logger.h"
+#include "wfrest/HttpMsg.h"
+#include "wfrest/UriUtil.h"
+#include "wfrest/StrUtil.h"
+#include "wfrest/PathUtil.h"
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/Logger.h"
+#include "wfrest/HttpFile.h"
 
 using namespace wfrest;
 

@@ -3,9 +3,11 @@
 
 #include <utility>
 
-#include "HttpServer.h"
-#include "HttpServerTask.h"
-#include "UriUtil.h"
+#include "wfrest/HttpServer.h"
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/UriUtil.h"
+#include "wfrest/Logger.h"
+#include "wfrest/HttpFile.h"
 
 using namespace wfrest;
 
