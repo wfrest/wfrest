@@ -9,8 +9,10 @@
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
+#include "wfrest/json.hpp"
 
 using namespace wfrest;
+using Json = nlohmann::json;
 
 std::string HttpReq::body() const
 {

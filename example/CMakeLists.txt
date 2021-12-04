@@ -28,8 +28,8 @@ target_link_libraries(09_json wfrest)
 add_executable(10_logger 10_logger.cc)
 target_link_libraries(10_logger wfrest)
 
-add_executable(11_go_task 11_go_task.cc)
-target_link_libraries(11_go_task wfrest)
+add_executable(11_compute_handler 11_compute_handler.cc)
+target_link_libraries(11_compute_handler wfrest)
 
 add_executable(12_series_interface 12_series_interface.cc)
 target_link_libraries(12_series_interface wfrest)
@@ -37,6 +37,6 @@ target_link_libraries(12_series_interface wfrest)
 add_executable(13_compession 13_compession.cc)
 target_link_libraries(13_compession wfrest)
 
-# add_executable(13_compess_client 13_compess_client.cc)
-# target_link_libraries(13_compess_client wfrest)
+add_executable(13_compess_client 13_compess_client.cc)
+target_link_libraries(13_compess_client wfrest)
 

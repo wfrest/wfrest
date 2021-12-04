@@ -20,7 +20,6 @@ using RouteParams = std::unordered_map<std::string, std::string>;
 using QueryParams = std::unordered_map<std::string, std::string>;
 
 class HttpReq;
-enum class Compress;
 class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

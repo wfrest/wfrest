@@ -17,24 +17,23 @@ class HttpServer : public WFServer<HttpReq, HttpResp>
 {
 public:
     HttpServer() :
-            WFServer(std::bind(&HttpServer::proc, this, std::placeholders::_1))
+            WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
 
     void GET(const char *route, const Handler &handler);
 
-    void GET(const char *route, const SeriesHandler &series_handler);
+    void GET(const char *route, int compute_queue_id, const Handler &handler);
 
     void POST(const char *route, const Handler &handler);
 
-    void POST(const char *route, const SeriesHandler &series_handler);
+    void POST(const char *route, int compute_queue_id, const Handler &handler);
 
 public:
-
-    void GET(const char *route, int compute_queue_id, const Handler &handler);
+    void GET(const char *route, const SeriesHandler &series_handler);
 
     void GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
 
-    void POST(const char *route, int compute_queue_id, const Handler &handler);
+    void POST(const char *route, const SeriesHandler &series_handler);
 
     void POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
 
@@ -45,12 +44,12 @@ public:
         router_.print_routes();
         return WFServerBase::start(port);
 	}
-    
+
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 
 private:
-    void proc(HttpTask *task);
+    void process(HttpTask *task);
 
 private:
     Router router_;

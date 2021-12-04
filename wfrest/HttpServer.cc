@@ -11,7 +11,7 @@
 
 using namespace wfrest;
 
-void HttpServer::proc(HttpTask *task)
+void HttpServer::process(HttpTask *task)
 {
     auto *server_task = static_cast<HttpServerTask *>(task);
 
@@ -104,7 +104,7 @@ void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandl
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 {
-    HttpTask *task = new HttpServerTask(this, this->process);
+    HttpTask *task = new HttpServerTask(this, WFServer<HttpReq, HttpResp>::process);
     task->set_keep_alive(this->params.keep_alive_timeout);
     task->set_receive_timeout(this->params.receive_timeout);
     task->get_req()->set_size_limit(this->params.request_size_limit);

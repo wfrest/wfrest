@@ -36,7 +36,7 @@ int main()
     HttpServer svr;
 
     // Second parameter means this computing queue id is 1
-    // Then this handler become a computing task
+    // This handler is for computing
     // curl -v http://ip:port/compute_task?num=20
     svr.GET("/compute_task", 1, [](HttpReq *req, HttpResp *resp)
     {
