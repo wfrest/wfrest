@@ -1,7 +1,3 @@
-
-#ifndef WFREST_json_fwd_H_
-#define WFREST_json_fwd_H_
-
 #ifndef INCLUDE_NLOHMANN_JSON_FWD_HPP_
 #define INCLUDE_NLOHMANN_JSON_FWD_HPP_
 
@@ -73,4 +69,3 @@ using ordered_json = basic_json<nlohmann::ordered_map>;
 
 #endif  // INCLUDE_NLOHMANN_JSON_FWD_HPP_
 
-#endif // WFREST_json_fwd_H_

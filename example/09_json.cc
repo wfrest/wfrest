@@ -1,10 +1,10 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-// #include "wfrest/json.hpp"
+#include "wfrest/json.hpp"
 
 using namespace wfrest;
-// using Json = nlohmann::json;
+using Json = nlohmann::json;
 
 static WFFacilities::WaitGroup wait_group(1);
 

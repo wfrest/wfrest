@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include "wfrest/MultiPartParser.h"
 #include "wfrest/Macro.h"
-#include "wfrest/json.hpp"
 
 namespace wfrest
 {

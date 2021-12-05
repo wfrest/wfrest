@@ -26,12 +26,12 @@ class HttpReq;
 class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
-using Json = nlohmann::basic_json<>;
+using Json = nlohmann::json;
 
 class HttpReq : public protocol::HttpRequest
 {
 public:
-    ~HttpReq() { delete json; }
+    ~HttpReq();
 
     std::string body() const;
 

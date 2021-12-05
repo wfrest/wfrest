@@ -11,7 +11,13 @@
 #include "wfrest/json.hpp"
 
 using namespace wfrest;
+
 using Json = nlohmann::json;
+
+HttpReq::~HttpReq()
+{
+    delete json;
+}
 
 std::string HttpReq::body() const
 {
@@ -131,6 +137,7 @@ std::string HttpReq::ungzip()
     std::string body = this->body();
     return Compressor::ungzip(body.c_str(), body.size());
 }
+
 
 void HttpResp::String(const std::string &str)
 {
