@@ -85,7 +85,7 @@ void HttpReq::parse_body()
                 // todo : how to let user know the error ?
             }
             json = new Json;
-            *json = Json::parse(chunked_body);
+            *json = std::move(Json::parse(chunked_body));
         }
         default:
             break;

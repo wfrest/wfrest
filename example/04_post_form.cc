@@ -26,7 +26,7 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        auto &form_kv = req->kv;
+        const std::unordered_map<std::string, std::string> &form_kv = req->kv;
         for (auto &kv: form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
@@ -43,8 +43,6 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        // form_kv's type is MultiPart
-        // MultiPart = std::unordered_map<std::string, FormData>;
         /*
             struct FormData
             {
@@ -52,7 +50,7 @@ int main()
                 std::string content;
             };
         */
-        auto &form_kv = req->form;
+        const std::unordered_map<std::string, FormData> &form_kv = req->form;
         for (auto &it: form_kv)
         {
             fprintf(stderr, "%s : %s = %s",
