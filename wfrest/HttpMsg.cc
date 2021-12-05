@@ -102,7 +102,7 @@ const std::string &HttpReq::default_query(const std::string &key, const std::str
         return default_val;
 }
 
-bool HttpReq::has_query(const std::string &key)
+bool HttpReq::has_query(const std::string &key) const
 {
     if (query_params_.find(key) != query_params_.end())
     {

@@ -41,9 +41,8 @@ public:
 
     Json &json() const;
 
-    // header map
-    void set_header_map(protocol::HttpHeaderMap *header)
-    { header_ = header; }
+    http_content_type content_type() const
+    { return content_type_; }
 
     std::string header(const std::string &key) const
     { return header_->get(key); }
@@ -51,23 +50,12 @@ public:
     bool has_header(const std::string &key) const
     { return header_->key_exists(key); }
 
-    // /{name}/{id} parans in route
-    void set_route_params(RouteParams &&params)
-    { route_params_ = std::move(params); }
-
     const std::string &param(const std::string &key)
     { return route_params_[key]; };
 
     // handler define path
     const std::string &full_path() const
     { return route_full_path_; }
-
-    void set_full_path(const std::string &route_full_path)
-    { route_full_path_ = route_full_path; }
-
-    // url query params
-    void set_query_params(QueryParams &&query_params)
-    { query_params_ = std::move(query_params); }
 
     const std::string &query(const std::string &key)
     { return query_params_[key]; }
@@ -80,16 +68,25 @@ public:
     const QueryParams &query_list() const
     { return query_params_; }
 
-    bool has_query(const std::string &key);
+    bool has_query(const std::string &key) const;
 
-    // decompress
-    // std::string ungzip();
-
+    // setter
     void fill_content_type();
 
-    http_content_type content_type() const
-    { return content_type_; }
+    void set_header_map(protocol::HttpHeaderMap *header)
+    { header_ = header; }
 
+    // /{name}/{id} parans in route
+    void set_route_params(RouteParams &&params)
+    { route_params_ = std::move(params); }
+
+    void set_full_path(const std::string &route_full_path)
+    { route_full_path_ = route_full_path; }
+
+    void set_query_params(QueryParams &&query_params)
+    { query_params_ = std::move(query_params); }
+
+public:
     HttpReq();
 
     ~HttpReq();
@@ -139,10 +136,6 @@ public:
 
     void String(std::string &&str);
 
-    // select compression method to send string. 
-    // we support GZIP, BROTLI
-//    void String(const std::string &str);
-
     // file
     void File(const std::string &path);
 
@@ -166,11 +159,7 @@ public:
     void set_status(int status_code);
 
     // Compress
-
     void set_compress(const Compress &compress);
-
-    void test()
-    { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
 private:
     std::string compress(const std::string &str);

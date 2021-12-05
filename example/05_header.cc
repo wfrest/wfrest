@@ -17,7 +17,7 @@ int main()
 
     HttpServer svr;
 
-    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         std::string host = req->header("Host");
         std::string content_type = req->header("Content-Type");
