@@ -6,13 +6,12 @@
 #include "wfrest/UriUtil.h"
 #include "wfrest/StrUtil.h"
 #include "wfrest/PathUtil.h"
-#include "wfrest/HttpServerTask.h"
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
-#include "wfrest/json.hpp"
+// #include "wfrest/json.hpp"
 
 using namespace wfrest;
-using Json = nlohmann::json;
+// using Json = nlohmann::json;
 
 std::string HttpReq::body() const
 {
@@ -79,7 +78,9 @@ void HttpReq::parse_body()
                 break;
                 // todo : how to let user know the error ?
             }
+            LOG_INFO << "111";
             json = Json::parse(chunked_body);
+            LOG_INFO << "123";
         }
         default:
             break;
@@ -213,11 +214,14 @@ void HttpResp::Json(const ::Json &json)
 
 void HttpResp::Json(const std::string &str)
 {
+    LOG_INFO << "11";
     if (!Json::accept(str))
     {
+        LOG_INFO << "22";
         this->String("JSON is invalid");
         return;
     }
+    LOG_INFO << "33";
     this->headers["Content-Type"] = "application/json";
     // todo : should we just don't care format?
     // this->String(str);

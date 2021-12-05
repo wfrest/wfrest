@@ -60,7 +60,7 @@ docker pull shiyuyi/wfrest
 ## 🚀 Quick start
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -104,7 +104,7 @@ int main()
 ### Parameters in path
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -167,7 +167,7 @@ int main()
 ### Querystring parameters
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -225,7 +225,7 @@ int main()
 ### Post Form
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -285,7 +285,7 @@ int main()
 ### Header
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -320,7 +320,7 @@ int main()
 ### Send File
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -382,7 +382,7 @@ int main()
 ### Save File
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -420,8 +420,8 @@ int main()
 
 ```cpp
 
-#include "HttpServer.h"
-#include "PathUtil.h"
+#include "wfrest/HttpServer.h"
+#include "wfrest/PathUtil.h"
 using namespace wfrest;
 
 int main()
@@ -503,7 +503,7 @@ int main()
 ### Json
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -571,7 +571,7 @@ int main()
 ### Computing task
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 void Fibonacci(int n, HttpResp *resp)
@@ -620,7 +620,7 @@ int main()
 ### ServerSeries Interface
 
 ```cpp
-#include "HttpServer.h"
+#include "wfrest/HttpServer.h"
 using namespace wfrest;
 
 int main()
@@ -652,7 +652,7 @@ int main()
 ## How to use logger
 
 ```cpp
-#include "Logger.h"
+#include "wfrest/Logger.h"
 using namespace wfrest;
 
 int main()

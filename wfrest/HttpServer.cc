@@ -54,7 +54,7 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
-
+    fprintf(stderr, "1111");
     req->parse_body();
     req->set_parsed_uri(std::move(uri));
 
@@ -104,7 +104,7 @@ void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandl
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 {
-    HttpTask *task = new HttpServerTask(this, WFServer<HttpReq, HttpResp>::process);
+    HttpTask *task = new HttpServerTask(this, this->WFServer<HttpReq, HttpResp>::process);
     task->set_keep_alive(this->params.keep_alive_timeout);
     task->set_receive_timeout(this->params.receive_timeout);
     task->get_req()->set_size_limit(this->params.request_size_limit);

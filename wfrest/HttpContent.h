@@ -69,9 +69,7 @@ private:
     multipart_parser_settings settings_{};
 };
 
-// Json
-// https://github.com/nlohmann/json
-using Json = nlohmann::json;
+
 
 }  // wfrest
 

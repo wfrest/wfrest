@@ -7,11 +7,14 @@
 
 #include <fcntl.h>
 #include <unordered_map>
+#include <memory>
 
 #include "wfrest/StringPiece.h"
 #include "wfrest/HttpDef.h"
 #include "wfrest/HttpContent.h"
 #include "wfrest/Compress.h"
+// #include "wfrest/json_fwd.hpp"
+#include "wfrest/json.hpp"
 
 namespace wfrest
 {
@@ -20,9 +23,12 @@ using RouteParams = std::unordered_map<std::string, std::string>;
 using QueryParams = std::unordered_map<std::string, std::string>;
 
 class HttpReq;
+
 class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
+// using Json = nlohmann::basic_json<>;
+using Json = nlohmann::json;
 
 class HttpReq : public protocol::HttpRequest
 {
@@ -91,6 +97,7 @@ private:
 public:
     Urlencode::KV kv;
     MultiPartForm::MultiPart form;
+    // std::unique_ptr<Json> json;
     Json json;
     http_content_type content_type;
 private:
@@ -100,7 +107,7 @@ private:
     StringPiece body_;
     QueryParams query_params_;
     MultiPartForm multi_part_;
-    protocol::HttpHeaderMap *header_;
+    protocol::HttpHeaderMap *header_{};
 };
 
 template<>

@@ -49,6 +49,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     HttpReq *req = server_task->get_req();
     HttpResp *resp = server_task->get_resp();
 
+    fprintf(stderr, "2222");
     // skip the last / of the url.
     // /hello ==  /hello/
     StringPiece route2(route);
@@ -74,6 +75,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
 
             if (it->second.compute_queue_id == -1)
             {
+                    fprintf(stderr, "3333");
                 if (it->second.handler)
                     it->second.handler(req, resp);
                 else
