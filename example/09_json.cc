@@ -61,7 +61,7 @@ int main()
             resp->String("NOT APPLICATION_JSON");
             return;
         }
-        fprintf(stderr, "Json : %s", req->json.dump(4).c_str());
+        fprintf(stderr, "Json : %s", req->json->dump(4).c_str());
     });
 
     if (svr.start(8888) == 0)

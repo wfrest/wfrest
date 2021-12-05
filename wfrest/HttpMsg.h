@@ -13,8 +13,7 @@
 #include "wfrest/HttpDef.h"
 #include "wfrest/HttpContent.h"
 #include "wfrest/Compress.h"
-// #include "wfrest/json_fwd.hpp"
-#include "wfrest/json.hpp"
+#include "wfrest/json_fwd.hpp"
 
 namespace wfrest
 {
@@ -27,12 +26,13 @@ class HttpReq;
 class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
-// using Json = nlohmann::basic_json<>;
-using Json = nlohmann::json;
+using Json = nlohmann::basic_json<>;
 
 class HttpReq : public protocol::HttpRequest
 {
 public:
+    ~HttpReq() { delete json; }
+
     std::string body() const;
 
     // body -> structured content
@@ -97,8 +97,7 @@ private:
 public:
     Urlencode::KV kv;
     MultiPartForm::MultiPart form;
-    // std::unique_ptr<Json> json;
-    Json json;
+    Json *json;
     http_content_type content_type;
 private:
     RouteParams route_params_;
