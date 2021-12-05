@@ -43,6 +43,7 @@ int main()
     ctx->data = std::move(Compressor::gzip(content.c_str(), content.size()));
     task->user_data = ctx;
     task->get_req()->set_method("POST");
+    task->get_req()->add_header_pair("Content-Encoding", "gzip");
     task->get_req()->append_output_body_nocopy(ctx->data.c_str(), ctx->data.size());
     task->start();
     wait_group.wait();

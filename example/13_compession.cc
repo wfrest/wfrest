@@ -17,11 +17,14 @@ int main()
 
     HttpServer svr;
     
-    svr.POST("/gzip", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/gzip", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string ungzip_data = req->ungzip();
-        fprintf(stderr, "ungzip data : %s\n", ungzip_data.c_str());
-        resp->String("Test for server send gzip data\n", Compress::GZIP);
+        // We automatically decompress the compressed data sent from the client
+        // Support gzip, br only now
+        std::string& data = req->body();
+        fprintf(stderr, "ungzip data : %s\n", data.c_str());
+        resp->set_compress(Compress::GZIP);
+        resp->String("Test for server send gzip data\n");
     });
 
     if (svr.start(8888) == 0)

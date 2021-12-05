@@ -27,19 +27,19 @@ class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 using Json = nlohmann::json;
-struct Body;
+struct ReqData;
 
 class HttpReq : public protocol::HttpRequest
 {
 public:
-    std::string &body();
+    std::string &body() const;
 
-    // post content
-    std::map<std::string, std::string> &form_kv();
+    // post body
+    std::map<std::string, std::string> &form_kv() const;
 
-    Form &form();
+    Form &form() const;
 
-    Json &json();
+    Json &json() const;
 
     // header map
     void set_header_map(protocol::HttpHeaderMap *header)
@@ -96,7 +96,7 @@ public:
 
 private:
     http_content_type content_type_;
-    Body *body_;
+    ReqData *req_data_;
     RouteParams route_params_;
     std::string route_full_path_;
     QueryParams query_params_;
@@ -141,7 +141,7 @@ public:
 
     // select compression method to send string. 
     // we support GZIP, BROTLI
-    void String(const std::string &str, Compress compress);
+//    void String(const std::string &str);
 
     // file
     void File(const std::string &path);
@@ -165,11 +165,18 @@ public:
 
     void set_status(int status_code);
 
+    // Compress
+
+    void set_compress(const Compress &compress);
+
     void test()
     { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
+private:
+    std::string compress(const std::string &str);
+
 public:
-    std::map<std::string, std::string> headers;
+    std::map<std::string, std::string> headers_;
 };
 
 

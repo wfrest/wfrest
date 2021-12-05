@@ -54,7 +54,7 @@ CommMessageOut *HttpServerTask::message_out()
     struct HttpMessageHeader header;
 
     // fill headers we set
-    for(auto &header_kv : resp->headers)
+    for(auto &header_kv : resp->headers_)
     {
         header.name = header_kv.first.c_str();
         header.name_len = header_kv.first.size();

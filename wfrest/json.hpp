@@ -22845,7 +22845,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     /*!
     @brief clears the contents
 
-    Clears the content of a JSON value and resets it to the default value as
+    Clears the body of a JSON value and resets it to the default value as
     if @ref basic_json(value_t) would have been called with the current value
     type from @ref type():
 
@@ -23255,7 +23255,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     Inserts element @a val before iterator @a pos.
 
-    @param[in] pos iterator before which the content will be inserted; may be
+    @param[in] pos iterator before which the body will be inserted; may be
     the end() iterator
     @param[in] val element to insert
     @return iterator pointing to the inserted @a val.
@@ -23304,7 +23304,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     Inserts @a cnt copies of @a val before iterator @a pos.
 
-    @param[in] pos iterator before which the content will be inserted; may be
+    @param[in] pos iterator before which the body will be inserted; may be
     the end() iterator
     @param[in] cnt number of copies of @a val to insert
     @param[in] val element to insert
@@ -23346,7 +23346,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     Inserts elements from range `[first, last)` before iterator @a pos.
 
-    @param[in] pos iterator before which the content will be inserted; may be
+    @param[in] pos iterator before which the body will be inserted; may be
     the end() iterator
     @param[in] first begin of the range of elements to insert
     @param[in] last end of the range of elements to insert
@@ -23405,7 +23405,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     Inserts elements from initializer list @a ilist before iterator @a pos.
 
-    @param[in] pos iterator before which the content will be inserted; may be
+    @param[in] pos iterator before which the body will be inserted; may be
     the end() iterator
     @param[in] ilist initializer list to insert the values from
 
@@ -26390,7 +26390,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     The merge patch format is primarily intended for use with the HTTP PATCH
     method as a means of describing a set of modifications to a target
-    resource's content. This function applies a merge patch to the current
+    resource's body. This function applies a merge patch to the current
     JSON value.
 
     The function implements the following algorithm from Section 2 of

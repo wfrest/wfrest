@@ -30,9 +30,9 @@ public:
 
     static std::string ungzip(const char *data, const size_t len);
 
-    std::string brotli(const char *data, const size_t ndata);
+    static std::string brotli(const char *data, const size_t len);
 
-    std::string unbrotli(const char *data, const size_t ndata);
+    static std::string unbrotli(const char *data, const size_t len);
 
 };
 

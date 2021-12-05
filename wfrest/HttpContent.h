@@ -20,14 +20,14 @@ public:
 // struct FormData
 // {
 //     std::string filename;
-//     std::string content;
+//     std::string body;
 
 //     bool is_file() const
 //     { return !filename.empty(); }
 // };
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
-// <name ,<filename, content>>
+// <name ,<filename, body>>
 using Form = std::map<std::string, std::pair<std::string, std::string>>;
 
 // Modified From libhv
@@ -36,7 +36,7 @@ class MultiPartForm
 public:
     MultiPartForm();
 
-    Form parse_multipart(const StringPiece &body);
+    Form parse_multipart(const StringPiece &body) const;
 
     void set_boundary(std::string &&boundary)
     { boundary_ = std::move(boundary); }

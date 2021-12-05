@@ -19,7 +19,7 @@ int main()
 
     // Urlencoded Form
     // curl -v http://ip:port/post \
-    // -H "content-type:application/x-www-form-urlencoded" \
+    // -H "body-type:application/x-www-form-urlencoded" \
     // -d 'user=admin&pswd=123456'
     svr.POST("/post", [](HttpReq *req, HttpResp *resp)
     {
@@ -47,7 +47,7 @@ int main()
         }
         /*
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
-            // <name ,<filename, content>>
+            // <name ,<filename, body>>
             using Form = std::map<std::string, std::pair<std::string, std::string>>;
         */
         const Form &form_kv = req->form();

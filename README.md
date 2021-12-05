@@ -233,7 +233,7 @@ int main()
     HttpServer svr;
 
     // Urlencoded Form
-    // curl -v http://ip:port/post -H "content-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
+    // curl -v http://ip:port/post -H "body-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         if(req->content_type != APPLICATION_URLENCODED)
@@ -264,7 +264,7 @@ int main()
         {
             fprintf(stderr, "%s : %s = %s",
                                 it.first.c_str(),
-                                it.second.content.c_str(),
+                                it.second.body.c_str(),
                                 it.second.filename.c_str());
         }
     });
@@ -398,9 +398,9 @@ int main()
 
     svr.GET("/file_write2", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string content = "1234567890987654321";
+        std::string body = "1234567890987654321";
 
-        resp->Save("test1.txt", std::move(content));
+        resp->Save("test1.txt", std::move(body));
     });
 
     if (svr.start(8888) == 0)
@@ -446,7 +446,7 @@ int main()
             // The filename is always optional and must not be used blindly by the application:
             // path information should be stripped, and conversion to the server file system rules should be done.
             fprintf(stderr, "filename : %s\n", file->filename.c_str());
-            resp->Save(file->filename, std::move(file->content));
+            resp->Save(file->filename, std::move(file->body));
         }
     });
 
@@ -463,7 +463,7 @@ int main()
             auto *file = files[0];
             // simple solution to fix the problem above
             // This will restrict the upload file to current directory.
-            resp->Save(PathUtil::base(file->filename), std::move(file->content));
+            resp->Save(PathUtil::base(file->filename), std::move(file->body));
         }
     });
 
@@ -482,7 +482,7 @@ int main()
         {
             for(auto& file : files)
             {
-                resp->Save(PathUtil::base(file->filename), std::move(file->content));
+                resp->Save(PathUtil::base(file->filename), std::move(file->body));
             }
         }
     });

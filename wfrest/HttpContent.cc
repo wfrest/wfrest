@@ -191,7 +191,7 @@ int MultiPartForm::body_end_cb(multipart_parser *parser)
     return 0;
 }
 
-Form MultiPartForm::parse_multipart(const StringPiece &body)
+Form MultiPartForm::parse_multipart(const StringPiece &body) const
 {
     Form form;
     std::string boundary = "--" + boundary_;

@@ -15,9 +15,9 @@ using Json = nlohmann::json;
 namespace wfrest
 {
 
-struct Body
+struct ReqData
 {
-    std::string content;
+    std::string body;
     std::map<std::string, std::string> form_kv;
     Form form;
     Json json;
@@ -27,56 +27,71 @@ struct Body
 
 using namespace wfrest;
 
-HttpReq::HttpReq() : body_(new Body) {}
+HttpReq::HttpReq() : req_data_(new ReqData) {}
 
 HttpReq::~HttpReq()
 {
-    delete body_;
+    delete req_data_;
 }
 
-std::string& HttpReq::body()
+std::string& HttpReq::body() const
 {
-    if(body_->content.empty())
+    if(req_data_->body.empty())
     {
-        body_->content = protocol::HttpUtil::decode_chunked_body(this);
+        std::string content = protocol::HttpUtil::decode_chunked_body(this);
+
+        std::string header = this->header("Content-Encoding");
+        if (header.find("gzip") != std::string::npos) 
+        {
+            LOG_DEBUG << "Ungzip ReqData";
+            req_data_->body = Compressor::ungzip(content.c_str(), content.size());
+        } else if(header.find("br") != std::string::npos)
+        {
+            LOG_DEBUG << "UnBrotli ReqData";
+            // not implement yet
+            req_data_->body = Compressor::unbrotli(content.c_str(), content.size());
+        } else 
+        {
+            req_data_->body = std::move(content);
+        }
     }
-    return body_->content;
+    return req_data_->body;
 }
 
-std::map<std::string, std::string> &HttpReq::form_kv()
+std::map<std::string, std::string> &HttpReq::form_kv() const
 {
-    if(content_type_ == APPLICATION_URLENCODED && body_->form_kv.empty())
+    if(content_type_ == APPLICATION_URLENCODED && req_data_->form_kv.empty())
     {
         StringPiece body_piece(this->body());
-        body_->form_kv = Urlencode::parse_post_kv(body_piece);
+        req_data_->form_kv = Urlencode::parse_post_kv(body_piece);
     }
-    return body_->form_kv;
+    return req_data_->form_kv;
 }
 
-Form &HttpReq::form()
+Form &HttpReq::form() const
 {
-    if(content_type_ == MULTIPART_FORM_DATA && body_->form.empty())
+    if(content_type_ == MULTIPART_FORM_DATA && req_data_->form.empty())
     {
         StringPiece body_piece(this->body());
-        body_->form = multi_part_.parse_multipart(body_piece);
+        req_data_->form = multi_part_.parse_multipart(body_piece);
     }
-    return body_->form;
+    return req_data_->form;
 }
 
-Json &HttpReq::json()
+Json &HttpReq::json() const
 {
-    if(content_type_ == APPLICATION_JSON && body_->json.empty())
+    if(content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
         const std::string& body_content = this->body();
         if (!Json::accept(body_content))
         {
             LOG_ERROR << "Json is invalid";
-            return body_->json;
+            return req_data_->json;
             // todo : how to let user know the error ?
         }
-        body_->json = Json::parse(body_content);
+        req_data_->json = Json::parse(body_content);
     }
-    return body_->json;
+    return req_data_->json;
 }
 
 const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val)
@@ -127,34 +142,43 @@ void HttpReq::fill_content_type()
 
 void HttpResp::String(const std::string &str)
 {
-    // bool append_output_body(const void *buf, size_t size);
-    this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
+    std::string compres_data = this->compress(str);
+    if(compres_data.empty())
+    {
+        this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
+    } else
+    {
+        this->append_output_body(static_cast<const void *>(compres_data.c_str()), compres_data.size());
+    }
 }
 
 void HttpResp::String(std::string &&str)
 {
-    this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
+    std::string compres_data = this->compress(str);
+    if(compres_data.empty())
+    {
+        this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
+    } else
+    {
+        this->append_output_body(static_cast<const void *>(compres_data.c_str()), compres_data.size());
+    }
 }
 
- void HttpResp::String(const std::string &str, Compress compress)
- {
-     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
-     this->headers["Content-Encoding"] = compress_method_to_str(compress);
-     std::string compress_str;
-     if(compress == Compress::GZIP)
-     {
-         compress_str = Compressor::gzip(str.c_str(), str.size());
-     } else if(compress == Compress::BROTLI)
-     {
-         // not implement yet
-         compress_str = std::move(str);
-     } else
-     {
-         LOG_DEBUG << "Dosen't support this compression, No Compression...";
-         compress_str = std::move(str);
-     }
-     this->String(std::move(compress_str));
- }
+std::string HttpResp::compress(const std::string& str)
+{
+    std::string compress_data;
+    if(headers_.find("Content-Encoding") != headers_.end())
+    {
+        if(headers_["Content-Encoding"].find("gzip") != std::string::npos)
+        {
+            compress_data = Compressor::gzip(str.c_str(), str.size());
+        } else if(headers_["Content-Encoding"].find("br") != std::string::npos)
+        {
+            compress_data = Compressor::brotli(str.c_str(), str.size());
+        }
+    }
+    return compress_data;
+}
 
 void HttpResp::File(const std::string &path)
 {
@@ -173,7 +197,7 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
 
 void HttpResp::File(const std::vector<std::string> &path_list)
 {
-    this->headers["Content-Type"] = "multipart/form-data";
+    headers_["Content-Type"] = "multipart/form-data";
     for (int i = 0; i < path_list.size(); i++)
     {
         HttpFile::send_file_for_multi(path_list, i, this);
@@ -200,7 +224,7 @@ void HttpResp::Json(const ::Json &json)
     // The header value itself does not allow for multiple values, 
     // and it is also not allowed to send multiple Content-Type headers
     // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
-    this->headers["Content-Type"] = "application/json";
+    headers_["Content-Type"] = "application/json";
     this->String(json.dump());
 }
 
@@ -211,12 +235,17 @@ void HttpResp::Json(const std::string &str)
         this->String("JSON is invalid");
         return;
     }
-    this->headers["Content-Type"] = "application/json";
+    this->headers_["Content-Type"] = "application/json";
     // todo : should we just don't care format?
     // this->String(str);
     this->String(Json::parse(str).dump());
 }
 
+void HttpResp::set_compress(const enum Compress &compress)
+{
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+    headers_["Content-Encoding"] = compress_method_to_str(compress);
+}
 
 
 
