@@ -1,5 +1,6 @@
 // Modified from drogon
 // https://zlib.net/manual.html
+// https://github.com/google/brotli
 
 #ifndef WFREST_Compress_H_
 #define WFREST_Compress_H_
@@ -28,6 +29,10 @@ public:
     static std::string gzip(const char *data, const size_t len);
 
     static std::string ungzip(const char *data, const size_t len);
+
+    std::string brotli(const char *data, const size_t ndata);
+
+    std::string unbrotli(const char *data, const size_t ndata);
 
 };
 

@@ -12,7 +12,7 @@ class StringPiece;
 class UriUtil : public URIParser
 {
 public:
-    static std::unordered_map<std::string, std::string>
+    static std::map<std::string, std::string>
     split_query(const StringPiece &query);
 };
 

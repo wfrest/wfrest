@@ -10,21 +10,76 @@
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
 
+using Json = nlohmann::json;
+
+namespace wfrest
+{
+
+struct Body
+{
+    std::string content;
+    std::map<std::string, std::string> form_kv;
+    Form form;
+    Json json;
+};
+
+} // namespace wfrest
+
 using namespace wfrest;
 
-using Json = nlohmann::json;
+HttpReq::HttpReq() : body_(new Body) {}
 
 HttpReq::~HttpReq()
 {
-    delete json;
+    delete body_;
 }
 
-std::string HttpReq::body() const
+std::string& HttpReq::body()
 {
-    return protocol::HttpUtil::decode_chunked_body(this);
+    if(body_->content.empty())
+    {
+        body_->content = protocol::HttpUtil::decode_chunked_body(this);
+    }
+    return body_->content;
 }
 
-std::string HttpReq::default_query(const std::string &key, const std::string &default_val)
+std::map<std::string, std::string> &HttpReq::form_kv()
+{
+    if(content_type_ == APPLICATION_URLENCODED && body_->form_kv.empty())
+    {
+        StringPiece body_piece(this->body());
+        body_->form_kv = Urlencode::parse_post_kv(body_piece);
+    }
+    return body_->form_kv;
+}
+
+Form &HttpReq::form()
+{
+    if(content_type_ == MULTIPART_FORM_DATA && body_->form.empty())
+    {
+        StringPiece body_piece(this->body());
+        body_->form = multi_part_.parse_multipart(body_piece);
+    }
+    return body_->form;
+}
+
+Json &HttpReq::json()
+{
+    if(content_type_ == APPLICATION_JSON && body_->json.empty())
+    {
+        const std::string& body_content = this->body();
+        if (!Json::accept(body_content))
+        {
+            LOG_ERROR << "Json is invalid";
+            return body_->json;
+            // todo : how to let user know the error ?
+        }
+        body_->json = Json::parse(body_content);
+    }
+    return body_->json;
+}
+
+const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val)
 {
     if (query_params_.count(key))
         return query_params_[key];
@@ -43,61 +98,12 @@ bool HttpReq::has_query(const std::string &key)
     }
 }
 
-void HttpReq::parse_body()
-{
-    const void *body;
-    size_t len;
-    this->get_parsed_body(&body, &len);
-
-    StringPiece body_piece(body, len);
-    if (body_piece.empty()) return;
-
-    fill_content_type();
-
-    std::string chunked_body;
-    if ((this->is_chunked() &&
-        (content_type == X_WWW_FORM_URLENCODED || content_type == MULTIPART_FORM_DATA))
-        || content_type == APPLICATION_JSON)
-    {
-        chunked_body = this->body();
-        body_piece = StringPiece(chunked_body);
-    }
-
-    switch (content_type)
-    {
-        case X_WWW_FORM_URLENCODED:
-        {
-            Urlencode::parse_query_params(body_piece, kv);
-            break;
-        }
-        case MULTIPART_FORM_DATA:
-        {
-            multi_part_.parse_multipart(body_piece, form);
-            break;
-        }
-        case APPLICATION_JSON:
-        {
-            fprintf(stderr, "%s\n", chunked_body.c_str());
-            if (!Json::accept(chunked_body))
-            {
-                fprintf(stderr, "json is invalid\n");
-                break;
-                // todo : how to let user know the error ?
-            }
-            json = new Json;
-            *json = std::move(Json::parse(chunked_body));
-        }
-        default:
-            break;
-    }
-}
-
 void HttpReq::fill_content_type()
 {
     std::string content_type_str = header("Content-Type");
-    content_type = ContentType::to_enum(content_type_str);
+    content_type_ = ContentType::to_enum(content_type_str);
 
-    if (content_type == MULTIPART_FORM_DATA)
+    if (content_type_ == MULTIPART_FORM_DATA)
     {
         // if type is multipart form, we reserve the boudary first
         const char *boundary = strstr(content_type_str.c_str(), "boundary=");
@@ -113,31 +119,11 @@ void HttpReq::fill_content_type()
     }
 }
 
-FormData *HttpReq::post_form(const std::string &key)
-{
-    if (form.find(key) != form.end()) return &form[key];
-    else return nullptr;
-}
-
-std::vector<FormData *> HttpReq::post_files()
-{
-    std::vector<FormData *> res;
-    for (auto &part: form)
-    {
-        if (part.second.is_file())
-        {
-            res.push_back(&part.second);
-        }
-    }
-    return res;
-}
-
-std::string HttpReq::ungzip()
-{
-    std::string body = this->body();
-    return Compressor::ungzip(body.c_str(), body.size());
-}
-
+// std::string HttpReq::ungzip()
+// {
+//     std::string body = this->body();
+//     return Compressor::ungzip(body.c_str(), body.size());
+// }
 
 void HttpResp::String(const std::string &str)
 {

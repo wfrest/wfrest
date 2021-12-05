@@ -13,8 +13,9 @@ public:
     using ServerCallBack = std::function<void(HttpTask *)>;
 
     using WFServerTask::Series;
+
     // todo : if we remove & here, leads to coredump
-    HttpServerTask(CommService *service, ProcFunc& process);
+    HttpServerTask(CommService *service, ProcFunc &process);
 
     void add_callback(const ServerCallBack &cb)
     { cb_list_.push_back(cb); }
@@ -33,18 +34,22 @@ protected:
 
     CommMessageOut *message_out() override;
 
+
 private:
     // for hidning set_callback
-    void set_callback() {}
+    void set_callback()
+    {}
 
     size_t resp_offset() const
     {
         return (const char *) (&this->resp) - (const char *) this;
     }
+
     // Just be convinient for get_resp_offset
-    HttpServerTask(std::function<void (HttpTask *)> proc):
-        WFServerTask(nullptr, nullptr, proc)
+    HttpServerTask(std::function<void(HttpTask *)> proc) :
+            WFServerTask(nullptr, nullptr, proc)
     {}
+
 private:
     bool req_is_alive_;
     bool req_has_keep_alive_header_;

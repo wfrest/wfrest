@@ -49,7 +49,6 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     HttpReq *req = server_task->get_req();
     HttpResp *resp = server_task->get_resp();
 
-    fprintf(stderr, "2222");
     // skip the last / of the url.
     // /hello ==  /hello/
     StringPiece route2(route);
@@ -75,7 +74,6 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
 
             if (it->second.compute_queue_id == -1)
             {
-                    fprintf(stderr, "3333");
                 if (it->second.handler)
                     it->second.handler(req, resp);
                 else
@@ -91,12 +89,12 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
         } else
         {
             resp->set_status(HttpStatusNotFound);
-            fprintf(stderr, "verb %s not implemented on route %s\n", verb.c_str(), route2.data());
+            LOG_ERROR << verb << " not implemented on route " << route2;
         }
     } else
     {
         resp->set_status(HttpStatusNotFound);
-        fprintf(stderr, "Route dose not exist\n");
+        LOG_ERROR << "Route dose not exist";
     }
 }
 
@@ -109,7 +107,7 @@ Verb Router::str_to_verb(const std::string &verb)
     if (strcasecmp(verb.c_str(), "POST") == 0)
         return Verb::POST;
     if (strcasecmp(verb.c_str(), "HTTP_DELETE") == 0)
-        return Verb::HTTP_DELETE;
+        return Verb::DELETE;
     return Verb::ANY;
 }
 
@@ -143,7 +141,7 @@ const char *Router::verb_to_str(const Verb &verb)
             return "POST";
         case Verb::PUT:
             return "PUT";
-        case Verb::HTTP_DELETE:
+        case Verb::DELETE:
             return "DELETE";
         default:
             return "[UNKNOWN]";

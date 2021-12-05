@@ -18,8 +18,8 @@
 namespace wfrest
 {
 
-using RouteParams = std::unordered_map<std::string, std::string>;
-using QueryParams = std::unordered_map<std::string, std::string>;
+using RouteParams = std::map<std::string, std::string>;
+using QueryParams = std::map<std::string, std::string>;
 
 class HttpReq;
 
@@ -27,86 +27,81 @@ class HttpResp;
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 using Json = nlohmann::json;
+struct Body;
 
 class HttpReq : public protocol::HttpRequest
 {
 public:
-    ~HttpReq();
+    std::string &body();
 
-    std::string body() const;
+    // post content
+    std::map<std::string, std::string> &form_kv();
 
-    // body -> structured content
-    void parse_body();
+    Form &form();
+
+    Json &json();
 
     // header map
     void set_header_map(protocol::HttpHeaderMap *header)
     { header_ = header; }
 
-    std::string header(const std::string &key)
+    std::string header(const std::string &key) const
     { return header_->get(key); }
 
-    bool has_header(const std::string &key)
+    bool has_header(const std::string &key) const
     { return header_->key_exists(key); }
 
     // /{name}/{id} parans in route
     void set_route_params(RouteParams &&params)
     { route_params_ = std::move(params); }
 
-    std::string param(const std::string &key)
+    const std::string &param(const std::string &key)
     { return route_params_[key]; };
 
     // handler define path
-    std::string full_path() const
+    const std::string &full_path() const
     { return route_full_path_; }
 
     void set_full_path(const std::string &route_full_path)
     { route_full_path_ = route_full_path; }
 
-    // parser uri
-    void set_parsed_uri(ParsedURI &&parsed_uri)
-    { parsed_uri_ = std::move(parsed_uri); }
-
     // url query params
     void set_query_params(QueryParams &&query_params)
     { query_params_ = std::move(query_params); }
 
-    std::string query(const std::string &key)
+    const std::string &query(const std::string &key)
     { return query_params_[key]; }
 
-    std::string default_query(const std::string &key, const std::string &default_val);
+    const std::string &default_query(const std::string &key, const std::string &default_val);
 
     template<typename T>
     T param(const std::string &key) const;
 
-    QueryParams query_list() const
+    const QueryParams &query_list() const
     { return query_params_; }
 
     bool has_query(const std::string &key);
 
-    // multipart/form
-    FormData *post_form(const std::string &key);
-
-    std::vector<FormData *> post_files();
-
     // decompress
-    std::string ungzip();
+    // std::string ungzip();
 
-private:
     void fill_content_type();
 
-public:
-    Urlencode::KV kv;
-    MultiPartForm::MultiPart form;
-    Json *json;
-    http_content_type content_type;
+    http_content_type content_type() const
+    { return content_type_; }
+
+    HttpReq();
+
+    ~HttpReq();
+
 private:
+    http_content_type content_type_;
+    Body *body_;
     RouteParams route_params_;
     std::string route_full_path_;
-    ParsedURI parsed_uri_;
-    StringPiece body_;
     QueryParams query_params_;
     MultiPartForm multi_part_;
-    protocol::HttpHeaderMap *header_{};
+    protocol::HttpHeaderMap *header_;
 };
 
 template<>
@@ -144,6 +139,8 @@ public:
 
     void String(std::string &&str);
 
+    // select compression method to send string. 
+    // we support GZIP, BROTLI
     void String(const std::string &str, Compress compress);
 
     // file
@@ -153,6 +150,7 @@ public:
 
     void File(const std::string &path, size_t start, size_t end);
 
+    // send multiple files in multipart/form-data format
     void File(const std::vector<std::string> &path_list);
 
     // save file
@@ -171,7 +169,7 @@ public:
     { fprintf(stderr, "resp test : %s\n", get_status_code()); }
 
 public:
-    std::unordered_map<std::string, std::string> headers;
+    std::map<std::string, std::string> headers;
 };
 
 

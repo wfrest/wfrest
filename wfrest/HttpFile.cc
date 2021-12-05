@@ -53,7 +53,7 @@ std::string build_multi_part_first(const std::string &file_name, int idx)
     str.reserve(256);  // reserve space avoid copy
     // todo : how to generate name ?
     str.append("--");
-    str.append(MultiPartForm::default_boundary);
+    str.append(MultiPartForm::k_default_boundary);
     str.append("\r\n");
     str.append("Content-Disposition: form-data; name=");
     str.append("\"file");
@@ -83,7 +83,7 @@ std::string build_multi_part_last()
     multi_part_last.reserve(128);
     multi_part_last.append("--");
     // RFC1521 says that a boundary "must be no longer than 70 characters, not counting the two leading hyphens".
-    multi_part_last.append(MultiPartForm::default_boundary);
+    multi_part_last.append(MultiPartForm::k_default_boundary);
     multi_part_last.append("--");
     return multi_part_last;
 }

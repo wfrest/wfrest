@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list \
     && apt-get update \
-    && apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev zlib1g-dev \
+    && apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev zlib1g-dev libbrotli-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && git clone https://github.com/sogou/workflow.git \ 
     && cd workflow && make -j && make install \

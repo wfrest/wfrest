@@ -12,7 +12,7 @@ using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
 
 enum class Verb
 {
-    ANY, GET, POST, PUT, HTTP_DELETE
+    ANY, GET, POST, PUT, DELETE
 };
 
 struct VerbHandler

@@ -3,9 +3,9 @@
 
 using namespace wfrest;
 
-std::unordered_map<std::string, std::string> UriUtil::split_query(const StringPiece &query)
+std::map<std::string, std::string> UriUtil::split_query(const StringPiece &query)
 {
-    std::unordered_map<std::string, std::string> res;
+    std::map<std::string, std::string> res;
 
     if (query.empty())
         return res;

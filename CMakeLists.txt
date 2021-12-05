@@ -41,6 +41,8 @@ if (Brotli_FOUND)
     message(STATUS "Brotli found")
     add_definitions(-DUSE_BROTLI)
     target_link_libraries(${PROJECT_NAME} PRIVATE Brotli_lib)
+else()
+    message(STATUS "Brotli Not found")
 endif (Brotli_FOUND)
 
 find_package(workflow QUIET)

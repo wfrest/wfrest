@@ -20,7 +20,7 @@ int main()
     // The request responds to a url matching:  /query_list?username=chanchann&password=yyy
     svr.GET("/query_list", [](HttpReq *req, HttpResp *resp)
     {
-        std::unordered_map<std::string, std::string> query_list = req->query_list();
+        const std::map<std::string, std::string>& query_list = req->query_list();
         for (auto &query: query_list)
         {
             fprintf(stderr, "%s : %s\n", query.first.c_str(), query.second.c_str());

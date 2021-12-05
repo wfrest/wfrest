@@ -24,55 +24,67 @@ int main()
     // Then you find the file is store in the parent dir, which is dangerous
     svr.POST("/upload", [](HttpReq *req, HttpResp *resp)
     {
-        std::vector<FormData *> files = req->post_files();
-        if (files.empty())
+        Form &form = req->form();
+
+        if (form.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            FormData *file = files[0];
-            // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
-            // The filename is always optional and must not be used blindly by the application:
-            // path information should be stripped, and conversion to the server file system rules should be done.
-            fprintf(stderr, "filename : %s\n", file->filename.c_str());
-            resp->Save(file->filename, std::move(file->content));
+            for(auto& part : form)
+            {
+                const std::string& name = part.first;
+                // filename : filecontent
+                std::pair<std::string, std::string>& fileinfo = part.second;
+                // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
+                // The filename is always optional and must not be used blindly by the application:
+                // path information should be stripped, and conversion to the server file system rules should be done.
+                if(fileinfo.first.empty())
+                {
+                    continue;
+                }
+                fprintf(stderr, "filename : %s\n", fileinfo.first.c_str());
+
+                resp->Save(fileinfo.first, std::move(fileinfo.second));
+            }
         }
     });
 
     // Here is the right way:
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
-    svr.POST("/upload_fix", [](HttpReq *req, HttpResp *resp)
-    {
-        std::vector<FormData *> files = req->post_files();
-        if (files.empty())
-        {
-            resp->set_status(HttpStatusBadRequest);
-        } else
-        {
-            FormData *file = files[0];
-            // simple solution to fix the problem above
-            // This will restrict the upload file to current directory.
-            resp->Save(PathUtil::base(file->filename), std::move(file->content));
-        }
-    });
 
-    // upload multiple files
+    // And you can test for upload multiple files
     // curl -X POST http://ip:port/upload_multiple \
     // -F "file1=@file1" \
     // -F "file2=@file2" \
     // -H "Content-Type: multipart/form-data"
-    svr.POST("/upload_multiple", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload_fix", [](HttpReq *req, HttpResp *resp)
     {
-        std::vector<FormData *> files = req->post_files();
-        if (files.empty())
+        Form &form = req->form();
+
+        if (form.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            for (auto &file: files)
+            for(auto& part : form)
             {
-                resp->Save(PathUtil::base(file->filename), std::move(file->content));
+                const std::string& name = part.first;
+                // filename : filecontent
+                std::pair<std::string, std::string>& fileinfo = part.second;
+                // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
+                // The filename is always optional and must not be used blindly by the application:
+                // path information should be stripped, and conversion to the server file system rules should be done.
+                if(fileinfo.first.empty())
+                {
+                    continue;
+                }
+                fprintf(stderr, "filename : %s\n", fileinfo.first.c_str());
+                // simple solution to fix the problem above
+                // This will restrict the upload file to current directory.
+                resp->Save(PathUtil::base(fileinfo.first), std::move(fileinfo.second));
             }
         }
     });

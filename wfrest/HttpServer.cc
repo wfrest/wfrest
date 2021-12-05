@@ -54,9 +54,7 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
-    fprintf(stderr, "1111");
-    req->parse_body();
-    req->set_parsed_uri(std::move(uri));
+    req->fill_content_type();
 
     router_.call(req->get_method(), route, server_task);
 }

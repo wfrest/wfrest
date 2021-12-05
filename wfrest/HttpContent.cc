@@ -6,17 +6,19 @@
 
 using namespace wfrest;
 
-const std::string MultiPartForm::default_boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+const std::string MultiPartForm::k_default_boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
 
-void Urlencode::parse_query_params(const StringPiece &body, Urlencode::KV &res)
+std::map<std::string, std::string> Urlencode::parse_post_kv(const StringPiece &body)
 {
+    std::map<std::string, std::string> map;
+
     if (body.empty())
-        return;
+        return map;
 
     std::vector<StringPiece> arr = StrUtil::split_piece<StringPiece>(body, '&');
 
     if (arr.empty())
-        return;
+        return map;
 
     for (const auto &ele: arr)
     {
@@ -27,22 +29,23 @@ void Urlencode::parse_query_params(const StringPiece &body, Urlencode::KV &res)
         size_t kv_size = kv.size();
         std::string &key = kv[0];
 
-        if (key.empty() || res.count(key) > 0)
+        if (key.empty() || map.count(key) > 0)
             continue;
 
         if (kv_size == 1)
         {
-            res.emplace(std::move(key), "");
+            map.emplace(std::move(key), "");
             continue;
         }
 
         std::string &val = kv[1];
 
         if (val.empty())
-            res.emplace(std::move(key), "");
+            map.emplace(std::move(key), "");
         else
-            res.emplace(std::move(key), std::move(val));
+            map.emplace(std::move(key), std::move(val));
     }
+    return map;
 }
 
 enum multipart_parser_state_e
@@ -59,7 +62,7 @@ enum multipart_parser_state_e
 
 struct multipart_parser_userdata
 {
-    MultiPartForm::MultiPart *mp;
+    Form *mp;
     multipart_parser_state_e state;
     std::string header_field;
     std::string header_value;
@@ -110,9 +113,9 @@ void multipart_parser_userdata::handle_data()
 {
     if (!name.empty())
     {
-        FormData formdata;
-        formdata.content = part_data;
-        formdata.filename = filename;
+        std::pair<std::string, std::string> formdata;
+        formdata.first = filename;
+        formdata.second = part_data;
         (*mp)[name] = formdata;
     }
     name.clear();
@@ -188,8 +191,9 @@ int MultiPartForm::body_end_cb(multipart_parser *parser)
     return 0;
 }
 
-int MultiPartForm::parse_multipart(const StringPiece &body, OUT MultiPartForm::MultiPart &form)
+Form MultiPartForm::parse_multipart(const StringPiece &body)
 {
+    Form form;
     std::string boundary = "--" + boundary_;
     multipart_parser *parser = multipart_parser_init(boundary.c_str(), &settings_);
     multipart_parser_userdata userdata;
@@ -198,5 +202,5 @@ int MultiPartForm::parse_multipart(const StringPiece &body, OUT MultiPartForm::M
     multipart_parser_set_data(parser, &userdata);
     size_t num_parse = multipart_parser_execute(parser, body.data(), body.size());
     multipart_parser_free(parser);
-    return num_parse == body.size() ? 0 : -1;
+    return form;
 }

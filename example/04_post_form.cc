@@ -18,15 +18,17 @@ int main()
     HttpServer svr;
 
     // Urlencoded Form
-    // curl -v http://ip:port/post -H "content-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
-    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
+    // curl -v http://ip:port/post \
+    // -H "content-type:application/x-www-form-urlencoded" \
+    // -d 'user=admin&pswd=123456'
+    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
     {
-        if (req->content_type != APPLICATION_URLENCODED)
+        if (req->content_type() != APPLICATION_URLENCODED)
         {
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        const std::unordered_map<std::string, std::string> &form_kv = req->kv;
+        std::map<std::string, std::string> &form_kv = req->form_kv();
         for (auto &kv: form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
@@ -36,27 +38,27 @@ int main()
     // curl -X POST http://ip:port/form \
     // -F "file=@/path/file" \
     // -H "Content-Type: multipart/form-data"
-    svr.POST("/form", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/form", [](HttpReq *req, HttpResp *resp)
     {
-        if (req->content_type != MULTIPART_FORM_DATA)
+        if (req->content_type() != MULTIPART_FORM_DATA)
         {
             resp->set_status(HttpStatusBadRequest);
             return;
         }
         /*
-            struct FormData
-            {
-                std::string filename;
-                std::string content;
-            };
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+            // <name ,<filename, content>>
+            using Form = std::map<std::string, std::pair<std::string, std::string>>;
         */
-        const std::unordered_map<std::string, FormData> &form_kv = req->form;
+        const Form &form_kv = req->form();
         for (auto &it: form_kv)
         {
+            auto &name = it.first;
+            auto &file_info = it.second;
             fprintf(stderr, "%s : %s = %s",
-                    it.first.c_str(),
-                    it.second.content.c_str(),
-                    it.second.filename.c_str());
+                    name.c_str(),
+                    file_info.first.c_str(),
+                    file_info.second.c_str());
         }
     });
 
@@ -71,3 +73,11 @@ int main()
     }
     return 0;
 }
+
+// const std::map<std::string, std::string> &form_kv = req->form_kv();
+
+// using std::map<std::string, std::pair<std::string, std::string>> Form;
+
+// const Form &form_data = req->form();
+
+// const Json &json = req->json();

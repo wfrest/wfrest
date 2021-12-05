@@ -54,14 +54,14 @@ int main()
     //   curl -X POST http://ip:port/json4
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/json4", [](HttpReq *req, HttpResp *resp)
     {
-        if (req->content_type != APPLICATION_JSON)
+        if (req->content_type() != APPLICATION_JSON)
         {
             resp->String("NOT APPLICATION_JSON");
             return;
         }
-        fprintf(stderr, "Json : %s", req->json->dump(4).c_str());
+        fprintf(stderr, "Json : %s", req->json().dump(4).c_str());
     });
 
     if (svr.start(8888) == 0)

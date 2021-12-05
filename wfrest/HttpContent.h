@@ -2,7 +2,7 @@
 #define WFREST_HTTPCONTENT_H_
 
 #include <string>
-#include <unordered_map>
+#include <map>
 #include "wfrest/MultiPartParser.h"
 #include "wfrest/Macro.h"
 
@@ -10,33 +10,33 @@ namespace wfrest
 {
 
 class StringPiece;
+
 class Urlencode
 {
 public:
-    using KV = std::unordered_map<std::string, std::string>;
-
-    static void parse_query_params(const StringPiece &body, OUT KV &res);
-
+    static std::map<std::string, std::string> parse_post_kv(const StringPiece &body);
 };
 
-struct FormData
-{
-    std::string filename;
-    std::string content;
+// struct FormData
+// {
+//     std::string filename;
+//     std::string content;
 
-    bool is_file() const
-    { return !filename.empty(); }
-};
+//     bool is_file() const
+//     { return !filename.empty(); }
+// };
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+// <name ,<filename, content>>
+using Form = std::map<std::string, std::pair<std::string, std::string>>;
 
 // Modified From libhv
 class MultiPartForm
 {
 public:
-    using MultiPart = std::unordered_map<std::string, FormData>;
-
     MultiPartForm();
 
-    int parse_multipart(const StringPiece &body, OUT MultiPart &form);
+    Form parse_multipart(const StringPiece &body);
 
     void set_boundary(std::string &&boundary)
     { boundary_ = std::move(boundary); }
@@ -45,7 +45,7 @@ public:
     { boundary_ = boundary; }
 
 public:
-    static const std::string default_boundary;
+    static const std::string k_default_boundary;
 private:
     static int header_field_cb(multipart_parser *parser, const char *buf, size_t len);
 
@@ -62,10 +62,10 @@ private:
     static int body_end_cb(multipart_parser *parser);
 
 private:
-    multipart_parser *parser_{};
+    multipart_parser *parser_;
     std::string boundary_;
 
-    multipart_parser_settings settings_{};
+    multipart_parser_settings settings_;
 };
 
 
