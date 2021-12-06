@@ -22,7 +22,7 @@ int main()
     // An expriment (Upload a file to parent dir is really dangerous.):
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     // Then you find the file is store in the parent dir, which is dangerous
-    svr.POST("/upload", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload", [](const HttpReq *req, HttpResp *resp)
     {
         Form &form = req->form();
 
@@ -59,7 +59,7 @@ int main()
     // -F "file1=@file1" \
     // -F "file2=@file2" \
     // -H "Content-Type: multipart/form-data"
-    svr.POST("/upload_fix", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload_fix", [](const HttpReq *req, HttpResp *resp)
     {
         Form &form = req->form();
 

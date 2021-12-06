@@ -52,7 +52,7 @@ int main()
     // This handler will add a new router for /user/groups.
     // Exact routes are resolved before param routes, regardless of the order they were defined.
     // Routes starting with /user/groups are never interpreted as /user/{name}/... routes
-    svr.GET("/user/groups", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/groups", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String(req->full_path());
     });

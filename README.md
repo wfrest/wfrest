@@ -440,7 +440,7 @@ int main()
     // Upload a file to parent dir is really dangerous.:
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     // Then you find the file is store in the parent dir, which is dangerous
-    svr.POST("/upload", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/upload", [](const HttpReq *req, HttpResp *resp)
     {
         Form &form = req->form();
 
@@ -529,7 +529,7 @@ int main()
     //   curl -X POST http://ip:port/json4
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.POST("/json4", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != APPLICATION_JSON)
         {
@@ -582,7 +582,7 @@ int main()
     // Second parameter means this computing queue id is 1
     // Then this handler become a computing task
     // curl -v http://ip:port/compute_task?num=20
-    svr.GET("/compute_task", 1, [](HttpReq *req, HttpResp *resp)
+    svr.GET("/compute_task", 1, [](const HttpReq *req, HttpResp *resp)
     {
         int num = std::stoi(req->query("num"));
         Fibonacci(num, resp);
