@@ -18,7 +18,7 @@ int main()
     HttpServer svr;
 
     // The request responds to a url matching:  /query_list?username=chanchann&password=yyy
-    svr.GET("/query_list", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query_list", [](const HttpReq *req, HttpResp *resp)
     {
         const std::map<std::string, std::string>& query_list = req->query_list();
         for (auto &query: query_list)
@@ -28,7 +28,7 @@ int main()
     });
 
     // The request responds to a url matching:  /query?username=chanchann&password=yyy
-    svr.GET("/query", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
     {
         std::string user_name = req->query("username");
         std::string password = req->query("password");
@@ -40,7 +40,7 @@ int main()
     // The request responds to a url matching:  /query_has?username=chanchann&password=
     // The logic for judging whether a parameter exists is that if the parameter value is empty, the parameter is considered to exist
     // and the parameter does not exist unless the parameter is submitted.
-    svr.GET("/query_has", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query_has", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->has_query("password"))
         {

@@ -54,7 +54,7 @@ int main()
     //   curl -X POST http://ip:port/json4
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.POST("/json4", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != APPLICATION_JSON)
         {

@@ -21,7 +21,7 @@ int main()
     // curl -v http://ip:port/post \
     // -H "body-type:application/x-www-form-urlencoded" \
     // -d 'user=admin&pswd=123456'
-    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != APPLICATION_URLENCODED)
         {
@@ -38,7 +38,7 @@ int main()
     // curl -X POST http://ip:port/form \
     // -F "file=@/path/file" \
     // -H "Content-Type: multipart/form-data"
-    svr.POST("/form", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/form", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != MULTIPART_FORM_DATA)
         {
@@ -73,11 +73,3 @@ int main()
     }
     return 0;
 }
-
-// const std::map<std::string, std::string> &form_kv = req->form_kv();
-
-// using std::map<std::string, std::pair<std::string, std::string>> Form;
-
-// const Form &form_data = req->form();
-
-// const Json &json = req->json();

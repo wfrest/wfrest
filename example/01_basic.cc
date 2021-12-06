@@ -30,7 +30,7 @@ int main()
     });
 
     // curl -v http://ip:port/post -d 'post hello world'
-    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         // reference, no copy here
         std::string& body = req->body();

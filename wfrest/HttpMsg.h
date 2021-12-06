@@ -50,17 +50,15 @@ public:
     bool has_header(const std::string &key) const
     { return header_->key_exists(key); }
 
-    const std::string &param(const std::string &key)
-    { return route_params_[key]; };
+    std::string param(const std::string &key) const;
 
     // handler define path
     const std::string &full_path() const
     { return route_full_path_; }
 
-    const std::string &query(const std::string &key)
-    { return query_params_[key]; }
+    std::string query(const std::string &key) const;
 
-    const std::string &default_query(const std::string &key, const std::string &default_val);
+    const std::string &default_query(const std::string &key, const std::string &default_val) const;
 
     template<typename T>
     T param(const std::string &key) const;

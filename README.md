@@ -20,8 +20,8 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Save File](#save-file)
       - [Upload Files](#upload-files)
       - [Json](#json)
-      - [Computing task](#computing-task)
-      - [ServerSeries Interface](#series-interface)
+      - [Computing Handler](#computing-handler)
+      - [Series Handler](#series-handler)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -82,13 +82,14 @@ int main()
     // curl -v http://ip:port/post -d 'post hello world'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->body();
+        // reference, no copy here
+        std::string& body = req->body();
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -113,7 +114,7 @@ int main()
 
     // This handler will match /user/chanchan but will not match /user/ or /user
     // curl -v "ip:port/user/chanchan/"
-    svr.GET("/user/{name}", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/{name}", [](const HttpReq *req, HttpResp *resp)
     {
         std::string name = req->param("name");
         // resp->set_status(HttpStatusOK); // automatically
@@ -121,7 +122,7 @@ int main()
     });
 
     // wildcast/chanchan/action... (prefix)
-    svr.GET("/wildcast/{name}/action*", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/wildcast/{name}/action*", [](const HttpReq *req, HttpResp *resp)
     {
         std::string name = req->param("name");
         std::string message = name + " : path " + req->get_request_uri();
@@ -130,7 +131,7 @@ int main()
     });
 
     // request will hold the route definition
-    svr.GET("/user/{name}/match*", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
         std::string full_path = req->full_path();
         if (full_path == "/user/{name}/match*")
@@ -146,14 +147,14 @@ int main()
     // This handler will add a new router for /user/groups.
     // Exact routes are resolved before param routes, regardless of the order they were defined.
     // Routes starting with /user/groups are never interpreted as /user/{name}/... routes
-    svr.GET("/user/groups", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/groups", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String(req->full_path());
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -175,17 +176,17 @@ int main()
     HttpServer svr;
 
     // The request responds to a url matching:  /query_list?username=chanchann&password=yyy
-    svr.GET("/query_list", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query_list", [](const HttpReq *req, HttpResp *resp)
     {
-        std::unordered_map<std::string, std::string> query_list = req->query_list();
-        for(auto& query : query_list)
+        const std::map<std::string, std::string>& query_list = req->query_list();
+        for (auto &query: query_list)
         {
             fprintf(stderr, "%s : %s\n", query.first.c_str(), query.second.c_str());
         }
     });
 
     // The request responds to a url matching:  /query?username=chanchann&password=yyy
-    svr.GET("/query", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
     {
         std::string user_name = req->query("username");
         std::string password = req->query("password");
@@ -197,13 +198,13 @@ int main()
     // The request responds to a url matching:  /query_has?username=chanchann&password=
     // The logic for judging whether a parameter exists is that if the parameter value is empty, the parameter is considered to exist
     // and the parameter does not exist unless the parameter is submitted.
-    svr.GET("/query_has", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/query_has", [](const HttpReq *req, HttpResp *resp)
     {
-        if(req->has_query("password"))
+        if (req->has_query("password"))
         {
             fprintf(stderr, "has password query\n");
         }
-        if(req->has_query("info"))
+        if (req->has_query("info"))
         {
             fprintf(stderr, "has info query\n");
         }
@@ -211,7 +212,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -233,16 +234,18 @@ int main()
     HttpServer svr;
 
     // Urlencoded Form
-    // curl -v http://ip:port/post -H "body-type:application/x-www-form-urlencoded" -d 'user=admin&pswd=123456'
+    // curl -v http://ip:port/post \
+    // -H "body-type:application/x-www-form-urlencoded" \
+    // -d 'user=admin&pswd=123456'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        if(req->content_type != APPLICATION_URLENCODED)
+        if (req->content_type() != APPLICATION_URLENCODED)
         {
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        auto& form_kv = req->kv;
-        for(auto& kv : form_kv)
+        std::map<std::string, std::string> &form_kv = req->form_kv();
+        for (auto &kv: form_kv)
         {
             fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
         }
@@ -253,25 +256,31 @@ int main()
     // -H "Content-Type: multipart/form-data"
     svr.POST("/form", [](const HttpReq *req, HttpResp *resp)
     {
-        if(req->content_type != MULTIPART_FORM_DATA)
+        if (req->content_type() != MULTIPART_FORM_DATA)
         {
             resp->set_status(HttpStatusBadRequest);
             return;
         }
-        fprintf(stderr, "123\n");
-        auto& form_kv = req->form;
-        for(auto & it : form_kv)
+        /*
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+            // <name ,<filename, body>>
+            using Form = std::map<std::string, std::pair<std::string, std::string>>;
+        */
+        const Form &form_kv = req->form();
+        for (auto &it: form_kv)
         {
+            auto &name = it.first;
+            auto &file_info = it.second;
             fprintf(stderr, "%s : %s = %s",
-                                it.first.c_str(),
-                                it.second.body.c_str(),
-                                it.second.filename.c_str());
+                    name.c_str(),
+                    file_info.first.c_str(),
+                    file_info.second.c_str());
         }
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -292,11 +301,11 @@ int main()
 {
     HttpServer svr;
 
-    svr.POST("/post", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         std::string host = req->header("Host");
         std::string content_type = req->header("Content-Type");
-        if(req->has_header("User-Agent"))
+        if (req->has_header("User-Agent"))
         {
             fprintf(stderr, "Has User-Agent...");
         }
@@ -306,7 +315,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -368,7 +377,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -392,20 +401,20 @@ int main()
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
     svr.POST("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = req->body();   // multipart/form - body has boundary
+        std::string& body = req->body();   // multipart/form - body has boundary
         resp->Save("test.txt", std::move(body));
     });
 
     svr.GET("/file_write2", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string body = "1234567890987654321";
+        std::string content = "1234567890987654321";
 
-        resp->Save("test1.txt", std::move(body));
+        resp->Save("test1.txt", std::move(content));
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -419,7 +428,6 @@ int main()
 ### Upload Files 
 
 ```cpp
-
 #include "wfrest/HttpServer.h"
 #include "wfrest/PathUtil.h"
 using namespace wfrest;
@@ -429,67 +437,41 @@ int main()
     HttpServer svr;
     svr.mount("/static");
 
-    // An expriment (Upload a file to parent dir is really dangerous.):
+    // Upload a file to parent dir is really dangerous.:
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
     // Then you find the file is store in the parent dir, which is dangerous
     svr.POST("/upload", [](HttpReq *req, HttpResp *resp)
     {
-        std::vector<FormData *> files = req->post_files();
-        if(files.empty())
-        {
-            resp->set_status(HttpStatusBadRequest);
-        } else
-        {
-            auto *file = files[0];
-            // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
-            // The filename is always optional and must not be used blindly by the application:
-            // path information should be stripped, and conversion to the server file system rules should be done.
-            fprintf(stderr, "filename : %s\n", file->filename.c_str());
-            resp->Save(file->filename, std::move(file->body));
-        }
-    });
+        Form &form = req->form();
 
-    // Here is the right way:
-    // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
-    svr.POST("/upload_fix", [](HttpReq *req, HttpResp *resp)
-    {
-        std::vector<FormData *> files = req->post_files();
-        if(files.empty())
+        if (form.empty())
         {
             resp->set_status(HttpStatusBadRequest);
         } else
         {
-            auto *file = files[0];
-            // simple solution to fix the problem above
-            // This will restrict the upload file to current directory.
-            resp->Save(PathUtil::base(file->filename), std::move(file->body));
-        }
-    });
-
-    // upload multiple files
-    // curl -X POST http://ip:port/upload_multiple \
-    // -F "file1=@file1" \
-    // -F "file2=@file2" \
-    // -H "Content-Type: multipart/form-data"
-    svr.POST("/upload_multiple", [](HttpReq *req, HttpResp *resp)
-    {
-        std::vector<FormData *> files = req->post_files();
-        if(files.empty())
-        {
-            resp->set_status(HttpStatusBadRequest);
-        } else
-        {
-            for(auto& file : files)
+            for(auto& part : form)
             {
-                resp->Save(PathUtil::base(file->filename), std::move(file->body));
+                const std::string& name = part.first;
+                // filename : filecontent
+                std::pair<std::string, std::string>& fileinfo = part.second;
+                // file->filename SHOULD NOT be trusted. See Content-Disposition on MDN
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#directives
+                // The filename is always optional and must not be used blindly by the application:
+                // path information should be stripped, and conversion to the server file system rules should be done.
+                if(fileinfo.first.empty())
+                {
+                    continue;
+                }
+                fprintf(stderr, "filename : %s\n", fileinfo.first.c_str());
+
+                resp->Save(PathUtil::base(fileinfo.first), std::move(fileinfo.second));
             }
         }
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -504,7 +486,9 @@ int main()
 
 ```cpp
 #include "wfrest/HttpServer.h"
+#include "wfrest/json.hpp"
 using namespace wfrest;
+using Json = nlohmann::json;
 
 int main()
 {
@@ -545,19 +529,19 @@ int main()
     //   curl -X POST http://ip:port/json4
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/json4", [](HttpReq *req, HttpResp *resp)
     {
-        if(req->content_type != APPLICATION_JSON)
+        if (req->content_type() != APPLICATION_JSON)
         {
             resp->String("NOT APPLICATION_JSON");
             return;
         }
-        fprintf(stderr, "Json : %s", req->json.dump(4).c_str());
+        fprintf(stderr, "Json : %s", req->json().dump(4).c_str());
     });
 
     if (svr.start(8888) == 0)
     {
-        getchar();
+        getchar()
         svr.stop();
     } else
     {
@@ -568,11 +552,11 @@ int main()
 }
 ```
 
-### Computing task
+### Computing Handler
 
 ```cpp
 #include "wfrest/HttpServer.h"
-using namespace wfrest;
+using namespace wfrest
 
 void Fibonacci(int n, HttpResp *resp)
 {
@@ -617,11 +601,11 @@ int main()
 }
 ```
 
-### ServerSeries Interface
+### Series Handler
 
 ```cpp
 #include "wfrest/HttpServer.h"
-using namespace wfrest;
+using namespace wfrest
 
 int main()
 {
@@ -653,7 +637,7 @@ int main()
 
 ```cpp
 #include "wfrest/Logger.h"
-using namespace wfrest;
+using namespace wfrest
 
 int main()
 {

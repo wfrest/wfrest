@@ -18,7 +18,7 @@ int main()
     HttpServer svr;
 
     // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
-    svr.POST("/file_write1", [](HttpReq *req, HttpResp *resp)
+    svr.POST("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
         std::string& body = req->body();   // multipart/form - body has boundary
         resp->Save("test.txt", std::move(body));

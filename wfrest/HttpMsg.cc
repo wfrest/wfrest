@@ -94,10 +94,26 @@ Json &HttpReq::json() const
     return req_data_->json;
 }
 
-const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val)
+std::string HttpReq::param(const std::string &key) const
+{
+    if(route_params_.count(key))
+        return route_params_.at(key);
+    else
+        return "";
+}
+
+std::string HttpReq::query(const std::string &key) const
+{
+    if(query_params_.count(key))
+        return query_params_.at(key);
+    else
+        return "";
+}
+
+const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val) const
 {
     if (query_params_.count(key))
-        return query_params_[key];
+        return query_params_.at(key);
     else
         return default_val;
 }

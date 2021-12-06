@@ -19,7 +19,7 @@ int main()
 
     // This handler will match /user/chanchan but will not match /user/ or /user
     // curl -v "ip:port/user/chanchan/"
-    svr.GET("/user/{name}", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/{name}", [](const HttpReq *req, HttpResp *resp)
     {
         std::string name = req->param("name");
         // resp->set_status(HttpStatusOK); // automatically
@@ -27,7 +27,7 @@ int main()
     });
 
     // wildcast/chanchan/action... (prefix)
-    svr.GET("/wildcast/{name}/action*", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/wildcast/{name}/action*", [](const HttpReq *req, HttpResp *resp)
     {
         std::string name = req->param("name");
         std::string message = name + " : path " + req->get_request_uri();
@@ -36,7 +36,7 @@ int main()
     });
 
     // request will hold the route definition
-    svr.GET("/user/{name}/match*", [](HttpReq *req, HttpResp *resp)
+    svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
         std::string full_path = req->full_path();
         if (full_path == "/user/{name}/match*")

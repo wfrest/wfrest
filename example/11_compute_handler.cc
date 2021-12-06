@@ -38,7 +38,7 @@ int main()
     // Second parameter means this computing queue id is 1
     // This handler is for computing
     // curl -v http://ip:port/compute_task?num=20
-    svr.GET("/compute_task", 1, [](HttpReq *req, HttpResp *resp)
+    svr.GET("/compute_task", 1, [](const HttpReq *req, HttpResp *resp)
     {
         int num = std::stoi(req->query("num"));
         Fibonacci(num, resp);
