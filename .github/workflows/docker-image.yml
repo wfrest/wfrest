@@ -32,4 +32,4 @@ jobs:
           file: ./docker/ubuntu/Dockerfile
           push: true
           tags: |
-            wfrest/wfrest # dockerhub username/image name
+            wfrest/wfrest 
