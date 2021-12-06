@@ -54,7 +54,7 @@ docker build -t wfrest .
 Or you can Pull from DockerHub 
 
 ```
-docker pull shiyuyi/wfrest
+docker pull wfrest/wfrest
 ```
 
 ## 🚀 Quick start

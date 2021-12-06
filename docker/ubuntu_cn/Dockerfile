@@ -11,6 +11,6 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list \
     && git clone https://github.com/sogou/workflow.git \ 
     && cd workflow && make -j && make install \
     && cd .. && rm -rf workflow \ 
-    && git clone https://github.com/chanchann/wfrest.git \
+    && git clone https://github.com/wfrest/wfrest.git \
     && cd wfrest && mkdir build && cd build \
     && cmake .. && make -j && make install 

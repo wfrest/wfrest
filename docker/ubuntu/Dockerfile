@@ -10,6 +10,6 @@ RUN apt-get update \
     && git clone https://github.com/sogou/workflow.git \ 
     && cd workflow && make -j && make install \
     && cd .. && rm -rf workflow \ 
-    && git clone https://github.com/chanchann/wfrest.git \
+    && git clone https://github.com/wfrest/wfrest.git \
     && cd wfrest && mkdir build && cd build \
     && cmake .. && make -j && make install 
