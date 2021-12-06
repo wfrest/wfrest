@@ -29,6 +29,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules/)
+
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -36,13 +38,13 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+
 find_package(Brotli QUIET)
 if (Brotli_FOUND)
     message(STATUS "Brotli found")
     add_definitions(-DUSE_BROTLI)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Brotli_lib)
 else()
-    message(STATUS "Brotli Not found")
+    MESSAGE("Brotli Not Found")  
 endif (Brotli_FOUND)
 
 find_package(workflow QUIET)
@@ -70,6 +72,7 @@ if (NOT workflow_FOUND)
 else()
     MESSAGE("-- Third Party workflow exist, not build")  
 endif()
+
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
