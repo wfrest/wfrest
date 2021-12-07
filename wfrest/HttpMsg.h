@@ -161,7 +161,7 @@ private:
     std::string compress(const std::string &str);
 
 public:
-    std::map<std::string, std::string> headers_;
+    std::map<std::string, std::string, MapStringCaseLess> headers_;
 };
 
 

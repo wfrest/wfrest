@@ -98,17 +98,19 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     }
 }
 
-Verb Router::str_to_verb(const std::string &verb)
+void Router::add_sub_router(std::string &&prefix, const Router& sub_router)
 {
-    if (strcasecmp(verb.c_str(), "GET") == 0)
-        return Verb::GET;
-    if (strcasecmp(verb.c_str(), "PUT") == 0)
-        return Verb::PUT;
-    if (strcasecmp(verb.c_str(), "POST") == 0)
-        return Verb::POST;
-    if (strcasecmp(verb.c_str(), "HTTP_DELETE") == 0)
-        return Verb::DELETE;
-    return Verb::ANY;
+    sub_router.routes_map_.all_routes([this, &prefix](const std::string& sub_prefix, VerbHandler verb_handler) {
+        if (!prefix.empty() && prefix.back() == '/')
+        {
+            prefix.pop_back();
+            verb_handler.path = prefix + sub_prefix;
+        }
+        else
+            verb_handler.path = prefix + sub_prefix;
+
+        this->routes_map_[verb_handler.path.c_str()] = verb_handler;
+    });
 }
 
 void Router::print_routes()
@@ -127,6 +129,19 @@ std::vector<std::pair<std::string, std::string> > Router::all_routes()
         res.push_back({verb_to_str(verb_handler.verb), prefix.c_str()});
     });
     return res;
+}
+
+Verb Router::str_to_verb(const std::string &verb)
+{
+    if (strcasecmp(verb.c_str(), "GET") == 0)
+        return Verb::GET;
+    if (strcasecmp(verb.c_str(), "PUT") == 0)
+        return Verb::PUT;
+    if (strcasecmp(verb.c_str(), "POST") == 0)
+        return Verb::POST;
+    if (strcasecmp(verb.c_str(), "DELETE") == 0)
+        return Verb::DELETE;
+    return Verb::ANY;
 }
 
 const char *Router::verb_to_str(const Verb &verb)
