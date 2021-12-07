@@ -21,7 +21,8 @@ int main()
     // curl -v "ip:port/user/chanchan/"
     svr.GET("/user/{name}", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string name = req->param("name");
+        // reference : no copy
+        const std::string& name = req->param("name");
         // resp->set_status(HttpStatusOK); // automatically
         resp->String("Hello " + name + "\n");
     });
@@ -29,7 +30,7 @@ int main()
     // wildcast/chanchan/action... (prefix)
     svr.GET("/wildcast/{name}/action*", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string name = req->param("name");
+        const std::string& name = req->param("name");
         std::string message = name + " : path " + req->get_request_uri();
 
         resp->String("Hello " + message + "\n");
@@ -38,15 +39,16 @@ int main()
     // request will hold the route definition
     svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string full_path = req->full_path();
+        const std::string& full_path = req->full_path();
+        std::string res;
         if (full_path == "/user/{name}/match*")
         {
-            full_path += " match";
+            res = full_path + " match";
         } else
         {
-            full_path += " dosen't match";
+            res = full_path + " dosen't match";
         }
-        resp->String(full_path);
+        resp->String(res);
     });
 
     // This handler will add a new router for /user/groups.

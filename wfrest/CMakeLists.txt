@@ -17,6 +17,7 @@ set(SRCS
         SysInfo.cc
         AsyncFileLogger.cc
         Compress.cc
+        base64.cc
         )
 
 add_library(wfrest ${SRCS})
@@ -37,6 +38,7 @@ set(HEADERS
         Logger.h
         StringPiece.h
         PathUtil.h
+        base64.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)

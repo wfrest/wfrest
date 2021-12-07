@@ -1,10 +1,10 @@
 #include "workflow/HttpUtil.h"
 
 #include <unistd.h>
+#include <algorithm>
 
 #include "wfrest/HttpMsg.h"
 #include "wfrest/UriUtil.h"
-#include "wfrest/StrUtil.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
@@ -26,6 +26,7 @@ struct ReqData
 } // namespace wfrest
 
 using namespace wfrest;
+
 
 HttpReq::HttpReq() : req_data_(new ReqData) {}
 
@@ -94,20 +95,20 @@ Json &HttpReq::json() const
     return req_data_->json;
 }
 
-std::string HttpReq::param(const std::string &key) const
+const std::string &HttpReq::param(const std::string &key) const
 {
     if(route_params_.count(key))
         return route_params_.at(key);
     else
-        return "";
+        return empty_string;
 }
 
-std::string HttpReq::query(const std::string &key) const
+const std::string &HttpReq::query(const std::string &key) const
 {
     if(query_params_.count(key))
         return query_params_.at(key);
     else
-        return "";
+        return empty_string;
 }
 
 const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val) const
@@ -150,11 +151,38 @@ void HttpReq::fill_content_type()
     }
 }
 
-// std::string HttpReq::ungzip()
-// {
-//     std::string body = this->body();
-//     return Compressor::ungzip(body.c_str(), body.size());
-// }
+const std::string &HttpReq::header(const std::string& key) const
+{
+    const auto it = headers_.find(key);
+
+    if (it == headers_.end() || it->second.empty())
+        return empty_string;
+
+    return it->second[0];
+}
+
+bool HttpReq::has_header(const std::string &key) const
+{
+    return headers_.count(key) > 0;
+}
+
+void HttpReq::fill_header_map()
+{
+    http_header_cursor_t cursor;
+    struct protocol::HttpMessageHeader header;
+
+    http_header_cursor_init(&cursor, this->get_parser());
+    while (http_header_cursor_next(&header.name, &header.name_len,
+                                   &header.value, &header.value_len,
+                                   &cursor) == 0)
+    {
+        std::string key(static_cast<const char *>(header.name), header.name_len);
+
+        headers_[key].emplace_back(static_cast<const char *>(header.value), header.value_len);
+    }
+
+    http_header_cursor_deinit(&cursor);
+}
 
 void HttpResp::String(const std::string &str)
 {

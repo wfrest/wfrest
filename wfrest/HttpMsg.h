@@ -3,7 +3,6 @@
 
 #include "workflow/HttpMessage.h"
 #include "workflow/WFTaskFactory.h"
-#include "workflow/HttpUtil.h"
 
 #include <fcntl.h>
 #include <unordered_map>
@@ -14,12 +13,14 @@
 #include "wfrest/HttpContent.h"
 #include "wfrest/Compress.h"
 #include "wfrest/json_fwd.hpp"
+#include "wfrest/StrUtil.h"
 
 namespace wfrest
 {
 
 using RouteParams = std::map<std::string, std::string>;
 using QueryParams = std::map<std::string, std::string>;
+using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
 
 class HttpReq;
 
@@ -44,35 +45,32 @@ public:
     http_content_type content_type() const
     { return content_type_; }
 
-    std::string header(const std::string &key) const
-    { return header_->get(key); }
+    const std::string &header(const std::string& key) const;
 
-    bool has_header(const std::string &key) const
-    { return header_->key_exists(key); }
+    bool has_header(const std::string& key) const;
 
-    std::string param(const std::string &key) const;
-
-    // handler define path
-    const std::string &full_path() const
-    { return route_full_path_; }
-
-    std::string query(const std::string &key) const;
-
-    const std::string &default_query(const std::string &key, const std::string &default_val) const;
+    const std::string &param(const std::string &key) const;
 
     template<typename T>
     T param(const std::string &key) const;
+
+    const std::string &query(const std::string &key) const;
+
+    const std::string &default_query(const std::string &key, const std::string &default_val) const;
 
     const QueryParams &query_list() const
     { return query_params_; }
 
     bool has_query(const std::string &key) const;
 
-    // setter
+    // handler define path
+    const std::string &full_path() const
+    { return route_full_path_; }
+
+public:
     void fill_content_type();
 
-    void set_header_map(protocol::HttpHeaderMap *header)
-    { header_ = header; }
+    void fill_header_map();
 
     // /{name}/{id} parans in route
     void set_route_params(RouteParams &&params)
@@ -96,7 +94,7 @@ private:
     std::string route_full_path_;
     QueryParams query_params_;
     MultiPartForm multi_part_;
-    protocol::HttpHeaderMap *header_;
+    HeaderMap headers_;
 };
 
 template<>

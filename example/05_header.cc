@@ -19,8 +19,8 @@ int main()
 
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string host = req->header("Host");
-        std::string content_type = req->header("Content-Type");
+        const std::string& host = req->header("Host");
+        const std::string& content_type = req->header("Content-Type");
         if (req->has_header("User-Agent"))
         {
             fprintf(stderr, "Has User-Agent...");

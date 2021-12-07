@@ -7,6 +7,9 @@
 
 namespace wfrest
 {
+
+static const std::string empty_string = "";
+
 class StrUtil : public StringUtil
 {
 public:
@@ -48,6 +51,14 @@ std::vector<OutputStringType> StrUtil::split_piece(const StringPiece &str, char 
     res.emplace_back(OutputStringType(cursor, str.end() - cursor));
     return res;
 }
+
+// std::map<std::string, std::string, MapStringCaseLess>
+class MapStringCaseLess {
+public:
+    bool operator()(const std::string& lhs, const std::string& rhs) const {
+        return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+    }
+};
 
 }  // namespace wfrest
 

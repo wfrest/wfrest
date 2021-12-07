@@ -116,7 +116,8 @@ int main()
     // curl -v "ip:port/user/chanchan/"
     svr.GET("/user/{name}", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string name = req->param("name");
+        // reference : no copy
+        const std::string& name = req->param("name");
         // resp->set_status(HttpStatusOK); // automatically
         resp->String("Hello " + name + "\n");
     });
@@ -124,7 +125,7 @@ int main()
     // wildcast/chanchan/action... (prefix)
     svr.GET("/wildcast/{name}/action*", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string name = req->param("name");
+        const std::string& name = req->param("name");
         std::string message = name + " : path " + req->get_request_uri();
 
         resp->String("Hello " + message + "\n");
@@ -133,15 +134,16 @@ int main()
     // request will hold the route definition
     svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string full_path = req->full_path();
+        const std::string& full_path = req->full_path();
+        std::string res;
         if (full_path == "/user/{name}/match*")
         {
-            full_path += " match";
+            res = full_path + " match";
         } else
         {
-            full_path += " dosen't match";
+            res = full_path + " dosen't match";
         }
-        resp->String(full_path);
+        resp->String(res);
     });
 
     // This handler will add a new router for /user/groups.
@@ -188,10 +190,10 @@ int main()
     // The request responds to a url matching:  /query?username=chanchann&password=yyy
     svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string user_name = req->query("username");
-        std::string password = req->query("password");
-        std::string info = req->query("info"); // no this field
-        std::string address = req->default_query("address", "china");
+        const std::string& user_name = req->query("username");
+        const std::string& password = req->query("password");
+        const std::string& info = req->query("info"); // no this field
+        const std::string& address = req->default_query("address", "china");
         resp->String(user_name + " " + password + " " + info + " " + address + "\n");
     });
 
@@ -303,8 +305,8 @@ int main()
 
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string host = req->header("Host");
-        std::string content_type = req->header("Content-Type");
+        const std::string& host = req->header("Host");
+        const std::string& content_type = req->header("Content-Type");
         if (req->has_header("User-Agent"))
         {
             fprintf(stderr, "Has User-Agent...");

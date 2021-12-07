@@ -14,7 +14,7 @@ public:
 
     using WFServerTask::Series;
 
-    // todo : if we remove & here, leads to coredump
+    // if we remove & here, leads to coredump
     HttpServerTask(CommService *service, ProcFunc &process);
 
     void add_callback(const ServerCallBack &cb)

@@ -18,12 +18,8 @@ void HttpServer::process(HttpTask *task)
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
 
-    auto *header_map_ptr = new protocol::HttpHeaderMap(req);
-    req->set_header_map(header_map_ptr);
-    server_task->add_callback([header_map_ptr](const HttpTask *)
-    {
-        delete header_map_ptr;
-    });
+    req->fill_content_type();
+    req->fill_header_map();
 
     std::string host = req->header("Host");
     
@@ -54,7 +50,6 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
-    req->fill_content_type();
 
     router_.call(req->get_method(), route, server_task);
 }

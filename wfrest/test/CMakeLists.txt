@@ -11,6 +11,3 @@ target_link_libraries(logger_test wfrest)
 
 add_executable(AsyncLogger_test AsyncLogger_test.cc)
 target_link_libraries(AsyncLogger_test wfrest)
-
-add_executable(Body_Size Body_Size.cc)
-target_link_libraries(Body_Size wfrest)

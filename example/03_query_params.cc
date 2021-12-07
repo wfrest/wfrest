@@ -30,10 +30,10 @@ int main()
     // The request responds to a url matching:  /query?username=chanchann&password=yyy
     svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string user_name = req->query("username");
-        std::string password = req->query("password");
-        std::string info = req->query("info"); // no this field
-        std::string address = req->default_query("address", "china");
+        const std::string& user_name = req->query("username");
+        const std::string& password = req->query("password");
+        const std::string& info = req->query("info"); // no this field
+        const std::string& address = req->default_query("address", "china");
         resp->String(user_name + " " + password + " " + info + " " + address + "\n");
     });
 
