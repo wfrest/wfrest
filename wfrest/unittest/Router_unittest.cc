@@ -91,7 +91,6 @@ TEST(Router, all_routes_06)
     EXPECT_EQ(route_list[0].second, "api/{name}");
 }
 
-
 TEST(Router, all_routes_07)
 {
     Router router;

@@ -17,6 +17,10 @@ int main()
 
     HttpServer svr;
     
+    // 1. You can `./13_compess_client` 
+    // 2. or use python script `python3 13_compress_client.py`
+    // 3. echo '{"testgzip": "gzip compress data"}' | gzip |  \
+    // curl -v -i --data-binary @- -H "Content-Encoding: gzip" http://ip:port/gzip
     svr.POST("/gzip", [](const HttpReq *req, HttpResp *resp)
     {
         // We automatically decompress the compressed data sent from the client

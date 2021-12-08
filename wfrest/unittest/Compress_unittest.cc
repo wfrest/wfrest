@@ -26,6 +26,8 @@ TEST(gzip, longText)
     EXPECT_EQ(str, decompress_str);
 }
 
+
+#ifdef USE_BROTLI
 TEST(brotli, shortText)
 {
     std::string str = "WFREST compress : Just for test....";
@@ -49,6 +51,7 @@ TEST(brotli, longText)
             = Compressor::unbrotli(compress_str.c_str(), compress_str.size());
     EXPECT_EQ(str, decompress_str);
 }
+#endif
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
