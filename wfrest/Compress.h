@@ -2,8 +2,8 @@
 // https://zlib.net/manual.html
 // https://github.com/google/brotli
 
-#ifndef WFREST_Compress_H_
-#define WFREST_Compress_H_
+#ifndef WFREST_COMPRESS_H_
+#define WFREST_COMPRESS_H_
 
 #include <string>
 #include <zlib.h>
@@ -38,4 +38,4 @@ public:
 
 }  // namespace wfrest
 
-#endif // WFREST_Compress_H_
+#endif // WFREST_COMPRESS_H_
