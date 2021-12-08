@@ -50,49 +50,48 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
-
-    router_.call(req->get_method(), route, server_task);
+    bp_.router().call(req->get_method(), route, server_task);
 }
 
 
 void HttpServer::GET(const char *route, const Handler &handler)
 {
-    router_.handle(route, -1, handler, nullptr, Verb::GET);
+    bp_.GET(route, handler);
 }
 
 void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
 {
-    router_.handle(route, -1, nullptr, series_handler, Verb::GET);
+    bp_.GET(route, series_handler);
 }
 
 void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
 {
-    router_.handle(route, compute_queue_id, handler, nullptr, Verb::GET);
+    bp_.GET(route, compute_queue_id, handler);
 }
 
 void HttpServer::GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
 {
-    router_.handle(route, compute_queue_id, nullptr, series_handler, Verb::GET);
+    bp_.GET(route, compute_queue_id, series_handler);
 }
 
 void HttpServer::POST(const char *route, const Handler &handler)
 {
-    router_.handle(route, -1, handler, nullptr, Verb::POST);
+    bp_.POST(route, handler);
 }
 
 void HttpServer::POST(const char *route, const SeriesHandler &series_handler)
 {
-    router_.handle(route, -1, nullptr, series_handler, Verb::POST);
+    bp_.POST(route, series_handler);
 }
 
 void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)
 {
-    router_.handle(route, compute_queue_id, handler, nullptr, Verb::POST);
+    bp_.POST(route, compute_queue_id, handler);
 }
 
 void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
 {
-    router_.handle(route, compute_queue_id, nullptr, series_handler, Verb::POST);
+    bp_.POST(route, compute_queue_id, series_handler);
 }
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
@@ -110,3 +109,12 @@ void HttpServer::mount(std::string &&path)
     HttpFile::mount(std::move(path));
 }
 
+void HttpServer::list_routes()
+{
+    bp_.router().print_routes();
+}
+
+void HttpServer::register_blueprint(const BluePrint& bp, const std::string& url_prefix)
+{
+    bp_.add_blueprint(bp, url_prefix);
+}

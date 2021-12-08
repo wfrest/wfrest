@@ -7,8 +7,7 @@
 #include <string>
 
 #include "wfrest/HttpMsg.h"
-#include "wfrest/Router.h"
-#include "wfrest/VerbHandler.h"
+#include "wfrest/BluePrint.h"
 
 namespace wfrest
 {
@@ -37,14 +36,12 @@ public:
 
     void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);
 
+public:
     void mount(std::string &&path);
 
-	int start(unsigned short port)
-	{
-        router_.print_routes();
-        LOG_INFO << "Listening and serving HTTP on : " << port;
-        return WFServerBase::start(port);
-	}
+    void list_routes();
+
+    void register_blueprint(const BluePrint& bp, const std::string& url_prefix);
 
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
@@ -53,7 +50,7 @@ private:
     void process(HttpTask *task);
 
 private:
-    Router router_;
+    BluePrint bp_;
 };
 
 }  // namespace wfrest

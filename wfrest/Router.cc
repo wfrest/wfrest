@@ -98,27 +98,27 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     }
 }
 
-void Router::add_sub_router(const std::string &prefix, const Router& sub_router)
-{
-    sub_router.routes_map_.all_routes([this, &prefix](const std::string& sub_prefix, VerbHandler verb_handler) {
-        if (!prefix.empty() && prefix.back() == '/')
-            verb_handler.path = prefix + sub_prefix;
-        else
-            verb_handler.path = prefix + "/" + sub_prefix;
+// void Router::register_blueprint(const std::string &prefix, const BluePrint& bp);
+// {
+//     sub_router.routes_map_.all_routes([this, &prefix](const std::string& sub_prefix, VerbHandler verb_handler) {
+//         if (!prefix.empty() && prefix.back() == '/')
+//             verb_handler.path = prefix + sub_prefix;
+//         else
+//             verb_handler.path = prefix + "/" + sub_prefix;
             
-        this->routes_map_[verb_handler.path.c_str()] = verb_handler;
-    });
-}
+//         this->routes_map_[verb_handler.path.c_str()] = verb_handler;
+//     });
+// }
 
-void Router::print_routes()
+void Router::print_routes() const 
 {
     routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
     {
         fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
     });
 }
-
-std::vector<std::pair<std::string, std::string> > Router::all_routes()
+ 
+std::vector<std::pair<std::string, std::string> > Router::all_routes() const
 {
     std::vector<std::pair<std::string, std::string> > res;
     routes_map_.all_routes([&res](const std::string &prefix, const VerbHandler &verb_handler)

@@ -5,7 +5,6 @@
 
 #include <functional>
 
-#include "wfrest/VerbHandler.h"
 #include "wfrest/RouteTable.h"
 
 namespace wfrest
@@ -21,17 +20,20 @@ public:
 
     void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 
-    void add_sub_router(const std::string &prefix, const Router& sub_router);
+    // void register_blueprint(const std::string &prefix, const BluePrint& bp);
 
     static Verb str_to_verb(const std::string &verb);
 
     static const char *verb_to_str(const Verb &verb);
 
-    void print_routes();   // for logging
+    void print_routes() const;   // for logging
 
-    std::vector<std::pair<std::string, std::string>> all_routes();   // for test
+    std::vector<std::pair<std::string, std::string>> all_routes() const;   // for test 
+
 private:
     RouteTable routes_map_;
+
+    friend class BluePrint;
 };
 
 }  // wfrest

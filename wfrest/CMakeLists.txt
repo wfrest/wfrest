@@ -18,6 +18,7 @@ set(SRCS
         AsyncFileLogger.cc
         Compress.cc
         base64.cc
+        BluePrint.cc
         )
 
 add_library(wfrest ${SRCS})
@@ -39,6 +40,7 @@ set(HEADERS
         StringPiece.h
         PathUtil.h
         base64.h
+        BluePrint.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
