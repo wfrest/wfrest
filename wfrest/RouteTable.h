@@ -11,6 +11,7 @@
 #include "wfrest/StringPiece.h"
 #include "wfrest/Macro.h"
 #include "wfrest/VerbHandler.h"
+#include "Logger.h"
 
 namespace wfrest
 {
@@ -47,7 +48,7 @@ public:
                   OUT RouteParams &route_params) const;
 
     template<typename Func>
-    void all_routes(Func func, std::string prefix = "") const;
+    void all_routes(const Func &func, std::string prefix) const;
 
 private:
     VerbHandler verb_handler_;
@@ -55,7 +56,7 @@ private:
 };
 
 template<typename Func>
-void RouteTableNode::all_routes(Func func, std::string prefix) const
+void RouteTableNode::all_routes(const Func &func, std::string prefix) const
 {
     if (children_.empty())
     {
@@ -65,7 +66,9 @@ void RouteTableNode::all_routes(Func func, std::string prefix) const
         if (!prefix.empty() && prefix.back() != '/')
             prefix += '/';
         for (auto &pair: children_)
+        {
             pair.second->all_routes(func, prefix + pair.first.as_string());
+        }
     }
 }
 
@@ -75,25 +78,25 @@ class RouteTable
 {
 public:
     // Find a route and return reference to the procedure.
-    VerbHandler &operator[](const char *route)
-    {
-        StringPiece route2(route);
-        return root_.find_or_create(route2, 0);
-    }
+    VerbHandler &operator[](const char *route);
 
     // todo : this interface is not very good
-    detail::RouteTableNode::iterator find(const StringPiece &route, OUT RouteParams &route_params) const
+    detail::RouteTableNode::iterator find(const StringPiece &route, 
+                                        OUT RouteParams &route_params) const
     { return root_.find(route, 0, route_params); }
 
     template<typename Func>
-    void all_routes(Func func) const
-    { root_.all_routes(func); }
+    void all_routes(const Func &func) const
+    { root_.all_routes(func, ""); }
 
     detail::RouteTableNode::iterator end() const
     { return root_.end(); }
 
+    ~RouteTable();
+    
 private:
     detail::RouteTableNode root_;
+    std::vector<std::string *> strings; 
 };
 
 } // namespace wfrest

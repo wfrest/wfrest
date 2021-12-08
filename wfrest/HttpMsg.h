@@ -54,6 +54,8 @@ public:
     template<typename T>
     T param(const std::string &key) const;
 
+    bool has_param(const std::string &key) const;
+
     const std::string &query(const std::string &key) const;
 
     const std::string &default_query(const std::string &key, const std::string &default_val) const;

@@ -100,7 +100,12 @@ const std::string &HttpReq::param(const std::string &key) const
     if(route_params_.count(key))
         return route_params_.at(key);
     else
-        return empty_string;
+        return string_not_found;
+}
+
+bool HttpReq::has_param(const std::string &key) const
+{
+    return route_params_.count(key) > 0;
 }
 
 const std::string &HttpReq::query(const std::string &key) const
@@ -108,7 +113,7 @@ const std::string &HttpReq::query(const std::string &key) const
     if(query_params_.count(key))
         return query_params_.at(key);
     else
-        return empty_string;
+        return string_not_found;
 }
 
 const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val) const
@@ -156,7 +161,7 @@ const std::string &HttpReq::header(const std::string& key) const
     const auto it = headers_.find(key);
 
     if (it == headers_.end() || it->second.empty())
-        return empty_string;
+        return string_not_found;
 
     return it->second[0];
 }

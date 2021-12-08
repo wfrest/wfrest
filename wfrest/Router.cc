@@ -98,17 +98,14 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     }
 }
 
-void Router::add_sub_router(std::string &&prefix, const Router& sub_router)
+void Router::add_sub_router(const std::string &prefix, const Router& sub_router)
 {
     sub_router.routes_map_.all_routes([this, &prefix](const std::string& sub_prefix, VerbHandler verb_handler) {
         if (!prefix.empty() && prefix.back() == '/')
-        {
-            prefix.pop_back();
             verb_handler.path = prefix + sub_prefix;
-        }
         else
-            verb_handler.path = prefix + sub_prefix;
-
+            verb_handler.path = prefix + "/" + sub_prefix;
+            
         this->routes_map_[verb_handler.path.c_str()] = verb_handler;
     });
 }

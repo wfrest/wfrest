@@ -106,6 +106,29 @@ TEST(Router, all_routes_07)
     EXPECT_EQ(route_list[0].second, "api/action*");
 }
 
+TEST(SubRouter, add)
+{
+    Router sub_router;
+    sub_router.handle("/login/name", 0, [](const HttpReq* req, HttpResp* resp){
+        printf("login");
+    }, nullptr, Verb::POST);
+
+    sub_router.handle("/logout/", 0, [](const HttpReq* req, HttpResp* resp){
+        printf("logot");
+    }, nullptr, Verb::GET);
+
+    Router router;
+    router.add_sub_router("/prefix", sub_router);
+
+    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
+    EXPECT_EQ(route_list[0].first, "POST");
+    EXPECT_EQ(route_list[0].second, "prefix/login/name");
+
+    EXPECT_EQ(route_list[1].first, "GET");
+    EXPECT_EQ(route_list[1].second, "prefix/logout/");
+
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

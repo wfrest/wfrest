@@ -21,7 +21,7 @@ public:
 
     void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 
-    void add_sub_router(std::string &&prefix, const Router& sub_router);
+    void add_sub_router(const std::string &prefix, const Router& sub_router);
 
     static Verb str_to_verb(const std::string &verb);
 

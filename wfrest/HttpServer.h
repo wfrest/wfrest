@@ -29,19 +29,20 @@ public:
     void POST(const char *route, int compute_queue_id, const Handler &handler);
 
 public:
-    void GET(const char *route, const SeriesHandler &series_handler);
+    void GET(const char *route, const SeriesHandler &handler);
 
-    void GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
+    void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
 
-    void POST(const char *route, const SeriesHandler &series_handler);
+    void POST(const char *route, const SeriesHandler &handler);
 
-    void POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler);
+    void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);
 
     void mount(std::string &&path);
 
 	int start(unsigned short port)
 	{
         router_.print_routes();
+        LOG_INFO << "Listening and serving HTTP on : " << port;
         return WFServerBase::start(port);
 	}
 

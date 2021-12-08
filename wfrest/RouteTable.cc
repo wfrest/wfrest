@@ -105,4 +105,23 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
 
 }   // namespace detail
 
+VerbHandler &RouteTable::operator[](const char *route)
+{
+    // Use pointer to prevent iterator invalidation
+    // StringPiece is only a watcher, so we should store the string.
+    std::string *p_route = new std::string(route);
+    strings.push_back(p_route);
+    StringPiece route2(*p_route);
+    return root_.find_or_create(route2, 0);
+}
+
+RouteTable::~RouteTable()
+{
+    for(auto str : strings)
+    {
+        delete str;
+    }
+}
+
+
 }  // namespace wfrest
