@@ -339,7 +339,6 @@ using namespace wfrest;
 int main()
 {
     HttpServer svr;
-    svr.mount("static");
 
     // single files
     svr.GET("/file1", [](const HttpReq *req, HttpResp *resp)
@@ -439,7 +438,6 @@ using namespace wfrest;
 int main()
 {
     HttpServer svr;
-    svr.mount("/static");
 
     // Upload a file to parent dir is really dangerous.:
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"

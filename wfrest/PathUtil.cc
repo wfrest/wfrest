@@ -42,7 +42,7 @@ std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs
     return res;
 }
 
-bool PathUtil::isdir(const char* path)
+bool PathUtil::is_dir(const char* path)
 {
     struct stat path_stat;
     if (-1 == stat(path, &path_stat))

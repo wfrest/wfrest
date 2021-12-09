@@ -8,7 +8,7 @@ namespace wfrest
 class PathUtil
 {
 public:
-    static bool isdir(const char* path);
+    static bool is_dir(const char* path);
     
 public:
     static std::string concat_path(const std::string &lhs, const std::string &rhs);

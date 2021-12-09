@@ -16,7 +16,6 @@ int main()
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
-    svr.mount("static");
 
     // single files
     svr.GET("/file1", [](const HttpReq *req, HttpResp *resp)
@@ -58,6 +57,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
+        svr.list_routes();
         wait_group.wait();
         svr.stop();
     } else

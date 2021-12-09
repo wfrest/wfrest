@@ -19,6 +19,7 @@ set(SRCS
         Compress.cc
         base64.cc
         BluePrint.cc
+        FileUtil.cc
         )
 
 add_library(wfrest ${SRCS})
@@ -41,6 +42,7 @@ set(HEADERS
         PathUtil.h
         base64.h
         BluePrint.h
+        FileUtil.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)

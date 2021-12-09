@@ -19,19 +19,6 @@ public:
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
 
     static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
-
-public: 
-    static void mount(const char *root_path);
-
-    static void add_static_map(const char *relative_path, const char *root);
-
-    static void remove_static_map(const char *relative_path);
-
-    static const std::map<std::string, std::string>& static_map() { return static_file_map; }
-private:
-    static std::string root;
-
-    static std::map<std::string, std::string> static_file_map;
 };
 
 }  // namespace wfrest

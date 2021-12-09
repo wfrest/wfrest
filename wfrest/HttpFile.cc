@@ -7,6 +7,7 @@
 #include "wfrest/PathUtil.h"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/Logger.h"
+#include "wfrest/FileUtil.h"
 
 using namespace wfrest;
 
@@ -31,7 +32,7 @@ void pread_callback(WFFileIOTask *pread_task)
     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
+        resp->append_output_body_nocopy("503 Internal Server Error\n", 26);
     } else
     {
         resp->append_output_body_nocopy(args->buf, ret);
@@ -45,9 +46,11 @@ struct pread_multi_context
     int file_index;
     bool last = false;
     HttpResp *resp;
+    std::string multipart_start;
+    std::string multipart_end;
 };
 
-std::string build_multi_part_first(const std::string &file_name, int idx)
+std::string build_multipart_start(const std::string &file_name, int idx)
 {
     std::string str;
     str.reserve(256);  // reserve space avoid copy
@@ -77,7 +80,7 @@ std::string build_multi_part_first(const std::string &file_name, int idx)
     return str;
 }
 
-std::string build_multi_part_last()
+std::string build_multipart_end()
 {
     std::string multi_part_last;
     multi_part_last.reserve(128);
@@ -95,13 +98,14 @@ void pread_multi_callback(WFFileIOTask *pread_task)
     auto *ctx = static_cast<pread_multi_context *>(pread_task->user_data);
     HttpResp *resp = ctx->resp;
 
-    std::string multi_part_first = build_multi_part_first(ctx->file_name, ctx->file_index);
-    resp->append_output_body(multi_part_first);
+    std::string multipart_start = build_multipart_start(ctx->file_name, ctx->file_index);
+    ctx->multipart_start = std::move(multipart_start);
+    resp->append_output_body_nocopy(ctx->multipart_start.c_str(), ctx->multipart_start.size());
 
     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
+        resp->append_output_body_nocopy("503 Internal Server Error\n", 26);
     } else
     {
         resp->append_output_body_nocopy(args->buf, ret);
@@ -109,67 +113,48 @@ void pread_multi_callback(WFFileIOTask *pread_task)
 
     if (ctx->last)   // last one
     {
-        std::string multi_part_end = build_multi_part_last();
-        resp->append_output_body(multi_part_end);
+        std::string multipart_end = build_multipart_end();
+        ctx->multipart_end = std::move(multipart_end);
+        resp->append_output_body_nocopy(ctx->multipart_end.c_str(), ctx->multipart_end.size());
     }
 }
 
 void pwrite_callback(WFFileIOTask *pwrite_task)
 {
     long ret = pwrite_task->get_retval();
-    auto *server_task = task_of(pwrite_task);
+    HttpServerTask *server_task = task_of(pwrite_task);
     HttpResp *resp = server_task->get_resp();
     delete static_cast<std::string *>(pwrite_task->user_data);
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->set_status_code("503");
-        resp->append_output_body_nocopy("503 Internal Server Error.", 26);
+        resp->append_output_body_nocopy("503 Internal Server Error\n", 26);
     } else
     {
-        resp->append_output_body_nocopy("Save 200 success.", 17);
+        resp->append_output_body_nocopy("Save 200 success\n", 17);
     }
-}
-
-std::string concat_path(std::string &root, const std::string &path)
-{
-    std::string res;
-
-    if (path.front() != '/')
-    {
-        res = root + "/" + path;
-    } else
-    {
-        res = root + path;
-    }
-    return res;
 }
 
 }  // namespace
-
-// static member init
-std::string HttpFile::root = ".";
-std::map<std::string, std::string> HttpFile::static_file_map;
 
 // note : [start, end)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    // std::string file_path = concat_path(root, path);
     LOG_DEBUG << "File Path : " << path;
     
     if (end == -1 || start < 0)
     {
-        struct stat st;
+        size_t file_size;
+        int ret = FileUtil::size(path, OUT &file_size);
 
-        int ret = stat(path.c_str(), &st);
         if (ret == -1)
         {
-            LOG_SYSERR << "File Error occurs, path = " << path;
-            resp->append_output_body_nocopy("File Error occurs", 17);
+            resp->set_status(404);
+            resp->append_output_body_nocopy("404 File NOT FOUND\n", 19);
             return;
         }
-        size_t file_size = st.st_size;
         if (end == -1) end = file_size;
         if (start < 0) start = file_size + start;
     }
@@ -203,36 +188,34 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    std::string file_path = concat_path(root, path_list[path_idx]);
+    const std::string &file_path = path_list[path_idx];
     LOG_DEBUG << "File Path : " << file_path;
 
     auto *ctx = new pread_multi_context;
-    ctx->file_name = PathUtil::base(path_list[path_idx]);
+    ctx->file_name = PathUtil::base(file_path);
     ctx->file_index = path_idx;
     ctx->resp = resp;
+
     if (path_idx == path_list.size() - 1)
     {
         // last one
         ctx->last = true;
     }
 
-    struct stat st;
-    int ret = stat(file_path.c_str(), &st);
+    size_t size;
+    int ret = FileUtil::size(file_path, OUT &size);
     if (ret == -1)
     {
-        LOG_SYSERR << "File Error occurs";
-        resp->append_output_body_nocopy("File Error occurs", 17);
+        resp->set_status(404);
+        resp->append_output_body_nocopy("404 File NOT FOUND\n", 19);
         return;
     }
-
-    size_t size = st.st_size;
-
     void *buf = malloc(size);
     server_task->add_callback([buf, ctx](HttpTask *server_task)
-                              {
-                                  free(buf);
-                                  delete ctx;
-                              });
+                                {
+                                    free(buf);
+                                    delete ctx;
+                                });
     WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file_path,
                                                                 buf,
                                                                 size,
@@ -242,32 +225,14 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
     **server_task << pread_task;
 }
 
-void HttpFile::mount(const char *root_path)
-{
-    std::string path(root_path);
-    if (root.front() != '.' and path.front() != '/')
-    {
-        root = "./" + path;
-    } else if (root.front() != '.')
-    {
-        root = "." + path;
-    } else
-    {
-        root = std::move(path);
-    }
-    if (root.back() == '/') root.pop_back();
-    // ./xxx/xx
-}
-
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    std::string file_path = concat_path(root, dst_path);
 
     auto *save_content = new std::string;
     *save_content = content;
 
-    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
                                                                   static_cast<const void *>(save_content->c_str()),
                                                                   save_content->size(),
                                                                   0,
@@ -279,12 +244,11 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
 void HttpFile::save_file(const std::string &dst_path, std::string &&content, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    std::string file_path = concat_path(root, dst_path);
 
     auto *save_content = new std::string;
     *save_content = std::move(content);
 
-    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(file_path,
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
                                                                   static_cast<const void *>(save_content->c_str()),
                                                                   save_content->size(),
                                                                   0,
@@ -292,17 +256,6 @@ void HttpFile::save_file(const std::string &dst_path, std::string &&content, Htt
     **server_task << pwrite_task;
     pwrite_task->user_data = save_content;
 }
-
-void HttpFile::add_static_map(const char *relative_path, const char *root)
-{
-    static_file_map[relative_path] = root;
-}
-
-void HttpFile::remove_static_map(const char *relative_path)
-{
-    static_file_map.erase(relative_path);
-}
-
 
 
 

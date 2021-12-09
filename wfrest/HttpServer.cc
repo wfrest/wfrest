@@ -106,11 +106,6 @@ CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
     return task;
 }
 
-void HttpServer::mount(const char *root_path)
-{
-    HttpFile::mount(root_path);
-}
-
 void HttpServer::list_routes()
 {
     blue_print_.router().print_routes();
@@ -135,7 +130,7 @@ BluePrint HttpServer::serve_dir(const char* dir_path)
         LOG_SYSERR << "Directory " << dir_path << " does not exists.";
     
     // Check if it is a directory.
-    if (!PathUtil::isdir(realpath_out))
+    if (!PathUtil::is_dir(realpath_out))
         LOG_SYSERR << dir_path << " is not a directory.";
         
     std::string real_root(realpath_out);

@@ -17,7 +17,6 @@ int main()
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
-    svr.mount("/static");
 
     // An expriment (Upload a file to parent dir is really dangerous.):
     // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
