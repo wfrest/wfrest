@@ -50,7 +50,7 @@ private:
     void process(HttpTask *task);
 
 private:
-    BluePrint bp_;
+    BluePrint blue_print_;
 };
 
 }  // namespace wfrest

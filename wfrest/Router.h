@@ -20,8 +20,6 @@ public:
 
     void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 
-    // void register_blueprint(const std::string &prefix, const BluePrint& bp);
-
     static Verb str_to_verb(const std::string &verb);
 
     static const char *verb_to_str(const Verb &verb);

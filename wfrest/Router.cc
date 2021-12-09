@@ -32,7 +32,7 @@ static std::string get_peer_addr_str(HttpTask *server_task)
 
     return addrstr;
 }
-}
+}  // namespace
 void Router::handle(const char *route, int compute_queue_id, const Handler &handler,
                     const SeriesHandler &series_handler, Verb verb)
 {
@@ -67,10 +67,11 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
 
-            server_task->add_callback([server_task, verb, route](HttpTask *) {
-                LOG_INFO << "| " << get_peer_addr_str(server_task)
-                         << " | " << verb << " : " << route << " |";
-            });
+            server_task->add_callback([server_task, verb, route](HttpTask *)
+                                      {
+                                          LOG_INFO << "| " << get_peer_addr_str(server_task)
+                                                   << " | " << verb << " : " << route << " |";
+                                      });
 
             if (it->second.compute_queue_id == -1)
             {
@@ -98,33 +99,21 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     }
 }
 
-// void Router::register_blueprint(const std::string &prefix, const BluePrint& bp);
-// {
-//     sub_router.routes_map_.all_routes([this, &prefix](const std::string& sub_prefix, VerbHandler verb_handler) {
-//         if (!prefix.empty() && prefix.back() == '/')
-//             verb_handler.path = prefix + sub_prefix;
-//         else
-//             verb_handler.path = prefix + "/" + sub_prefix;
-            
-//         this->routes_map_[verb_handler.path.c_str()] = verb_handler;
-//     });
-// }
-
-void Router::print_routes() const 
+void Router::print_routes() const
 {
     routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
-    {
-        fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
-    });
+                           {
+                               fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+                           });
 }
- 
+
 std::vector<std::pair<std::string, std::string> > Router::all_routes() const
 {
     std::vector<std::pair<std::string, std::string> > res;
     routes_map_.all_routes([&res](const std::string &prefix, const VerbHandler &verb_handler)
-    {
-        res.push_back({verb_to_str(verb_handler.verb), prefix.c_str()});
-    });
+                           {
+                               res.emplace_back(verb_to_str(verb_handler.verb), prefix.c_str());
+                           });
     return res;
 }
 

@@ -23,6 +23,7 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Computing Handler](#computing-handler)
       - [Series Handler](#series-handler)
       - [Compression](#compression)
+      - [BluePrint](#blueprint)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -717,6 +718,63 @@ int main()
 ```
 
 As for how to write a client, you can see [workflow](https://github.com/sogou/workflow) which currently supports HTTP, Redis, MySQL and Kafka protocols. You can use it to write efficient asynchronous clients.
+
+### BluePrint
+
+wfrest supports flask style blueprints. 
+
+You can see [What are Flask Blueprints, exactly?](https://stackoverflow.com/questions/24420857/what-are-flask-blueprints-exactly)
+
+A blueprint is a limited wfresr server. It cannot handle networking. But it can handle routes.
+
+For bigger projects, all your code shouldn't be in the same file. Instead you can segment or split bigger codes into separate files which makes your project a lot more modular.
+
+```cpp
+#include "wfrest/HttpServer.h"
+using namespace wfrest;
+
+// You can split your different business logic into different files / modules
+BluePrint file_server_logic()
+{
+    BluePrint bp;
+    bp.GET("/text", [](const HttpReq *req, HttpResp *resp)
+    {
+        fprintf(stderr, "Text File logic\n");
+    });
+
+    bp.GET("/images", [](const HttpReq *req, HttpResp *resp)
+    {
+        fprintf(stderr, "images File logic\n");
+    });
+    return bp;
+}
+
+int main()
+{
+    HttpServer svr;
+    
+    svr.POST("/login", [](const HttpReq *req, HttpResp *resp)
+    {
+        fprintf(stderr, "Login Logic\n");
+    });
+
+    BluePrint bp = file_server_logic();
+
+    svr.register_blueprint(bp, "/www/file");
+
+    if (svr.start(8888) == 0)
+    {
+        svr.list_routes();
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server");
+        exit(1);
+    }
+    return 0;
+}
+```
 
 ## How to use logger
 
