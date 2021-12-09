@@ -31,9 +31,9 @@ int main()
     svr.GET("/wildcast/{name}/action*", [](const HttpReq *req, HttpResp *resp)
     {
         const std::string& name = req->param("name");
-        std::string message = name + " : path " + req->get_request_uri();
+        const std::string& match_path = req->match_path();
 
-        resp->String("Hello " + message + "\n");
+        resp->String("[name : " + name + "] [match path : " + match_path + "]\n");
     });
 
     // request will hold the route definition

@@ -18,6 +18,11 @@ int main()
     HttpServer svr;
     svr.Static("/static", "./www/static");
 
+    svr.Static("/public", "./www");
+
+    // curl -v "http://ip:port/static/filepath"
+    // ...
+
     if (svr.start(8888) == 0)
     {
         svr.list_routes();
