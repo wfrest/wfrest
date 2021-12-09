@@ -40,6 +40,7 @@ set(HEADERS
         StringPiece.h
         PathUtil.h
         base64.h
+        BluePrint.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)

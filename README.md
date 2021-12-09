@@ -734,17 +734,17 @@ For bigger projects, all your code shouldn't be in the same file. Instead you ca
 using namespace wfrest;
 
 // You can split your different business logic into different files / modules
-BluePrint file_server_logic()
+BluePrint admin_pages()
 {
     BluePrint bp;
-    bp.GET("/text", [](const HttpReq *req, HttpResp *resp)
+    bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
     {
-        fprintf(stderr, "Text File logic\n");
+        fprintf(stderr, "New page\n");
     });
 
-    bp.GET("/images", [](const HttpReq *req, HttpResp *resp)
+    bp.GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
     {
-        fprintf(stderr, "images File logic\n");
+        fprintf(stderr, "Edit page\n");
     });
     return bp;
 }
@@ -753,14 +753,14 @@ int main()
 {
     HttpServer svr;
     
-    svr.POST("/login", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/page/{uri}", [](const HttpReq *req, HttpResp *resp)
     {
-        fprintf(stderr, "Login Logic\n");
+        fprintf(stderr, "Blog Page\n");
     });
 
-    BluePrint bp = file_server_logic();
+    BluePrint admin_bp = admin_pages();
 
-    svr.register_blueprint(bp, "/www/file");
+    svr.register_blueprint(admin_bp, "/admin");
 
     if (svr.start(8888) == 0)
     {

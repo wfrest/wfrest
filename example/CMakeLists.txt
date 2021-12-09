@@ -40,5 +40,5 @@ target_link_libraries(13_compession wfrest)
 add_executable(13_compess_client 13_compess_client.cc)
 target_link_libraries(13_compess_client wfrest)
 
-add_executable(14_blue_print 14_blue_print.cc)
+add_executable(14_blue_print 14_blue_print/blog.cc)
 target_link_libraries(14_blue_print wfrest)

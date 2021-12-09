@@ -1,6 +1,7 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
+#include "admin.h"
 
 using namespace wfrest;
 
@@ -11,35 +12,20 @@ void sig_handler(int signo)
     wait_group.done();
 }
 
-BluePrint file_server_logic()
-{
-    BluePrint bp;
-    bp.GET("/text", [](const HttpReq *req, HttpResp *resp)
-    {
-        fprintf(stderr, "Text File logic\n");
-    });
-
-    bp.GET("/images", [](const HttpReq *req, HttpResp *resp)
-    {
-        fprintf(stderr, "images File logic\n");
-    });
-    return bp;
-}
-
 int main()
 {
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
     
-    svr.POST("/login", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/page/{uri}", [](const HttpReq *req, HttpResp *resp)
     {
-        fprintf(stderr, "Login Logic\n");
+        fprintf(stderr, "Blog Page\n");
     });
 
-    BluePrint bp = file_server_logic();
+    BluePrint admin_bp = admin_pages();
 
-    svr.register_blueprint(bp, "/www/file");
+    svr.register_blueprint(admin_bp, "/admin");
 
     if (svr.start(8888) == 0)
     {
