@@ -37,7 +37,9 @@ public:
     void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);
 
 public:
-    void mount(std::string &&path);
+    void mount(const char *root_path);
+
+    void Static(const char *relative_path, const char *root);
 
     void list_routes();
 
@@ -49,6 +51,7 @@ protected:
 private:
     void process(HttpTask *task);
 
+    BluePrint serve_dir(const char* dir_path);
 private:
     BluePrint blue_print_;
 };

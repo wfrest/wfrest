@@ -56,7 +56,8 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
         route2.remove_suffix(1);
 
     RouteParams route_params;
-    auto it = routes_map_.find(route2, route_params);
+    std::string route_match_path;
+    auto it = routes_map_.find(route2, route_params, route_match_path);
 
     if (it != routes_map_.end())   // has route
     {
@@ -66,7 +67,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
         {
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
-
+            req->set_route_match_path(std::move(route_match_path));
             server_task->add_callback([server_task, verb, route](HttpTask *)
                                       {
                                           LOG_INFO << "| " << get_peer_addr_str(server_task)

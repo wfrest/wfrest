@@ -45,7 +45,8 @@ public:
 
     iterator find(const StringPiece &route,
                   int cursor,
-                  OUT RouteParams &route_params) const;
+                  OUT RouteParams &route_params,
+                  OUT std::string &route_match_path) const;
 
     template<typename Func>
     void all_routes(const Func &func, std::string prefix) const;
@@ -82,8 +83,9 @@ public:
 
     // todo : this interface is not very good
     detail::RouteTableNode::iterator find(const StringPiece &route, 
-                                        OUT RouteParams &route_params) const
-    { return root_.find(route, 0, route_params); }
+                                        OUT RouteParams &route_params,
+                                        OUT std::string &route_match_path) const
+    { return root_.find(route, 0, route_params, route_match_path); }
 
     template<typename Func>
     void all_routes(const Func &func) const

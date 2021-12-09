@@ -149,22 +149,23 @@ std::string concat_path(std::string &root, const std::string &path)
 
 // static member init
 std::string HttpFile::root = ".";
+std::map<std::string, std::string> HttpFile::static_file_map;
 
 // note : [start, end)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    std::string file_path = concat_path(root, path);
-    LOG_DEBUG << "File Path : " << file_path;
+    // std::string file_path = concat_path(root, path);
+    LOG_DEBUG << "File Path : " << path;
     
     if (end == -1 || start < 0)
     {
         struct stat st;
 
-        int ret = stat(file_path.c_str(), &st);
+        int ret = stat(path.c_str(), &st);
         if (ret == -1)
         {
-            LOG_SYSERR << "File Error occurs, path = " << file_path;
+            LOG_SYSERR << "File Error occurs, path = " << path;
             resp->append_output_body_nocopy("File Error occurs", 17);
             return;
         }
@@ -190,7 +191,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                           + "-" + std::to_string(end)
                           + "/" + std::to_string(size));
 
-    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file_path,
+    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(path,
                                                                 buf,
                                                                 size,
                                                                 static_cast<off_t>(start),
@@ -241,8 +242,9 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
     **server_task << pread_task;
 }
 
-void HttpFile::mount(std::string &&path)
+void HttpFile::mount(const char *root_path)
 {
+    std::string path(root_path);
     if (root.front() != '.' and path.front() != '/')
     {
         root = "./" + path;
@@ -291,7 +293,15 @@ void HttpFile::save_file(const std::string &dst_path, std::string &&content, Htt
     pwrite_task->user_data = save_content;
 }
 
+void HttpFile::add_static_map(const char *relative_path, const char *root)
+{
+    static_file_map[relative_path] = root;
+}
 
+void HttpFile::remove_static_map(const char *relative_path)
+{
+    static_file_map.erase(relative_path);
+}
 
 
 

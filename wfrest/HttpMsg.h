@@ -65,6 +65,9 @@ public:
 
     bool has_query(const std::string &key) const;
 
+    const std::string &match_path() const
+    { return route_match_path_; }
+    
     // handler define path
     const std::string &full_path() const
     { return route_full_path_; }
@@ -74,9 +77,14 @@ public:
 
     void fill_header_map();
 
-    // /{name}/{id} parans in route
+    // /{name}/{id} params in route
     void set_route_params(RouteParams &&params)
     { route_params_ = std::move(params); }
+
+    // /match*  
+    // /match123 -> 123
+    void set_route_match_path(const std::string &match_path)
+    { route_match_path_ = match_path; }
 
     void set_full_path(const std::string &route_full_path)
     { route_full_path_ = route_full_path; }
@@ -93,6 +101,7 @@ private:
     http_content_type content_type_;
     ReqData *req_data_;
     RouteParams route_params_;
+    std::string route_match_path_;
     std::string route_full_path_;
     QueryParams query_params_;
     MultiPartForm multi_part_;

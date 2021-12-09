@@ -42,3 +42,6 @@ target_link_libraries(13_compess_client wfrest)
 
 add_executable(14_blue_print 14_blue_print/blog.cc)
 target_link_libraries(14_blue_print wfrest)
+
+add_executable(15_serve_static_file 15_serve_static_file.cc)
+target_link_libraries(15_serve_static_file wfrest)

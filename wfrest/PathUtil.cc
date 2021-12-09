@@ -1,4 +1,7 @@
 #include "wfrest/PathUtil.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 using namespace wfrest;
 
@@ -19,4 +22,30 @@ std::string PathUtil::base(const std::string &filepath)
     }
 
     return filepath.substr(pos2, pos1 - pos2 + 1);
+}
+
+std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs)
+{
+    std::string res;
+    // /v1/ /v2
+    // remove one '/' -> /v1/v2
+    if(lhs.back() == '/' && rhs.front() == '/')
+    {
+        res = lhs.substr(0, lhs.size() - 1) + rhs;
+    } else if(lhs.back() != '/' && rhs.front() != '/')
+    {
+        res = lhs + "/" + rhs;
+    } else 
+    {
+        res = lhs + rhs;
+    }
+    return res;
+}
+
+bool PathUtil::isdir(const char* path)
+{
+    struct stat path_stat;
+    if (-1 == stat(path, &path_stat))
+        return false;
+    return S_ISDIR(path_stat.st_mode);
 }

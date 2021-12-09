@@ -8,6 +8,8 @@
 #include "wfrest/UriUtil.h"
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
+#include "wfrest/PathUtil.h"
+#include "wfrest/Macro.h"
 
 using namespace wfrest;
 
@@ -104,9 +106,9 @@ CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
     return task;
 }
 
-void HttpServer::mount(std::string &&path)
+void HttpServer::mount(const char *root_path)
 {
-    HttpFile::mount(std::move(path));
+    HttpFile::mount(root_path);
 }
 
 void HttpServer::list_routes()
@@ -117,4 +119,38 @@ void HttpServer::list_routes()
 void HttpServer::register_blueprint(const BluePrint& bp, const std::string& url_prefix)
 {
     blue_print_.add_blueprint(bp, url_prefix);
+}
+
+// /static : /www/file/
+void HttpServer::Static(const char *relative_path, const char *root)
+{
+    blue_print_.add_blueprint(serve_dir(root), relative_path);
+}
+
+BluePrint HttpServer::serve_dir(const char* dir_path)
+{
+    // extract root realpath. 
+    char realpath_out[PATH_MAX]{0};
+    if (nullptr == realpath(dir_path, OUT realpath_out))
+        LOG_SYSERR << "Directory " << dir_path << " does not exists.";
+    
+    // Check if it is a directory.
+    if (!PathUtil::isdir(realpath_out))
+        LOG_SYSERR << dir_path << " is not a directory.";
+        
+    std::string real_root(realpath_out);
+    if(real_root.back() != '/')
+    {
+        real_root.push_back('/');
+    }
+
+    BluePrint bp;
+
+    bp.GET("/*", [real_root](const HttpReq *req, HttpResp *resp) {
+        std::string path = real_root + req->match_path();
+        LOG_DEBUG << "File path : " << path;
+        resp->File(path);
+    });
+
+    return bp;
 }

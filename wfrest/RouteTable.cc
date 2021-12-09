@@ -39,7 +39,8 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor
 
 RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
                                               int cursor,
-                                              OUT RouteParams &route_params) const
+                                              OUT RouteParams &route_params,
+                                              OUT std::string &route_match_path) const
 {
     assert(cursor >= 0);
     // We found the route
@@ -67,7 +68,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     if (it != children_.end())
     {
         // it2 == RouteTableNode::iterator
-        auto it2 = it->second->find(route, cursor, route_params); // search in the corresponding child.
+        auto it2 = it->second->find(route, cursor, route_params, route_match_path); // search in the corresponding child.
         if (it2 != it->second->end())
             return it2;
     }
@@ -83,6 +84,8 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
             if (mid.starts_with(match))
             {
                 fprintf(stderr, "wildcast * : %s\n", route.data());
+                route_match_path = std::string(mid.data());
+                LOG_INFO << "match path : " << route_match_path;
                 return iterator{kv.second, route, kv.second->verb_handler_};
             }
         }
@@ -97,7 +100,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
 
             param.shrink(i, param.size() - 1 - j);
             route_params[param.as_string()] = mid.as_string();
-            return kv.second->find(route, cursor, route_params);
+            return kv.second->find(route, cursor, route_params, route_match_path);
         }
     }
     return end();
