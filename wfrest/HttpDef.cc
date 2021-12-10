@@ -1,10 +1,12 @@
 #include "wfrest/HttpDef.h"
 #include <cstring>
 
-namespace wfrest
+using namespace wfrest;
+
+namespace 
 {
 
-static inline int strstartswith(const char *str, const char *start)
+int strstartswith(const char *str, const char *start)
 {
     while (*str && *start && *str == *start)
     {
@@ -13,6 +15,9 @@ static inline int strstartswith(const char *str, const char *start)
     }
     return *start == '\0';
 }
+
+} // namespace 
+
 
 std::string ContentType::to_string(enum http_content_type type)
 {
@@ -55,6 +60,4 @@ std::string ContentType::to_string_by_suffix(const char *str)
 #undef XX
     return "";
 }
-
-}  // wfrest
 

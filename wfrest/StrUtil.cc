@@ -2,6 +2,7 @@
 
 using namespace wfrest;
 
+const std::string wfrest::string_not_found = "";
 const std::string StrUtil::k_pairs_ = R"({}[]()<>""''``)";
 
 StringPiece StrUtil::trim_pairs(const StringPiece &str, const char *pairs)

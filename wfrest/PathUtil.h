@@ -16,6 +16,9 @@ public:
     // filepath = /usr/local/image/test.jpg
     // base = test.jpg
     static std::string base(const std::string &filepath);
+
+    // suffix = jpg
+    static std::string suffix(const std::string& filepath);
 };
 }  // namespace wfrest
 

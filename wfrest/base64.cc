@@ -1,14 +1,22 @@
 #include "wfrest/base64.h"
 using namespace wfrest;
 
+namespace 
+{
+
+bool is_base64(unsigned char c) {
+    return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+} // namespace 
+
+
 const std::string Base64::base64_chars =
                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     "abcdefghijklmnopqrstuvwxyz"
                     "0123456789+/";
 
-static inline bool is_base64(unsigned char c) {
-    return (isalnum(c) || (c == '+') || (c == '/'));
-}
+
 
 std::string Base64::encode(const unsigned char *bytes_to_encode, unsigned int len)
 {

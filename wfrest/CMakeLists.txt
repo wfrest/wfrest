@@ -1,4 +1,5 @@
 set(SRCS
+        StrUtil.cc
         HttpMsg.cc
         Router.cc
         RouteTable.cc
@@ -6,7 +7,6 @@ set(SRCS
         HttpDef.cc
         HttpContent.cc
         MultiPartParser.c
-        StrUtil.cc
         HttpFile.cc
         PathUtil.cc
         HttpServerTask.cc

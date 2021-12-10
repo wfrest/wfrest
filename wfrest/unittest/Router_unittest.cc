@@ -1,109 +1,77 @@
+#include <vector>
+#include <string>
 #include <gtest/gtest.h>
-#include <unordered_map>
 #include "wfrest/Router.h"
+#include "wfrest/VerbHandler.h"
 
 using namespace wfrest;
 
+using RegRoutes = std::vector<std::pair<std::string, std::string>>;
+
+class RouterRegisterTest : public testing::Test 
+{
+protected:
+    // void SetUp() override 
+    // {
+    // }
+    // void TearDown() override 
+    // {
+    // }
+    
+    // helper function
+    void register_route(const std::string &route, const std::string &verb)
+    {
+        router_.handle(route.c_str(), 0, [](const HttpReq* req, HttpResp* resp){
+            printf("test");
+        }, nullptr, str_to_verb(verb));    
+    }
+    
+    void register_route_list(const RegRoutes &routes_list)
+    {
+        for(const auto &r : routes_list)
+        {
+            register_route(r.first, r.second);
+        }
+    }
+protected:
+    Router router_;
+};
 
 // Becareful : /hello -> hello, we won't store the '/' at the front 
-TEST(Router, all_routes_01)
+TEST_F(RouterRegisterTest, reg_route) 
 {
-    Router router;
+    RegRoutes routes_list = {
+        {"/hello", "GET"},
+        {"/ping/", "POST"},
+        {"/api/v1", "GET"},
+        {"/api/v1/v2/", "GET"},
+        {"/api/v1/v3/v4", "GET"},
+        {"/api/{name}", "POST"},
+        {"/api/action*", "GET"},
+    };
+
+    // register
+    register_route_list(routes_list);
+
+    // Becareful : /hello -> hello, we won't store the '/' at the front 
+    RegRoutes reg_list_exp = {
+        {"GET", "api/action*"},
+        {"GET", "api/v1/v2/"},
+        {"GET", "api/v1/v3/v4"},
+        {"POST", "api/{name}"},
+        {"GET", "hello"},
+        {"POST", "ping/"},
+    };
     
-    router.handle("/hello", 0, [](const HttpReq* req, HttpResp* resp){
-        printf("world");
-    }, nullptr, Verb::GET);
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "hello");
+    RegRoutes reg_list = router_.all_routes();
+    EXPECT_EQ(reg_list_exp.size(), reg_list.size());
+    for(int i = 0; i < reg_list.size(); i++)
+    {
+        EXPECT_EQ(reg_list_exp[i].first, reg_list[i].first);
+        EXPECT_EQ(reg_list_exp[i].second, reg_list[i].second);
+    }
 }
 
-TEST(Router, all_routes_02)
-{
-    Router router;
-    
-    router.handle("/ping", 0, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::POST);
-
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "POST");
-    EXPECT_EQ(route_list[0].second, "ping");
-}
-
-TEST(Router, all_routes_03)
-{
-    Router router;
-    
-    router.handle("/api/v1", 0, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::GET);
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "api/v1");
-}
-
-TEST(Router, all_routes_04)
-{
-    Router router;
-    
-    router.handle("/api/v1/v2/", 0, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::GET);
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "api/v1/v2/");
-}
-
-
-TEST(Router, all_routes_05)
-{
-    Router router;
-    
-    router.handle("/api/v1/v3/v4", 1, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::GET);
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "api/v1/v3/v4");
-}
-
-TEST(Router, all_routes_06)
-{
-    Router router;
-    
-    router.handle("/api/{name}", 0, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::GET);
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "api/{name}");
-}
-
-TEST(Router, all_routes_07)
-{
-    Router router;
-    
-    router.handle("/api/action*", 1, [](const HttpReq* req, HttpResp* resp){
-        printf("pong");
-    }, nullptr, Verb::GET);
-
-    std::vector<std::pair<std::string, std::string>> route_list = router.all_routes();
-
-    EXPECT_EQ(route_list[0].first, "GET");
-    EXPECT_EQ(route_list[0].second, "api/action*");
-}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

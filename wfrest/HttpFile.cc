@@ -152,6 +152,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
         if (ret == -1)
         {
             resp->set_status(404);
+            resp->headers_["Content-Type"] = "text/html";
             resp->append_output_body_nocopy("404 File NOT FOUND\n", 19);
             return;
         }

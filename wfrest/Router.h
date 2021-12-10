@@ -20,10 +20,6 @@ public:
 
     void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 
-    static Verb str_to_verb(const std::string &verb);
-
-    static const char *verb_to_str(const Verb &verb);
-
     void print_routes() const;   // for logging
 
     std::vector<std::pair<std::string, std::string>> all_routes() const;   // for test 

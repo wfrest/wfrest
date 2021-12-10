@@ -7,12 +7,12 @@ using namespace wfrest;
 
 std::string PathUtil::base(const std::string &filepath)
 {
-    std::string::size_type pos1 = filepath.find_last_not_of("/\\");
+    std::string::size_type pos1 = filepath.find_last_not_of("/");
     if (pos1 == std::string::npos)
     {
         return "/";
     }
-    std::string::size_type pos2 = filepath.find_last_of("/\\", pos1);
+    std::string::size_type pos2 = filepath.find_last_of("/", pos1);
     if (pos2 == std::string::npos)
     {
         pos2 = 0;
@@ -22,6 +22,23 @@ std::string PathUtil::base(const std::string &filepath)
     }
 
     return filepath.substr(pos2, pos1 - pos2 + 1);
+}
+
+std::string PathUtil::suffix(const std::string& filepath)
+{
+    std::string::size_type pos1 = filepath.find_last_of("/");
+    if (pos1 == std::string::npos) {
+        pos1 = 0;
+    } else {
+        pos1++;
+    }
+    std::string file = filepath.substr(pos1, -1);
+
+    std::string::size_type pos2 = file.find_last_of(".");
+    if (pos2 == std::string::npos) {
+        return "";
+    }
+    return file.substr(pos2+1, -1);
 }
 
 std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs)

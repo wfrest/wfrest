@@ -2,7 +2,7 @@
 
 using namespace wfrest;
 
-static inline BluePrint admin_pages()
+inline BluePrint admin_pages()
 {
     BluePrint bp;
     bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)

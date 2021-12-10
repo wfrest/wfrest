@@ -53,7 +53,7 @@ public:
 
 private:
     VerbHandler verb_handler_;
-    std::unordered_map<StringPiece, RouteTableNode *, StringPieceHash> children_;
+    std::map<StringPiece, RouteTableNode *> children_;
 };
 
 template<typename Func>

@@ -8,7 +8,7 @@
 namespace wfrest
 {
 
-static const std::string string_not_found = "";
+extern const std::string string_not_found;
 
 class StrUtil : public StringUtil
 {
