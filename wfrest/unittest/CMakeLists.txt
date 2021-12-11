@@ -10,17 +10,17 @@ add_executable(Compress_unittest Compress_unittest.cc)
 target_link_libraries(Compress_unittest wfrest GTest::GTest)
 add_test(NAME Compress_unittest COMMAND Compress_unittest)
 
-# add_executable(Router_unittest Router_unittest.cc)
-# target_link_libraries(Router_unittest wfrest GTest::GTest)
-# add_test(NAME Router_unittest COMMAND Router_unittest)
+add_executable(Router_unittest Router_unittest.cc)
+target_link_libraries(Router_unittest wfrest GTest::GTest)
+add_test(NAME Router_unittest COMMAND Router_unittest)
 
 add_executable(base64_unittest base64_unittest.cc)
 target_link_libraries(base64_unittest wfrest GTest::GTest)
 add_test(NAME base64_unittest COMMAND base64_unittest)
 
-# add_executable(BluePrint_unittest BluePrint_unittest.cc)
-# target_link_libraries(BluePrint_unittest wfrest GTest::GTest)
-# add_test(NAME BluePrint_unittest COMMAND BluePrint_unittest)
+add_executable(BluePrint_unittest BluePrint_unittest.cc)
+target_link_libraries(BluePrint_unittest wfrest GTest::GTest)
+add_test(NAME BluePrint_unittest COMMAND BluePrint_unittest)
 
 add_executable(FileUtil_unittest FileUtil_unittest.cc)
 target_link_libraries(FileUtil_unittest wfrest GTest::GTest)

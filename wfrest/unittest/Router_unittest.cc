@@ -21,9 +21,9 @@ protected:
     // helper function
     void register_route(const std::string &route, const std::string &verb)
     {
-        router_.handle(route.c_str(), 0, [](const HttpReq* req, HttpResp* resp){
-            printf("test");
-        }, nullptr, str_to_verb(verb));    
+        router_.handle(route.c_str(), 0, [](const HttpReq* , HttpResp* , SeriesWork *) -> WFGoTask * {
+            return nullptr;
+        }, str_to_verb(verb)); 
     }
     
     void register_route_list(const RegRoutes &routes_list)
