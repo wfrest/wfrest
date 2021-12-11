@@ -56,9 +56,24 @@ void HttpServer::process(HttpTask *task)
 }
 
 
-void HttpServer::GET(const char *route, const Handler &handler)
+void HttpServer::GET(const char *route, const CustomHandler &custom_handler)
 {
-    blue_print_.GET(route, handler);
+    blue_print_.GET(route, custom_handler);
+}
+
+void HttpServer::GET(const char *route, int compute_queue_id, const CustomHandler &custom_handler)
+{
+    blue_print_.GET(route, compute_queue_id, custom_handler);
+}
+
+void HttpServer::POST(const char *route, const CustomHandler &custom_handler)
+{
+    blue_print_.POST(route, custom_handler);
+}
+
+void HttpServer::POST(const char *route, int compute_queue_id, const CustomHandler &custom_handler)
+{
+    blue_print_.POST(route, compute_queue_id, custom_handler);
 }
 
 void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
@@ -66,29 +81,14 @@ void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
     blue_print_.GET(route, series_handler);
 }
 
-void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
-{
-    blue_print_.GET(route, compute_queue_id, handler);
-}
-
 void HttpServer::GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
 {
     blue_print_.GET(route, compute_queue_id, series_handler);
 }
 
-void HttpServer::POST(const char *route, const Handler &handler)
-{
-    blue_print_.POST(route, handler);
-}
-
 void HttpServer::POST(const char *route, const SeriesHandler &series_handler)
 {
     blue_print_.POST(route, series_handler);
-}
-
-void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)
-{
-    blue_print_.POST(route, compute_queue_id, handler);
 }
 
 void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler)

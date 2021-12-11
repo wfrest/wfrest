@@ -33,14 +33,12 @@ static std::string get_peer_addr_str(HttpTask *server_task)
     return addrstr;
 }
 }  // namespace
-void Router::handle(const char *route, int compute_queue_id, const Handler &handler,
-                    const SeriesHandler &series_handler, Verb verb)
+void Router::handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb)
 {
     auto &vh = routes_map_[route];
     vh.verb = verb;
     vh.path = route;
     vh.handler = handler;
-    vh.series_handler = series_handler;
     vh.compute_queue_id = compute_queue_id;
 }
 
@@ -74,20 +72,11 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
                                                    << " | " << verb << " : " << route << " |";
                                       });
 
-            if (it->second.compute_queue_id == -1)
-            {
-                if (it->second.handler)
-                    it->second.handler(req, resp);
-                else
-                    it->second.series_handler(req, resp, series_of(server_task));
-            } else   // computing task
-            {
-                WFGoTask *go_task = WFTaskFactory::create_go_task(
-                        "wfrest" + std::to_string(it->second.compute_queue_id),
-                        it->second.handler,
-                        req, resp);
+            
+            WFGoTask * go_task = it->second.handler(req, resp, series_of(server_task));
+            if(go_task)
                 **server_task << go_task;
-            }
+
         } else
         {
             resp->set_status(HttpStatusNotFound);

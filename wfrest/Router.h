@@ -15,8 +15,7 @@ class HttpServerTask;
 class Router
 {
 public:
-    void handle(const char *route, int compute_queue_id, const Handler &handler,
-                const SeriesHandler &series_handler, Verb verb);
+    void handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb);
 
     void call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
 

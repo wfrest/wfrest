@@ -8,13 +8,13 @@ namespace wfrest
 class BluePrint
 {
 public:
-    void GET(const char *route, const Handler &handler);
+    void GET(const char *route, const CustomHandler &handler);
 
-    void GET(const char *route, int compute_queue_id, const Handler &handler);
+    void GET(const char *route, int compute_queue_id, const CustomHandler &handler);
 
-    void POST(const char *route, const Handler &handler);
+    void POST(const char *route, const CustomHandler &handler);
 
-    void POST(const char *route, int compute_queue_id, const Handler &handler);
+    void POST(const char *route, int compute_queue_id, const CustomHandler &handler);
 
 public:
     void GET(const char *route, const SeriesHandler &handler);
