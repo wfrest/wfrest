@@ -68,6 +68,7 @@ public:
 
     const std::map<std::string, std::string> &cookies() const;
 
+    const std::string &cookie(const std::string &key) const;
 public:
     void fill_content_type();
 

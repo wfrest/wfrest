@@ -46,5 +46,8 @@ target_link_libraries(14_blue_print wfrest)
 add_executable(15_serve_static_file 15_serve_static_file.cc)
 target_link_libraries(15_serve_static_file wfrest)
 
+add_executable(16_cookie_simple 16_cookie_simple.cc)
+target_link_libraries(16_cookie_simple wfrest)
+
 add_executable(16_cookie 16_cookie.cc)
 target_link_libraries(16_cookie wfrest)

@@ -45,7 +45,7 @@ public:
 
     HttpCookie &set_value(std::string &&value)
     {
-        value = std::move(value);
+        value_ = std::move(value);
         return *this;
     }
 

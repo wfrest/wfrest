@@ -201,6 +201,19 @@ const std::map<std::string, std::string> &HttpReq::cookies() const
     return cookies_;
 }
 
+const std::string &HttpReq::cookie(const std::string &key) const
+{
+    if(cookies_.empty()) 
+    {
+        this->cookies();
+    }
+    if(cookies_.find(key) != cookies_.end())
+    {
+        return cookies_[key];
+    }
+    return string_not_found;
+}
+
 void HttpResp::String(const std::string &str)
 {
     std::string compres_data = this->compress(str);

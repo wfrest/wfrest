@@ -65,10 +65,11 @@ CommMessageOut *HttpServerTask::message_out()
     // fiil cookie
     for(auto &cookie : resp->cookies_)
     {
+        std::string cookie_str = cookie.dump();
         header.name = "Set-Cookie";
         header.name_len = 10;
-        header.value = cookie.dump().c_str();
-        header.value_len = cookie.dump().size();
+        header.value = cookie_str.c_str();
+        header.value_len = cookie_str.size();
         resp->add_header(&header);
     }
 

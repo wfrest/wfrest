@@ -17,23 +17,42 @@ int main()
 
     HttpServer svr;
 
-    // curl --cookie "name=chanchan, passwd=123" "http://ip:port/cookie"
-    svr.GET("/cookie", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/login", [](const HttpReq *req, HttpResp *resp)
     {
-        const std::map<std::string, std::string> &cookie = req->cookies();
-        if(cookie.empty())  // no cookie
+        // set cookie
+        HttpCookie cookie;
+        cookie.set_key("user")
+                .set_value("chanchan")
+                .set_path("/")
+                .set_domain("localhost")
+                .set_http_only(true);
+
+        resp->add_cookie(std::move(cookie));
+        resp->set_status(HttpStatusOK);
+        resp->String("Login success");
+    });
+
+    svr.GET("/home", [](const HttpReq *req, HttpResp *resp)
+    {
+        const std::string &cookie_val = req->cookie("user");
+        if(cookie_val != "chanchan")
         {
-            HttpCookie cookie;
-            // What you can set :
-            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-            cookie.set_path("/").set_http_only(true);
-            resp->add_cookie(std::move(cookie));
-            resp->String("Set Cookie\n");
-        }
-        fprintf(stderr, "cookie :\n");
-        for(auto &c : cookie)
+            resp->set_status(HttpStatusUnauthorized);
+            std::string err = R"(
+            {
+                "error": "Unauthorized"
+            }
+            )";
+            resp->Json(err);
+        } else
         {
-            fprintf(stderr, "%s : %s\n", c.first.c_str(), c.second.c_str());
+            resp->set_status(HttpStatusOK);
+            std::string success = R"(
+            {
+                "home": "data"
+            }
+            )";
+            resp->Json(success);
         }
     });
 
