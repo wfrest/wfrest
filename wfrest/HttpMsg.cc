@@ -9,6 +9,9 @@
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
+#include "wfrest/HttpCookie.h"
+
+using namespace wfrest;
 
 using Json = nlohmann::json;
 
@@ -25,33 +28,32 @@ struct ReqData
 
 } // namespace wfrest
 
-using namespace wfrest;
 
-
-HttpReq::HttpReq() : req_data_(new ReqData) {}
+HttpReq::HttpReq() : req_data_(new ReqData)
+{}
 
 HttpReq::~HttpReq()
 {
     delete req_data_;
 }
 
-std::string& HttpReq::body() const
+std::string &HttpReq::body() const
 {
-    if(req_data_->body.empty())
+    if (req_data_->body.empty())
     {
         std::string content = protocol::HttpUtil::decode_chunked_body(this);
 
         std::string header = this->header("Content-Encoding");
-        if (header.find("gzip") != std::string::npos) 
+        if (header.find("gzip") != std::string::npos)
         {
             LOG_DEBUG << "Ungzip ReqData";
             req_data_->body = Compressor::ungzip(content.c_str(), content.size());
-        } else if(header.find("br") != std::string::npos)
+        } else if (header.find("br") != std::string::npos)
         {
             LOG_DEBUG << "UnBrotli ReqData";
             // not implement yet
             req_data_->body = Compressor::unbrotli(content.c_str(), content.size());
-        } else 
+        } else
         {
             req_data_->body = std::move(content);
         }
@@ -61,7 +63,7 @@ std::string& HttpReq::body() const
 
 std::map<std::string, std::string> &HttpReq::form_kv() const
 {
-    if(content_type_ == APPLICATION_URLENCODED && req_data_->form_kv.empty())
+    if (content_type_ == APPLICATION_URLENCODED && req_data_->form_kv.empty())
     {
         StringPiece body_piece(this->body());
         req_data_->form_kv = Urlencode::parse_post_kv(body_piece);
@@ -71,7 +73,7 @@ std::map<std::string, std::string> &HttpReq::form_kv() const
 
 Form &HttpReq::form() const
 {
-    if(content_type_ == MULTIPART_FORM_DATA && req_data_->form.empty())
+    if (content_type_ == MULTIPART_FORM_DATA && req_data_->form.empty())
     {
         StringPiece body_piece(this->body());
         req_data_->form = multi_part_.parse_multipart(body_piece);
@@ -81,9 +83,9 @@ Form &HttpReq::form() const
 
 Json &HttpReq::json() const
 {
-    if(content_type_ == APPLICATION_JSON && req_data_->json.empty())
+    if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
-        const std::string& body_content = this->body();
+        const std::string &body_content = this->body();
         if (!Json::accept(body_content))
         {
             LOG_ERROR << "Json is invalid";
@@ -97,7 +99,7 @@ Json &HttpReq::json() const
 
 const std::string &HttpReq::param(const std::string &key) const
 {
-    if(route_params_.count(key))
+    if (route_params_.count(key))
         return route_params_.at(key);
     else
         return string_not_found;
@@ -110,7 +112,7 @@ bool HttpReq::has_param(const std::string &key) const
 
 const std::string &HttpReq::query(const std::string &key) const
 {
-    if(query_params_.count(key))
+    if (query_params_.count(key))
         return query_params_.at(key);
     else
         return string_not_found;
@@ -156,7 +158,7 @@ void HttpReq::fill_content_type()
     }
 }
 
-const std::string &HttpReq::header(const std::string& key) const
+const std::string &HttpReq::header(const std::string &key) const
 {
     const auto it = headers_.find(key);
 
@@ -189,10 +191,21 @@ void HttpReq::fill_header_map()
     http_header_cursor_deinit(&cursor);
 }
 
+const std::map<std::string, std::string> &HttpReq::cookies() const
+{
+    if (cookies_.empty() && this->has_header("Cookie"))
+    {
+        const std::string &cookie = this->header("Cookie");
+        StringPiece cookie_piece(cookie);
+        cookies_ = std::move(HttpCookie::split(cookie_piece));
+    }
+    return cookies_;
+}
+
 void HttpResp::String(const std::string &str)
 {
     std::string compres_data = this->compress(str);
-    if(compres_data.empty())
+    if (compres_data.empty())
     {
         this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
     } else
@@ -204,7 +217,7 @@ void HttpResp::String(const std::string &str)
 void HttpResp::String(std::string &&str)
 {
     std::string compres_data = this->compress(str);
-    if(compres_data.empty())
+    if (compres_data.empty())
     {
         this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
     } else
@@ -213,15 +226,15 @@ void HttpResp::String(std::string &&str)
     }
 }
 
-std::string HttpResp::compress(const std::string& str)
+std::string HttpResp::compress(const std::string &str)
 {
     std::string compress_data;
-    if(headers_.find("Content-Encoding") != headers_.end())
+    if (headers_.find("Content-Encoding") != headers_.end())
     {
-        if(headers_["Content-Encoding"].find("gzip") != std::string::npos)
+        if (headers_["Content-Encoding"].find("gzip") != std::string::npos)
         {
             compress_data = Compressor::gzip(str.c_str(), str.size());
-        } else if(headers_["Content-Encoding"].find("br") != std::string::npos)
+        } else if (headers_["Content-Encoding"].find("br") != std::string::npos)
         {
             compress_data = Compressor::brotli(str.c_str(), str.size());
         }

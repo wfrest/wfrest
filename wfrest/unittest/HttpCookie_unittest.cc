@@ -11,19 +11,43 @@ TEST(HttpCookie, dump)
 
     EXPECT_EQ(cookie.dump(), "Set-Cookie: user=wfrest\r\n");
 
-    cookie.set_secure(true);
-    cookie.set_path("/");
+    cookie.set_secure(true).set_path("/");
 
     EXPECT_EQ(cookie.dump(), "Set-Cookie: user=wfrest; Path=/; Secure\r\n");
 
     cookie.set_expires(Timestamp(1639279032782231L));
 
     EXPECT_EQ(cookie.dump(), "Set-Cookie: user=wfrest; Expires=Sun, 12 Dec 2021 11:17:12 GMT; Path=/; Secure\r\n");
-    
+
+}
+
+TEST(HttpCookie, split)
+{
+    StringPiece cookie("user=chanchan,passwd=123");
+    std::map<std::string, std::string> res = HttpCookie::split(cookie);
+    auto it = res.begin();
+    EXPECT_EQ("passwd", it->first);
+    EXPECT_EQ("123", it->second);
+    it++;
+    EXPECT_EQ("user", it->first);
+    EXPECT_EQ("chanchan", it->second);
+}
+
+TEST(HttpCookie, split_trim)
+{
+    StringPiece cookie("  user  =  chanchan ,  passwd = 123    ");
+    std::map<std::string, std::string> res = HttpCookie::split(cookie);
+    auto it = res.begin();
+    EXPECT_EQ("passwd", it->first);
+    EXPECT_EQ("123", it->second);
+    it++;
+    EXPECT_EQ("user", it->first);
+    EXPECT_EQ("chanchan", it->second);
 }
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

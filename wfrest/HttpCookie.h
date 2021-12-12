@@ -2,7 +2,9 @@
 #define WFREST_HTTPCOOKIE_H_
 
 #include <string>
+#include <map>
 #include "wfrest/Timestamp.h"
+#include "wfrest/StringPiece.h"
 
 namespace wfrest
 {
@@ -15,80 +17,119 @@ class HttpCookie
 {
 public:
     // Check if the cookie is empty
-    operator bool() const
+    explicit operator bool() const
     { return (!key_.empty()) && (!value_.empty()); }
 
     std::string dump() const;
 
-public:
-    void set_key(const std::string &key)
-    { key_ = key; }
-
-    void set_key(const std::string &&key)
-    { key_ = std::move(key); }
-
-    void set_value(const std::string &value)
-    { value_ = value; }
-
-    void set_value(std::string &&value)
-    { value = std::move(value); }
-
-    void set_domain(const std::string &domain)
-    { domain_ = domain; }
-
-    void set_domain(std::string &&domain)
-    { domain_ = std::move(domain); }
-
-    void set_path(const std::string &path)
-    { path_ = path; }
-
-    void set_path(std::string &&path)
-    { path_ = std::move(path); }  
-
-    void set_expires(const Timestamp &expires)
-    { expires_ = expires; }
-
-    void set_max_age(int max_age) 
-    { max_age_ = max_age; }
-
-    void set_secure(bool secure)
-    { secure_ = secure; }
-
-    void set_http_only(bool http_only)
-    { http_only_ = http_only; }
+    static std::map<std::string, std::string> split(const StringPiece &cookie_piece);
 
 public:
-    const std::string &key() const 
+    HttpCookie &set_key(const std::string &key)
+    {
+        key_ = key;
+        return *this;
+    }
+
+    HttpCookie &set_key(std::string &&key)
+    {
+        key_ = std::move(key);
+        return *this;
+    }
+
+    HttpCookie &set_value(const std::string &value)
+    {
+        value_ = value;
+        return *this;
+    }
+
+    HttpCookie &set_value(std::string &&value)
+    {
+        value = std::move(value);
+        return *this;
+    }
+
+    HttpCookie &set_domain(const std::string &domain)
+    {
+        domain_ = domain;
+        return *this;
+    }
+
+    HttpCookie &set_domain(std::string &&domain)
+    {
+        domain_ = std::move(domain);
+        return *this;
+    }
+
+    HttpCookie &set_path(const std::string &path)
+    {
+        path_ = path;
+        return *this;
+    }
+
+    HttpCookie &set_path(std::string &&path)
+    {
+        path_ = std::move(path);
+        return *this;
+    }
+
+    HttpCookie &set_expires(const Timestamp &expires)
+    {
+        expires_ = expires;
+        return *this;
+    }
+
+    HttpCookie &set_max_age(int max_age)
+    {
+        max_age_ = max_age;
+        return *this;
+    }
+
+    HttpCookie &set_secure(bool secure)
+    {
+        secure_ = secure;
+        return *this;
+    }
+
+    HttpCookie &set_http_only(bool http_only)
+    {
+        http_only_ = http_only;
+        return *this;
+    }
+
+public:
+    const std::string &key() const
     { return key_; }
-    
+
     const std::string &value() const
     { return value_; }
 
-    const std::string &domain() const 
+    const std::string &domain() const
     { return domain_; }
 
-    const std::string &path() const 
+    const std::string &path() const
     { return path_; }
 
-    const Timestamp &expires() const 
+    const Timestamp &expires() const
     { return expires_; }
 
-    int max_age() const 
+    int max_age() const
     { return max_age_; }
 
-    bool is_secure()
+    bool is_secure() const
     { return secure_; }
 
-    bool is_http_only()
+    bool is_http_only() const
     { return http_only_; }
+
 
 public:
     HttpCookie(const std::string &key, const std::string &value)
-        : key_(key), value_(value) 
+            : key_(key), value_(value)
     {}
 
-    HttpCookie(const std::string &&key, const std::string &&value)
-        : key_(std::move(key)), value_(std::move(value))
+    HttpCookie(std::string &&key, std::string &&value)
+            : key_(std::move(key)), value_(std::move(value))
     {}
 
     HttpCookie() = default;

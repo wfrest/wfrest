@@ -23,6 +23,7 @@ public:
 
     template<class OutputStringType>
     static std::vector<OutputStringType> split_piece(const StringPiece &str, char sep);
+    
 
 private:
     static const std::string k_pairs_;

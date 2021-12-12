@@ -57,7 +57,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     if (!route2.empty() and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
 
-    RouteParams route_params;
+    std::map<std::string, std::string> route_params;
     std::string route_match_path;
     auto it = routes_map_.find(route2, route_params, route_match_path);
 

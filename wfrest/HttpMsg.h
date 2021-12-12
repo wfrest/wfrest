@@ -18,16 +18,8 @@
 namespace wfrest
 {
 
-using RouteParams = std::map<std::string, std::string>;
-using QueryParams = std::map<std::string, std::string>;
-using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
-
-class HttpReq;
-
-class HttpResp;
-
-using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 using Json = nlohmann::json;
+
 struct ReqData;
 
 class HttpReq : public protocol::HttpRequest
@@ -45,9 +37,9 @@ public:
     http_content_type content_type() const
     { return content_type_; }
 
-    const std::string &header(const std::string& key) const;
+    const std::string &header(const std::string &key) const;
 
-    bool has_header(const std::string& key) const;
+    bool has_header(const std::string &key) const;
 
     const std::string &param(const std::string &key) const;
 
@@ -58,19 +50,22 @@ public:
 
     const std::string &query(const std::string &key) const;
 
-    const std::string &default_query(const std::string &key, const std::string &default_val) const;
+    const std::string &default_query(const std::string &key,
+                                     const std::string &default_val) const;
 
-    const QueryParams &query_list() const
+    const std::map<std::string, std::string> &query_list() const
     { return query_params_; }
 
     bool has_query(const std::string &key) const;
 
     const std::string &match_path() const
     { return route_match_path_; }
-    
+
     // handler define path
     const std::string &full_path() const
     { return route_full_path_; }
+
+    const std::map<std::string, std::string> &cookies() const;
 
 public:
     void fill_content_type();
@@ -78,7 +73,7 @@ public:
     void fill_header_map();
 
     // /{name}/{id} params in route
-    void set_route_params(RouteParams &&params)
+    void set_route_params(std::map<std::string, std::string> &&params)
     { route_params_ = std::move(params); }
 
     // /match*  
@@ -89,7 +84,7 @@ public:
     void set_full_path(const std::string &route_full_path)
     { route_full_path_ = route_full_path; }
 
-    void set_query_params(QueryParams &&query_params)
+    void set_query_params(std::map<std::string, std::string> &&query_params)
     { query_params_ = std::move(query_params); }
 
 public:
@@ -98,12 +93,19 @@ public:
     ~HttpReq();
 
 private:
+    // todo : check wf src code here
+    using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
+
     http_content_type content_type_;
     ReqData *req_data_;
-    RouteParams route_params_;
+
     std::string route_match_path_;
     std::string route_full_path_;
-    QueryParams query_params_;
+
+    std::map<std::string, std::string> route_params_;
+    std::map<std::string, std::string> query_params_;
+    mutable std::map<std::string, std::string> cookies_;
+
     MultiPartForm multi_part_;
     HeaderMap headers_;
 };
@@ -175,6 +177,7 @@ public:
     std::map<std::string, std::string, MapStringCaseLess> headers_;
 };
 
+using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
 } // namespace wfrest
 
