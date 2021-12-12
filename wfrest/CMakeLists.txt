@@ -42,7 +42,6 @@ set(HEADERS
         StringPiece.h
         PathUtil.h
         base64.h
-        BluePrint.h
         FileUtil.h
   )
 

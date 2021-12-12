@@ -13,6 +13,13 @@ jobs:
 
     steps:
 
+    - name : Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Asia/Shanghai"
+        timezoneMacos: "Asia/Shanghai"
+        timezoneWindows: "Shanghai Standard Time"
+
     - name: Install dependencies
       run: |
         sudo apt-get update
