@@ -14,6 +14,7 @@
 #include "wfrest/Compress.h"
 #include "wfrest/json_fwd.hpp"
 #include "wfrest/StrUtil.h"
+#include "wfrest/HttpCookie.h"
 
 namespace wfrest
 {
@@ -170,11 +171,18 @@ public:
     // Compress
     void set_compress(const Compress &compress);
 
+    void add_cookie(HttpCookie &&cookie)
+    { cookies_.emplace_back(std::move(cookie)); }
+
+    void add_cookie(const HttpCookie &cookie)
+    { cookies_.push_back(cookie); }
+
 private:
     std::string compress(const std::string &str);
 
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers_;
+    std::vector<HttpCookie> cookies_;
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

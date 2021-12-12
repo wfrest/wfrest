@@ -62,6 +62,15 @@ CommMessageOut *HttpServerTask::message_out()
         header.value_len = header_kv.second.size();
         resp->add_header(&header);
     }
+    // fiil cookie
+    for(auto &cookie : resp->cookies_)
+    {
+        header.name = "Set-Cookie";
+        header.name_len = 10;
+        header.value = cookie.dump().c_str();
+        header.value_len = cookie.dump().size();
+        resp->add_header(&header);
+    }
 
     if (!resp->get_http_version())
         resp->set_http_version("HTTP/1.1");

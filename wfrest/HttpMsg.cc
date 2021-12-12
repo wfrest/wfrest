@@ -9,7 +9,6 @@
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
-#include "wfrest/HttpCookie.h"
 
 using namespace wfrest;
 

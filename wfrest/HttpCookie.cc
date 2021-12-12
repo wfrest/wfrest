@@ -56,8 +56,8 @@ std::map<std::string, std::string> HttpCookie::split(const StringPiece &cookie_p
 
 std::string HttpCookie::dump() const
 {
-    std::string ret = "Set-Cookie: ";
-    ret.reserve(ret.size() + key_.size() + value_.size() + 30);
+    std::string ret;
+    ret.reserve(key_.size() + value_.size() + 30);
     ret.append(key_).append("=").append(value_).append("; ");
     // If both Expires and Max-Age are set, Max-Age has precedence.
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie

@@ -21,6 +21,16 @@ int main()
     svr.GET("/cookie", [](const HttpReq *req, HttpResp *resp)
     {
         const std::map<std::string, std::string> &cookie = req->cookies();
+        if(cookie.empty())  // no cookie
+        {
+            HttpCookie cookie;
+            // What you can set :
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+            cookie.set_path("/").set_http_only(true);
+            resp->add_cookie(std::move(cookie));
+            resp->String("Set Cookie\n");
+        }
+        fprintf(stderr, "cookie :\n");
         for(auto &c : cookie)
         {
             fprintf(stderr, "%s : %s\n", c.first.c_str(), c.second.c_str());
