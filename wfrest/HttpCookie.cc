@@ -20,7 +20,6 @@ std::string HttpCookie::dump() const
             .append(expires_.to_format_str("%a, %d %b %Y %H:%M:%S GMT"))
             .append("; ");
     }
-
     if (!domain_.empty())
     {
         ret.append("Domain=").append(domain_).append("; ");

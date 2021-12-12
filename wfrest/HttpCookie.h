@@ -99,9 +99,9 @@ private:
     std::string domain_;
     std::string path_;
     Timestamp expires_;
-    int max_age_;
-    bool secure_;
-    bool http_only_;
+    int max_age_ = 0;
+    bool secure_ = false;
+    bool http_only_ = false;
 };
 
 } // namespace wfrest

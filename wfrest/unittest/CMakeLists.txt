@@ -30,4 +30,8 @@ add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
 target_link_libraries(TimeStamp_unittest wfrest GTest::GTest)
 add_test(NAME TimeStamp_unittest COMMAND TimeStamp_unittest)
 
+add_executable(HttpCookie_unittest HttpCookie_unittest.cc)
+target_link_libraries(HttpCookie_unittest wfrest GTest::GTest)
+add_test(NAME HttpCookie_unittest COMMAND HttpCookie_unittest)
+
 

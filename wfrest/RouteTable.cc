@@ -1,10 +1,8 @@
 #include "wfrest/RouteTable.h"
 #include "Logger.h"
 
-namespace wfrest
-{
-namespace detail
-{
+using namespace wfrest;
+
 RouteTableNode::~RouteTableNode()
 {
     for (auto &child: children_)
@@ -107,7 +105,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     return end();
 }
 
-}   // namespace detail
+
 
 VerbHandler &RouteTable::operator[](const char *route)
 {
@@ -127,5 +125,3 @@ RouteTable::~RouteTable()
     }
 }
 
-
-}  // namespace wfrest

@@ -14,8 +14,7 @@
 
 namespace wfrest
 {
-namespace detail
-{
+
 class RouteTableNode
 {
 public:
@@ -72,8 +71,6 @@ void RouteTableNode::all_routes(const Func &func, std::string prefix) const
     }
 }
 
-} // namespace detail
-
 class RouteTable
 {
 public:
@@ -81,7 +78,7 @@ public:
     VerbHandler &operator[](const char *route);
 
     // todo : this interface is not very good
-    detail::RouteTableNode::iterator find(const StringPiece &route, 
+    RouteTableNode::iterator find(const StringPiece &route, 
                                         OUT RouteParams &route_params,
                                         OUT std::string &route_match_path) const
     { return root_.find(route, 0, route_params, route_match_path); }
@@ -90,13 +87,13 @@ public:
     void all_routes(const Func &func) const
     { root_.all_routes(func, ""); }
 
-    detail::RouteTableNode::iterator end() const
+    RouteTableNode::iterator end() const
     { return root_.end(); }
 
     ~RouteTable();
     
 private:
-    detail::RouteTableNode root_;
+    RouteTableNode root_;
     std::vector<std::string *> strings; 
 };
 

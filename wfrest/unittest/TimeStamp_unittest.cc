@@ -6,7 +6,7 @@ using namespace wfrest;
 
 TEST(Timestamp, format_str)
 {
-    Timestamp ts(1639279032782231);
+    Timestamp ts(1639279032782231L);
     
     EXPECT_EQ("2021-12-12 11:17:12", ts.to_format_str());
 
