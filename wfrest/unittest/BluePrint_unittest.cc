@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <unordered_map>
 #include "wfrest/BluePrint.h"
+#include "wfrest/Router.h"
 
 using namespace wfrest;
 

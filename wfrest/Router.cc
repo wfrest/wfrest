@@ -1,4 +1,7 @@
+#include "workflow/HttpUtil.h"
+
 #include <arpa/inet.h>
+
 #include "wfrest/Router.h"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/Logger.h"
@@ -33,7 +36,8 @@ static std::string get_peer_addr_str(HttpTask *server_task)
     return addrstr;
 }
 }  // namespace
-void Router::handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb)
+
+void Router::handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb)
 {
     auto &vh = routes_map_[route];
     vh.verb = verb;

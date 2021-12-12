@@ -7,10 +7,6 @@
 namespace wfrest
 {
 
-using CustomHandler = std::function<void(HttpReq * , HttpResp *)>;
-using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
-using Handler = std::function<WFGoTask *(HttpReq * , HttpResp *, SeriesWork *)>;
-
 enum class Verb
 {
     ANY, GET, POST, PUT, DELETE
@@ -48,10 +44,12 @@ inline const char *verb_to_str(const Verb &verb)
     }
 }
 
+using WrapHandler = std::function<WFGoTask *(HttpReq * , HttpResp *, SeriesWork *)>;
+
 struct VerbHandler
 {
     Verb verb = Verb::GET;
-    Handler handler;
+    WrapHandler handler;
     std::string path;
     int compute_queue_id;
 };

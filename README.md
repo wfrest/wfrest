@@ -20,8 +20,8 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Save File](#save-file)
       - [Upload Files](#upload-files)
       - [Json](#json)
-      - [Computing Handler](#computing-handler)
-      - [Series Handler](#series-handler)
+      - [Computing WrapHandler](#computing-handler)
+      - [Series WrapHandler](#series-handler)
       - [Compression](#compression)
       - [BluePrint](#blueprint)
       - [Serving static files](#serving-static-files)
@@ -555,7 +555,7 @@ int main()
 }
 ```
 
-### Computing Handler
+### Computing WrapHandler
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -604,7 +604,7 @@ int main()
 }
 ```
 
-### Series Handler
+### Series WrapHandler
 
 ```cpp
 #include "wfrest/HttpServer.h"

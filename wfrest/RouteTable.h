@@ -11,7 +11,6 @@
 #include "wfrest/StringPiece.h"
 #include "wfrest/Macro.h"
 #include "wfrest/VerbHandler.h"
-#include "Logger.h"
 
 namespace wfrest
 {

@@ -2,6 +2,7 @@
 #define WFREST_HTTPSERVER_H_
 
 #include "workflow/WFHttpServer.h"
+#include "workflow/HttpUtil.h"
 
 #include <unordered_map>
 #include <string>
@@ -19,13 +20,13 @@ public:
             WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
 
-    void GET(const char *route, const CustomHandler &handler);
+    void GET(const char *route, const Handler &handler);
 
-    void GET(const char *route, int compute_queue_id, const CustomHandler &handler);
+    void GET(const char *route, int compute_queue_id, const Handler &handler);
 
-    void POST(const char *route, const CustomHandler &handler);
+    void POST(const char *route, const Handler &handler);
 
-    void POST(const char *route, int compute_queue_id, const CustomHandler &handler);
+    void POST(const char *route, int compute_queue_id, const Handler &handler);
 
 public:
     void GET(const char *route, const SeriesHandler &handler);

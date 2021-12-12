@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "workflow/HttpMessage.h"
 
 namespace wfrest
 {

@@ -26,4 +26,8 @@ add_executable(FileUtil_unittest FileUtil_unittest.cc)
 target_link_libraries(FileUtil_unittest wfrest GTest::GTest)
 add_test(NAME FileUtil_unittest COMMAND FileUtil_unittest)
 
+add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
+target_link_libraries(TimeStamp_unittest wfrest GTest::GTest)
+add_test(NAME TimeStamp_unittest COMMAND TimeStamp_unittest)
+
 

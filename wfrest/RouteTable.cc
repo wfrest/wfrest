@@ -1,4 +1,5 @@
 #include "wfrest/RouteTable.h"
+#include "Logger.h"
 
 namespace wfrest
 {

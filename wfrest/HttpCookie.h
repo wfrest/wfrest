@@ -2,22 +2,23 @@
 #define WFREST_HTTPCOOKIE_H_
 
 #include <string>
+#include "wfrest/Timestamp.h"
 
 namespace wfrest
 {
 
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
+
 class HttpCookie
 {
 public:
-    HttpCookie(const std::string &key, const std::string &value)
-        : key_(key), value_(value) 
-    {}
+    // Check if the cookie is empty
+    operator bool() const
+    { return (!key_.empty()) && (!value_.empty()); }
 
-    HttpCookie(const std::string &&key, const std::string &&value)
-        : key_(std::move(key)), value_(std::move(value))
-    {}
-
-    HttpCookie() = default;
+    std::string dump() const;
 
 public:
     void set_key(const std::string &key)
@@ -44,6 +45,9 @@ public:
     void set_path(std::string &&path)
     { path_ = std::move(path); }  
 
+    void set_expires(const Timestamp &expires)
+    { expires_ = expires; }
+
     void set_max_age(int max_age) 
     { max_age_ = max_age; }
 
@@ -66,6 +70,9 @@ public:
     const std::string &path() const 
     { return path_; }
 
+    const Timestamp &expires() const 
+    { return expires_; }
+
     int max_age() const 
     { return max_age_; }
 
@@ -75,11 +82,23 @@ public:
     bool is_http_only()
     { return http_only_; }
 
+public:
+    HttpCookie(const std::string &key, const std::string &value)
+        : key_(key), value_(value) 
+    {}
+
+    HttpCookie(const std::string &&key, const std::string &&value)
+        : key_(std::move(key)), value_(std::move(value))
+    {}
+
+    HttpCookie() = default;
+
 private:
     std::string key_;
     std::string value_;
     std::string domain_;
     std::string path_;
+    Timestamp expires_;
     int max_age_;
     bool secure_;
     bool http_only_;

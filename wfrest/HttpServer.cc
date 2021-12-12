@@ -1,4 +1,3 @@
-#include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
 
 #include <utility>
@@ -10,6 +9,7 @@
 #include "wfrest/HttpFile.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/Macro.h"
+#include "wfrest/Router.h"
 
 using namespace wfrest;
 
@@ -56,24 +56,24 @@ void HttpServer::process(HttpTask *task)
 }
 
 
-void HttpServer::GET(const char *route, const CustomHandler &custom_handler)
+void HttpServer::GET(const char *route, const Handler &handler)
 {
-    blue_print_.GET(route, custom_handler);
+    blue_print_.GET(route, handler);
 }
 
-void HttpServer::GET(const char *route, int compute_queue_id, const CustomHandler &custom_handler)
+void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
 {
-    blue_print_.GET(route, compute_queue_id, custom_handler);
+    blue_print_.GET(route, compute_queue_id, handler);
 }
 
-void HttpServer::POST(const char *route, const CustomHandler &custom_handler)
+void HttpServer::POST(const char *route, const Handler &handler)
 {
-    blue_print_.POST(route, custom_handler);
+    blue_print_.POST(route, handler);
 }
 
-void HttpServer::POST(const char *route, int compute_queue_id, const CustomHandler &custom_handler)
+void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)
 {
-    blue_print_.POST(route, compute_queue_id, custom_handler);
+    blue_print_.POST(route, compute_queue_id, handler);
 }
 
 void HttpServer::GET(const char *route, const SeriesHandler &series_handler)

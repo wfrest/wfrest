@@ -20,6 +20,7 @@ set(SRCS
         base64.cc
         BluePrint.cc
         FileUtil.cc
+        # HttpCookie.cc
         )
 
 add_library(wfrest ${SRCS})
