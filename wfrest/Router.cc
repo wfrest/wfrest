@@ -71,7 +71,6 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
                                           LOG_INFO << "| " << get_peer_addr_str(server_task)
                                                    << " | " << verb << " : " << route << " |";
                                       });
-
             
             WFGoTask * go_task = it->second.handler(req, resp, series_of(server_task));
             if(go_task)
