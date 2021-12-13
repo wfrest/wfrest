@@ -1,7 +1,9 @@
-#include "wfrest/HttpServerTask.h"
-#include "wfrest/StrUtil.h"
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
+
+#include "wfrest/HttpServerTask.h"
+#include "wfrest/StrUtil.h"
+#include "wfrest/Logger.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -51,10 +53,20 @@ CommMessageOut *HttpServerTask::message_out()
 {
     HttpResp *resp = this->get_resp();
 
+    std::map<std::string, std::string, MapStringCaseLess> &headers = resp->headers_;
+    // content type
+    if(headers.find("Content-Type") == headers.end())
+    {
+        headers["Content-Type"] = "text/plain";
+    }
+    if(headers.find("Date") == headers.end())
+    {
+        headers["Date"] = Timestamp::now().to_format_str("%a, %d %b %Y %H:%M:%S GMT");
+    }
     struct HttpMessageHeader header;
 
     // fill headers we set
-    for(auto &header_kv : resp->headers_)
+    for(auto &header_kv : headers)
     {
         header.name = header_kv.first.c_str();
         header.name_len = header_kv.first.size();
@@ -62,7 +74,7 @@ CommMessageOut *HttpServerTask::message_out()
         header.value_len = header_kv.second.size();
         resp->add_header(&header);
     }
-    // fiil cookie
+    // fill cookie
     for(auto &cookie : resp->cookies_)
     {
         std::string cookie_str = cookie.dump();
@@ -70,6 +82,7 @@ CommMessageOut *HttpServerTask::message_out()
         header.name_len = 10;
         header.value = cookie_str.c_str();
         header.value_len = cookie_str.size();
+        LOG_INFO << cookie_str;
         resp->add_header(&header);
     }
 
@@ -88,7 +101,7 @@ CommMessageOut *HttpServerTask::message_out()
 
         HttpUtil::set_response_status(resp, status_code);
     }
-
+    
     if (!resp->is_chunked() && !resp->has_content_length_header())
     {
         char buf[32];
@@ -170,7 +183,6 @@ CommMessageOut *HttpServerTask::message_out()
 
         resp->add_header(&header);
     }
-
     return this->WFServerTask::message_out();
 }
 

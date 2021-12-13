@@ -95,9 +95,8 @@ public:
     ~HttpReq();
 
 private:
-    // todo : check wf src code here
     using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
-
+    
     http_content_type content_type_;
     ReqData *req_data_;
 

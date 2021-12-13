@@ -88,7 +88,6 @@ std::string HttpCookie::dump() const
     {
         ret.append("HttpOnly; ");
     }
-    ret.resize(ret.length() - 2);  // delete last semicolon
-    ret.append("\r\n");
+    ret.resize(ret.length() - 2);  
     return ret;
 }

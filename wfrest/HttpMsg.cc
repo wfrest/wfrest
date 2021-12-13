@@ -9,6 +9,7 @@
 #include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
+#include "wfrest/HttpServerTask.h"
 
 using namespace wfrest;
 
@@ -229,13 +230,16 @@ void HttpResp::String(const std::string &str)
 void HttpResp::String(std::string &&str)
 {
     std::string compres_data = this->compress(str);
+    std::string *data = new std::string;
     if (compres_data.empty())
     {
-        this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
+        *data = std::move(str);
     } else
     {
-        this->append_output_body(static_cast<const void *>(compres_data.c_str()), compres_data.size());
+        *data = std::move(compres_data);
     }
+    this->append_output_body_nocopy(data->c_str(), data->size());
+    task_of(this)->add_callback([data](HttpTask *) { delete data; });
 }
 
 std::string HttpResp::compress(const std::string &str)

@@ -23,7 +23,7 @@ int main()
         HttpCookie cookie;
         cookie.set_key("user")
                 .set_value("chanchan")
-                .set_path("/")
+                .set_path("/")  
                 .set_domain("localhost")
                 .set_http_only(true);
 
