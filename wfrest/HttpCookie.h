@@ -13,6 +13,26 @@ namespace wfrest
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 
+enum class SameSite
+{
+    DEFAULT, STRICT, LAX, NONE
+};
+
+inline const char *same_site_to_str(SameSite same_site)
+{
+    switch (same_site)
+    {
+        case SameSite::STRICT:
+            return "Strict";
+        case SameSite::LAX:
+            return "Lax";
+        case SameSite::NONE:
+            return "None";
+        default:
+            return "";
+    }
+}
+
 class HttpCookie
 {
 public:
@@ -97,6 +117,12 @@ public:
         return *this;
     }
 
+    HttpCookie &set_same_site(SameSite same_site)
+    {
+        same_site_ = same_site;
+        return *this;
+    }
+
 public:
     const std::string &key() const
     { return key_; }
@@ -110,7 +136,7 @@ public:
     const std::string &path() const
     { return path_; }
 
-    const Timestamp &expires() const
+    Timestamp expires() const
     { return expires_; }
 
     int max_age() const
@@ -122,6 +148,8 @@ public:
     bool is_http_only() const
     { return http_only_; }
 
+    SameSite same_site() const
+    { return same_site_; }
 
 public:
     HttpCookie(const std::string &key, const std::string &value)
@@ -139,10 +167,13 @@ private:
     std::string value_;
     std::string domain_;
     std::string path_;
+
     Timestamp expires_;
     int max_age_ = 0;
     bool secure_ = false;
     bool http_only_ = false;
+
+    SameSite same_site_ = SameSite::DEFAULT;
 };
 
 } // namespace wfrest

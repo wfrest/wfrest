@@ -88,6 +88,17 @@ std::string HttpCookie::dump() const
     {
         ret.append("HttpOnly; ");
     }
+    std::string same_site = same_site_to_str(same_site_);
+    if(!same_site.empty())
+    {
+        ret.append("SameSite=").append(same_site).append("; ");
+    }
+    // Cookies with SameSite=None must now also specify 
+    // the Secure attribute (they require a secure context/HTTPS).
+    if(same_site == "None" && !secure_)
+    {
+        ret.append("Secure; ");
+    } 
     ret.resize(ret.length() - 2);  
     return ret;
 }

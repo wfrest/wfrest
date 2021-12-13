@@ -21,6 +21,16 @@ TEST(HttpCookie, dump)
 
 }
 
+TEST(HttpCookie, same_site)
+{
+    HttpCookie cookie("user", "wfrest");
+    cookie.set_domain("/")
+            .set_max_age(1000)
+            .set_same_site(SameSite::NONE);
+
+    EXPECT_EQ(cookie.dump(), "user=wfrest; Max-Age=1000; Domain=/; SameSite=None; Secure");
+}
+
 TEST(HttpCookie, split)
 {
     StringPiece cookie("user=chanchan,passwd=123");
