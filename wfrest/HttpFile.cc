@@ -39,7 +39,6 @@ void pread_callback(WFFileIOTask *pread_task)
     }
 }
 
-
 struct pread_multi_context
 {
     std::string file_name;
@@ -68,7 +67,7 @@ std::string build_multipart_start(const std::string &file_name, int idx)
     const char *suffix = strrchr(file_name.c_str(), '.');
     if (suffix)
     {
-        std::string stype = ContentType::to_string_by_suffix(++suffix);
+        std::string stype = ContentType::to_str_by_suffix(++suffix);
         if (!stype.empty())
         {
             str.append("\r\n");
@@ -164,6 +163,18 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
     {
         return;
     }
+
+    http_content_type content_type = CONTENT_TYPE_NONE;
+    std::string suffix = PathUtil::suffix(path);
+    if(!suffix.empty())
+    {
+        content_type = ContentType::to_enum_by_suffix(suffix);
+    }
+    if (content_type == CONTENT_TYPE_NONE || content_type == CONTENT_TYPE_UNDEFINED) {
+        content_type = APPLICATION_OCTET_STREAM;
+    }
+    resp->headers_["Content-Type"] = ContentType::to_str(content_type);
+
     size_t size = end - start;
     void *buf = malloc(size);
     server_task->add_callback([buf](HttpTask *server_task)
@@ -172,10 +183,10 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                               });
     // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
     // Content-Range: bytes 42-1233/1234
-    resp->add_header_pair("Content-Range",
-                          "bytes " + std::to_string(start)
-                          + "-" + std::to_string(end)
-                          + "/" + std::to_string(size));
+    resp->headers_["Content-Range"] = "bytes " + std::to_string(start)
+                                            + "-" + std::to_string(end)
+                                            + "/" + std::to_string(size);
+    
 
     WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(path,
                                                                 buf,

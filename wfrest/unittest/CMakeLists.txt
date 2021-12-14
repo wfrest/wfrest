@@ -38,6 +38,11 @@ add_executable(RouteTable_unittest RouteTable_unittest.cc)
 target_link_libraries(RouteTable_unittest wfrest GTest::GTest)
 add_test(NAME RouteTable_unittest COMMAND RouteTable_unittest)
 
+add_executable(HttpDef_unittest HttpDef_unittest.cc)
+target_link_libraries(HttpDef_unittest wfrest GTest::GTest)
+add_test(NAME HttpDef_unittest COMMAND HttpDef_unittest)
+
+
 
 
 

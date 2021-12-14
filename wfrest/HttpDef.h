@@ -40,11 +40,13 @@ enum http_content_type
 class ContentType
 {
 public:
-    static std::string to_string(enum http_content_type type);
+    static std::string to_str(enum http_content_type type);
 
-    static std::string to_string_by_suffix(const char *str);
+    static std::string to_str_by_suffix(const std::string &suffix);
 
     static enum http_content_type to_enum(const std::string &content_type_str);
+
+    static enum http_content_type to_enum_by_suffix(const std::string &suffix);
 };
 
 } // wfrest
