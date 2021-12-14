@@ -2,6 +2,7 @@
 #define WFREST_BLUEPRINT_H_
 
 #include <functional>
+#include "wfrest/Noncopyable.h"
 
 class SeriesWork;
 
@@ -14,7 +15,7 @@ class HttpResp;
 using Handler = std::function<void(HttpReq * , HttpResp *)>;
 using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
 
-class BluePrint
+class BluePrint : public Noncopyable
 {
 public:
     void GET(const char *route, const Handler &handler);

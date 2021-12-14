@@ -15,6 +15,7 @@
 #include "wfrest/json_fwd.hpp"
 #include "wfrest/StrUtil.h"
 #include "wfrest/HttpCookie.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
@@ -23,7 +24,7 @@ using Json = nlohmann::json;
 
 struct ReqData;
 
-class HttpReq : public protocol::HttpRequest
+class HttpReq : public protocol::HttpRequest, public Noncopyable
 {
 public:
     std::string &body() const;
@@ -138,7 +139,7 @@ inline double HttpReq::param<double>(const std::string &key) const
         return 0.0;
 }
 
-class HttpResp : public protocol::HttpResponse
+class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
     // send string

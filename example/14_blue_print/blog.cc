@@ -23,8 +23,8 @@ int main()
         fprintf(stderr, "Blog Page\n");
     });
 
-    BluePrint admin_bp = admin_pages();
-
+    BluePrint admin_bp;
+    admin_pages(admin_bp);
     svr.register_blueprint(admin_bp, "/admin");
 
     if (svr.start(8888) == 0)

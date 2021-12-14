@@ -15,7 +15,7 @@
 namespace wfrest
 {
 
-class RouteTableNode
+class RouteTableNode : public Noncopyable
 {
 public:
     ~RouteTableNode();
@@ -71,8 +71,8 @@ void RouteTableNode::all_routes(const Func &func, std::string prefix) const
     }
 }
 
-class RouteTable
-{
+class RouteTable : public Noncopyable
+{ 
 public:
     // Find a route and return reference to the procedure.
     VerbHandler &operator[](const char *route);

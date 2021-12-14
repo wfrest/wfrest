@@ -2,11 +2,12 @@
 #define WFREST_HTTPSERVERTASK_H_
 
 #include "wfrest/HttpMsg.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
 
-class HttpServerTask : public WFServerTask<HttpReq, HttpResp>
+class HttpServerTask : public WFServerTask<HttpReq, HttpResp> , public Noncopyable
 {
 public:
     using ProcFunc = std::function<void(HttpTask *)>;

@@ -5,6 +5,7 @@
 #include <map>
 #include "wfrest/MultiPartParser.h"
 #include "wfrest/Macro.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
@@ -31,7 +32,7 @@ public:
 using Form = std::map<std::string, std::pair<std::string, std::string>>;
 
 // Modified From libhv
-class MultiPartForm
+class MultiPartForm : public Noncopyable
 {
 public:
     MultiPartForm();
@@ -67,8 +68,6 @@ private:
 
     multipart_parser_settings settings_;
 };
-
-
 
 }  // wfrest
 

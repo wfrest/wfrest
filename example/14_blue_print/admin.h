@@ -2,9 +2,8 @@
 
 using namespace wfrest;
 
-inline BluePrint admin_pages()
+inline void admin_pages(BluePrint &bp)
 {
-    BluePrint bp;
     bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "New page\n");
@@ -14,5 +13,4 @@ inline BluePrint admin_pages()
     {
         fprintf(stderr, "Edit page\n");
     });
-    return bp;
 }

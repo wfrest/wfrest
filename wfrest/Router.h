@@ -3,13 +3,14 @@
 
 #include <functional>
 #include "wfrest/RouteTable.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
 
 class HttpServerTask;
 
-class Router
+class Router : public Noncopyable
 {
 public:
     void handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb);

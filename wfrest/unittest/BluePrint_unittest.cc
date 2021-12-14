@@ -5,9 +5,8 @@
 
 using namespace wfrest;
 
-BluePrint create_blue_print()
+void create_blue_print(BluePrint &bp)
 {
-    BluePrint bp;
     bp.GET("name", [](const HttpReq* req, HttpResp* resp){
         printf("name login");
     });
@@ -15,7 +14,6 @@ BluePrint create_blue_print()
     bp.POST("token", [](const HttpReq* req, HttpResp* resp){
         printf("token login");
     });
-    return bp;
 }
 
 TEST(BluePrint, add_blueprint)
@@ -25,7 +23,8 @@ TEST(BluePrint, add_blueprint)
         printf("v1");
     });
 
-    BluePrint bp1 = create_blue_print();
+    BluePrint bp1;
+    create_blue_print(bp1);
 
     bp.add_blueprint(bp1, "/login");
 

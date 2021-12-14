@@ -12,11 +12,12 @@
 #include <chrono>
 
 #include "wfrest/Logger.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
 
-class AsyncFileLogger
+class AsyncFileLogger : public Noncopyable
 {
 public:
     AsyncFileLogger();
@@ -34,7 +35,7 @@ private:
     using BufferVector = std::vector<std::unique_ptr<Buffer> >;
     using BufferPtr = BufferVector::value_type;
 
-    class LogFile
+    class LogFile : public Noncopyable
     {
     public:
         LogFile(const std::string &file_path,

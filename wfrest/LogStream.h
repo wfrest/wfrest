@@ -8,6 +8,7 @@
 #include <utility>
 #include <cassert>
 #include "wfrest/StringPiece.h"
+#include "wfrest/Noncopyable.h"
 
 namespace wfrest
 {
@@ -17,7 +18,7 @@ static constexpr size_t k_small_buf = 4000;
 static constexpr size_t k_large_buf = 4000 * 1000;
 
 template<int SIZE>
-class FixedBuffer
+class FixedBuffer : public Noncopyable
 {
 public:
     FixedBuffer();
@@ -125,7 +126,7 @@ const char *FixedBuffer<SIZE>::debug_string()
 
 }   // namespace detail
 
-class LogStream
+class LogStream : public Noncopyable
 {
 public:
     using self = LogStream;

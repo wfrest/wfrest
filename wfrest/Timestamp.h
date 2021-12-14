@@ -6,11 +6,13 @@
 #include <sstream>
 #include <iomanip> // put_time
 
+#include "wfrest/Copyable.h"
+
 using namespace std::chrono;
 
 namespace wfrest
 {
-class Timestamp
+class Timestamp : public Copyable
 {
 public:
     Timestamp();

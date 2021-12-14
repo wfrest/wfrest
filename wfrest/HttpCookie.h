@@ -5,7 +5,7 @@
 #include <map>
 #include "wfrest/Timestamp.h"
 #include "wfrest/StringPiece.h"
-
+#include "wfrest/Copyable.h"
 namespace wfrest
 {
 
@@ -33,7 +33,7 @@ inline const char *same_site_to_str(SameSite same_site)
     }
 }
 
-class HttpCookie
+class HttpCookie : public Copyable
 {
 public:
     // Check if the cookie is empty

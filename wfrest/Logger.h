@@ -48,7 +48,7 @@ static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
 
 void logger_init(struct LoggerSettings *settings);
 
-class Logger
+class Logger : public Noncopyable
 {
 public:
     // Two std::funcion set output location

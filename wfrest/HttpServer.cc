@@ -119,10 +119,12 @@ void HttpServer::register_blueprint(const BluePrint& bp, const std::string& url_
 // /static : /www/file/
 void HttpServer::Static(const char *relative_path, const char *root)
 {
-    blue_print_.add_blueprint(serve_dir(root), relative_path);
+    BluePrint bp;
+    serve_dir(root, bp);
+    blue_print_.add_blueprint(bp, relative_path);
 }
 
-BluePrint HttpServer::serve_dir(const char* dir_path)
+void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
 {
     // extract root realpath. 
     char realpath_out[PATH_MAX]{0};
@@ -139,13 +141,9 @@ BluePrint HttpServer::serve_dir(const char* dir_path)
         real_root.push_back('/');
     }
 
-    BluePrint bp;
-
     bp.GET("/*", [real_root](const HttpReq *req, HttpResp *resp) {
         std::string path = real_root + req->match_path();
         LOG_DEBUG << "File path : " << path;
         resp->File(path);
     });
-
-    return bp;
 }
