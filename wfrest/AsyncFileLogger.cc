@@ -32,7 +32,7 @@ AsyncFileLogger::~AsyncFileLogger()
 void AsyncFileLogger::write_log_to_file(const char *buf, int len)
 {
     p_log_file_->write_log(buf, len);
-    if (p_log_file_->length() > Logger::get_logger_settings()->roll_size)
+    if (p_log_file_->length() > Logger::get_setting().roll_size())
     {
         p_log_file_.reset();
     }
@@ -49,12 +49,12 @@ void AsyncFileLogger::start()
 void AsyncFileLogger::thread_func()
 {
     wait_group_.done();
-    auto *log_settings = Logger::get_logger_settings();
+    const LoggerSetting &setting = Logger::get_setting();
 
     p_log_file_ = std::unique_ptr<LogFile>(
-            new LogFile(log_settings->file_path,
-                        log_settings->file_base_name,
-                        log_settings->file_extension)
+            new LogFile(setting.file_path(),
+                        setting.file_base_name(),
+                        setting.file_extension())
     );
 
     while (running_)
@@ -94,7 +94,7 @@ void AsyncFileLogger::wait_for_buf()
     std::unique_lock<std::mutex> lock(mutex_);
     if (bufs_.empty())
     {
-        cv_.wait_for(lock, Logger::get_logger_settings()->flush_interval);
+        cv_.wait_for(lock, Logger::get_setting().flush_interval());
     }
     bufs_.emplace_back(std::move(log_buf_));
     log_buf_ = std::move(tmp_buf1_);   // put a tmp buffer to a new log_buf

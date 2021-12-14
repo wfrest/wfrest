@@ -64,33 +64,31 @@ inline LogStream &operator<<(LogStream &s, const Logger::SourceFile &v)
     return s;
 }
 
-void logger_init(struct LoggerSettings *settings)
+void logger_init(LoggerSetting &&setting)
 {
-    std::string extension = settings->file_extension;
+    const std::string &extension = setting.file_extension();
     if(!extension.empty() && extension[0] != '.') 
     {
-        extension.insert(0, 1, '.');
-        settings->file_extension = extension.c_str();
+        setting.set_file_extension("." + extension);
     }
 
-    std::string file_path = settings->file_path;
+    const std::string &file_path = setting.file_path();
     if (file_path.empty())
     {
-        settings->file_path = "./";
+        setting.set_file_path("./");
     } else if (file_path[file_path.length() - 1] != '/')
     {
-        file_path = file_path + "/";
-        settings->file_path = file_path.c_str();
+        setting.set_file_path(file_path + "/");
     }
 
-    if(settings->roll_size > 100 * 1024 * 1024)
+    if(setting.roll_size() > 100 * 1024 * 1024)
     {
-        fprintf(stderr, "roll size is too large, we set 20 MB...");
-        settings->roll_size = 20 * 1024 * 1024;
+        LOG_INFO << "roll size is too large. Set 20 MB...";
+        setting.set_roll_size(20 * 1024 * 1024);
     }
+    Logger::set_setting(setting);
 
-    Logger::set_logger_settings(settings);
-    if(settings->log_in_file)
+    if(setting.is_log_in_file())
         Logger::get_async_file_logger()->start();
 }
 
@@ -99,7 +97,7 @@ void logger_init(struct LoggerSettings *settings)
 using namespace wfrest;
 
 // static member var
-struct LoggerSettings Logger::log_settings_ = LOGGER_SETTINGS_DEFAULT;
+LoggerSetting Logger::setting_;
 
 Logger::SourceFile::SourceFile(const char *filename)
         : data_(filename)
@@ -137,11 +135,11 @@ Logger::~Logger()
 {
     impl_.stream_ << "\n";
     const LogStream::Buffer &buf(stream().buffer());
-
-    if(log_settings_.log_in_console)
+    
+    if(setting_.is_log_in_console())
         output_func_()(buf.data(), buf.length());
     
-    if(log_settings_.log_in_file)
+    if(setting_.is_log_in_file())
         file_output(buf.data(), buf.length());
 
     if (impl_.level_ == LogLevel::FATAL)
@@ -237,7 +235,7 @@ void Logger::set_output(Logger::OutputFunc &&output_func, Logger::FlushFunc &&fl
 
 LogLevel Logger::log_level()
 {
-    return log_settings_.level;
+    return setting_.level();
 }
 
 AsyncFileLogger *Logger::get_async_file_logger()

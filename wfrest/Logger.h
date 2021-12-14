@@ -22,31 +22,112 @@ enum class LogLevel
     FATAL
 };
 
-struct LoggerSettings
+class LoggerSetting
 {
-    LogLevel level;
-    bool log_in_console;
-    bool log_in_file;
-    const char *file_path;
-    const char *file_base_name;
-    const char *file_extension;
-    uint64_t roll_size;
-    std::chrono::seconds flush_interval;
+public:
+    LoggerSetting &set_level(LogLevel level)
+    {
+        level_ = level;
+        return *this;
+    }
+
+    LoggerSetting &set_log_in_console(bool log_in_console)
+    {
+        log_in_console_ = log_in_console;
+        return *this;
+    }
+
+    LoggerSetting &set_log_in_file(bool log_in_file)
+    {
+        log_in_file_ = log_in_file;
+        return *this;
+    }
+
+    LoggerSetting &set_file_path(const std::string &file_path)
+    {
+        file_path_ = file_path;
+        return *this;
+    }
+
+    LoggerSetting &set_file_path(std::string &&file_path)
+    {
+        file_path_ = std::move(file_path);
+        return *this;
+    }
+
+    LoggerSetting &set_file_base_name(const std::string &file_base_name)
+    {
+        file_base_name_ = file_base_name;
+        return *this;
+    }
+
+    LoggerSetting &set_file_base_name(std::string &&file_base_name)
+    {
+        file_base_name_ = std::move(file_base_name);
+        return *this;
+    }
+
+    LoggerSetting &set_file_extension(const std::string &file_extension)
+    {
+        file_extension_ = file_extension;
+        return *this;
+    }
+
+    LoggerSetting &set_file_extension(std::string &&file_extension)
+    {
+        file_extension_ = std::move(file_extension);
+        return *this;
+    }
+
+    LoggerSetting &set_roll_size(uint64_t roll_size)
+    {
+        roll_size_ = roll_size;
+        return *this;
+    }
+
+    LoggerSetting &set_flush_interval(std::chrono::seconds flush_interval)
+    {
+        flush_interval_ = flush_interval;
+        return *this;
+    }
+
+public: 
+    LogLevel level() const 
+    { return level_; }
+
+    bool is_log_in_console() const
+    { return log_in_console_; }
+
+    bool is_log_in_file() const
+    { return log_in_file_; }
+
+    const std::string &file_path() const
+    { return file_path_; }
+
+    const std::string &file_base_name() const
+    { return file_base_name_; }
+
+    const std::string &file_extension() const
+    { return file_extension_; }
+
+    uint64_t roll_size() const 
+    { return roll_size_; }
+
+    std::chrono::seconds flush_interval() const 
+    { return flush_interval_; }
+
+private:
+    LogLevel level_ = LogLevel::INFO;
+    bool log_in_console_ = true;
+    bool log_in_file_ = false;
+    std::string file_path_ = "./";
+    std::string file_base_name_ = "wfrest";
+    std::string file_extension_ = ".log";
+    uint64_t roll_size_ = 20 * 1024 * 1024;
+    std::chrono::seconds flush_interval_ = std::chrono::seconds(3);
 };
 
-static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
-{
-    .level = LogLevel::INFO,
-    .log_in_console = true,
-    .log_in_file = false,
-    .file_path = "./",
-    .file_base_name = "wfrest",
-    .file_extension = ".log",
-    .roll_size = 20 * 1024 * 1024,
-    .flush_interval = std::chrono::seconds(3),
-};
-
-void logger_init(struct LoggerSettings *settings);
+void logger_init(LoggerSetting &&setting);
 
 class Logger : public Noncopyable
 {
@@ -67,11 +148,14 @@ public:
 
     static LogLevel log_level();
 
-    static LoggerSettings *get_logger_settings()
-    { return &log_settings_; }
+    static const LoggerSetting &get_setting() 
+    { return setting_; }
 
-    static void set_logger_settings(const struct LoggerSettings *log_settings)
-    { log_settings_ = *log_settings; }
+    static void set_setting(const LoggerSetting &setting)
+    { setting_ = setting; }
+
+    static void set_setting(LoggerSetting &&setting)
+    { setting_ = std::move(setting); }
 
     static AsyncFileLogger *get_async_file_logger();
 
@@ -131,7 +215,7 @@ private:
         SourceFile basename_;
     } impl_;
 
-    static struct LoggerSettings log_settings_;
+    static LoggerSetting setting_;
 };
 
 template<int N>
@@ -162,7 +246,7 @@ Logger::SourceFile::SourceFile(const char (&arr)[N])
 // note: LOG_TRACE << "the server has read the client message";
 // equals wfrest::Logger(__FILE__,__LINE__,wfrest::Logger::TRACE,__func__).stream()<<"the server has read the client message";
 
-#define LOGGER(settings) logger_init(settings)
+#define LOGGER(setting) logger_init(std::move(setting))
 
 }  // namespace wfrest
 

@@ -4,10 +4,10 @@ using namespace wfrest;
 
 int main()
 {
-    LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
-    settings.level = LogLevel::TRACE;
-    settings.log_in_file = true;
-    LOGGER(&settings);
+    LoggerSetting setting;
+    setting.set_level(LogLevel::TRACE)
+            .set_log_in_file(true);
+    LOGGER(setting);
 
     int i = 1;
     LOG_DEBUG << (float)3.14;

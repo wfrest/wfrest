@@ -21,10 +21,10 @@ void test01()
 // how to set the setting
 void test02()
 {
-    LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
-    settings.level = LogLevel::TRACE;
-    settings.log_in_file = true;
-    LOGGER(&settings);
+    LoggerSetting setting;
+    setting.set_level(LogLevel::TRACE)
+            .set_log_in_file(true);
+    LOGGER(setting);
 
     LOG_TRACE << "trace ...";
     LOG_DEBUG << "debug ...";
@@ -40,9 +40,9 @@ void test02()
 // some other types
 void test03()
 {
-    LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
-    settings.level = LogLevel::TRACE;
-    LOGGER(&settings);
+    LoggerSetting setting;
+    setting.set_level(LogLevel::TRACE);
+    LOGGER(setting);
 
     int i = 1;
     LOG_DEBUG << (float)3.14;
@@ -92,6 +92,6 @@ int main()
 {
     // test01();
     // test02();
-    // test03();
-    test04();
+    test03();
+    // test04();
 }
