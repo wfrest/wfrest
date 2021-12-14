@@ -735,19 +735,17 @@ For bigger projects, all your code shouldn't be in the same file. Instead you ca
 using namespace wfrest;
 
 // You can split your different business logic into different files / modules
-BluePrint admin_pages()
+void admin_pages(BluePrint *bp)
 {
-    BluePrint bp;
-    bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
+    bp->GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "New page\n");
     });
 
-    bp.GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
+    bp->GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "Edit page\n");
     });
-    return bp;
 }
 
 int main()
@@ -759,7 +757,8 @@ int main()
         fprintf(stderr, "Blog Page\n");
     });
 
-    BluePrint admin_bp = admin_pages();
+    BluePrint admin_bp;
+    admin_bp.Register(admin_pages);
 
     svr.register_blueprint(admin_bp, "/admin");
 
@@ -978,10 +977,10 @@ using namespace wfrest
 int main()
 {
     // set the logger config
-    LoggerSettings settings = LOGGER_SETTINGS_DEFAULT;
-    settings.level = LogLevel::TRACE;
-    settings.log_in_file = true;
-    LOGGER(&settings);
+    LoggerSetting setting;
+    setting.set_level(LogLevel::TRACE)
+            .set_log_in_file(true);
+    LOGGER(setting);
 
     int i = 1;
     LOG_DEBUG << (float)3.14;
@@ -1007,36 +1006,28 @@ int main()
 All the configure fields are:
 
 ```cpp
-struct LoggerSettings
+class LoggerSetting
 {
-    LogLevel level;    
-    bool log_in_console;    
-    bool log_in_file;
-    const char *file_path;
-    const char *file_base_name;
-    const char *file_extension;
-    uint64_t roll_size;
-    std::chrono::seconds flush_interval;
-};
-```
-
-Default configure :
-
-```cpp
-static constexpr struct LoggerSettings LOGGER_SETTINGS_DEFAULT =
-{
-    .level = LogLevel::INFO,
-    .log_in_console = true,
-    .log_in_file = false,
-    .file_path = "./",
-    .file_base_name = "wfrest",
-    .file_extension = ".log",
-    .roll_size = 20 * 1024 * 1024,
-    .flush_interval = std::chrono::seconds(3),
+    LogLevel level_ = LogLevel::INFO;
+    bool log_in_console_ = true;
+    bool log_in_file_ = false;
+    std::string file_path_ = "./";
+    std::string file_base_name_ = "wfrest";
+    std::string file_extension_ = ".log";
+    uint64_t roll_size_ = 20 * 1024 * 1024;
+    std::chrono::seconds flush_interval_ = std::chrono::seconds(3);
 };
 ```
 
 Sample Output
+
+INFO Level :
+
+```
+2021-12-14 11:30:56.006802 Here is the Info level
+```
+
+Other Level:
 
 ```
 2021-11-30 22:36:21.422271 822380  [ERROR]  [logger_test.cc:84] No such file or directory (errno=2) syserr log

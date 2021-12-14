@@ -24,7 +24,8 @@ int main()
     });
 
     BluePrint admin_bp;
-    admin_pages(admin_bp);
+    admin_bp.Register(admin_pages);
+    
     svr.register_blueprint(admin_bp, "/admin");
 
     if (svr.start(8888) == 0)

@@ -108,6 +108,7 @@ void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix
                                         });
 }
 
+
 BluePrint::BluePrint() : router_(new Router) {}
 
 BluePrint::~BluePrint() { delete router_; }

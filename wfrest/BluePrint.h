@@ -40,6 +40,9 @@ public:
 
     void add_blueprint(const BluePrint &bp, const std::string &url_prefix);
 
+    void Register(std::function<void(BluePrint *)> register_func)
+    { register_func(this); }
+    
 public:
     BluePrint();
 
@@ -47,6 +50,7 @@ public:
     
 private: 
     Router *router_;    // ptr for hiding internel class
+
 };
 
 } // namespace wfrest

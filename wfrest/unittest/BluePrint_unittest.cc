@@ -5,13 +5,13 @@
 
 using namespace wfrest;
 
-void create_blue_print(BluePrint &bp)
+void bp_reg_login(BluePrint *bp)
 {
-    bp.GET("name", [](const HttpReq* req, HttpResp* resp){
+    bp->GET("name", [](const HttpReq* req, HttpResp* resp){
         printf("name login");
     });
 
-    bp.POST("token", [](const HttpReq* req, HttpResp* resp){
+    bp->POST("token", [](const HttpReq* req, HttpResp* resp){
         printf("token login");
     });
 }
@@ -23,10 +23,10 @@ TEST(BluePrint, add_blueprint)
         printf("v1");
     });
 
-    BluePrint bp1;
-    create_blue_print(bp1);
+    BluePrint login_bp;
+    login_bp.Register(bp_reg_login);
 
-    bp.add_blueprint(bp1, "/login");
+    bp.add_blueprint(login_bp, "/login");
 
     std::vector<std::pair<std::string, std::string>> route_list = bp.router().all_routes();
     EXPECT_EQ(route_list[0].first, "GET");
