@@ -1,3 +1,4 @@
+#include <queue>
 #include "wfrest/RouteTable.h"
 #include "Logger.h"
 
@@ -83,7 +84,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
             if (mid.starts_with(match))
             {
                 fprintf(stderr, "wildcast * : %s\n", route.data());
-                route_match_path = std::string(mid.data());
+                route_match_path = mid.as_string();
                 LOG_INFO << "match path : " << route_match_path;
                 return iterator{kv.second, route, kv.second->verb_handler_};
             }
@@ -106,6 +107,38 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
 }
 
 
+void RouteTableNode::bfs_transverse()
+{
+    std::queue<std::pair<StringPiece, RouteTableNode *>> node_queue;
+    StringPiece root("/");
+    node_queue.push({root, this});
+    int level = 0;
+    while(!node_queue.empty())
+    {
+        fprintf(stderr, "level %d:\t", level);
+        size_t queue_size = node_queue.size();
+        fprintf(stderr, "(size : %zu)\t", queue_size);  
+        for(size_t i = 0; i < queue_size; i++)
+        {
+            std::pair<StringPiece, RouteTableNode *> node = node_queue.front();
+            node_queue.pop();
+            
+            fprintf(stderr, "[%s :", node.first.as_string().c_str());
+            const std::map<StringPiece, RouteTableNode *> &children = node.second->children_;
+            
+            if(children.empty()) 
+                fprintf(stderr, "\tNULL");
+            for (const auto &pair: children)
+            {
+                fprintf(stderr, "\t%s", pair.first.as_string().c_str());
+                node_queue.push(pair);
+            }
+            fprintf(stderr, "]");
+        }
+        level++;
+        fprintf(stderr, "\n");
+    } 
+}
 
 VerbHandler &RouteTable::operator[](const char *route)
 {

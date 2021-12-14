@@ -34,5 +34,10 @@ add_executable(HttpCookie_unittest HttpCookie_unittest.cc)
 target_link_libraries(HttpCookie_unittest wfrest GTest::GTest)
 add_test(NAME HttpCookie_unittest COMMAND HttpCookie_unittest)
 
+add_executable(RouteTable_unittest RouteTable_unittest.cc)
+target_link_libraries(RouteTable_unittest wfrest GTest::GTest)
+add_test(NAME RouteTable_unittest COMMAND RouteTable_unittest)
+
+
 
 

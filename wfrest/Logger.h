@@ -22,7 +22,7 @@ enum class LogLevel
     FATAL
 };
 
-class LoggerSetting
+class LoggerSetting : public Copyable
 {
 public:
     LoggerSetting &set_level(LogLevel level)

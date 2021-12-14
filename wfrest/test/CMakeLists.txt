@@ -11,3 +11,6 @@ target_link_libraries(logger_test wfrest)
 
 add_executable(AsyncLogger_test AsyncLogger_test.cc)
 target_link_libraries(AsyncLogger_test wfrest)
+
+add_executable(RouteTableNode_test RouteTableNode_test.cc)
+target_link_libraries(RouteTableNode_test wfrest)

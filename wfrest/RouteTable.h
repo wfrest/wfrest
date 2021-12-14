@@ -49,6 +49,7 @@ public:
     template<typename Func>
     void all_routes(const Func &func, std::string prefix) const;
 
+    void bfs_transverse();  // for test
 private:
     VerbHandler verb_handler_;
     std::map<StringPiece, RouteTableNode *> children_;
