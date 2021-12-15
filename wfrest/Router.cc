@@ -95,9 +95,12 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
 void Router::print_routes() const
 {
     routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
-                           {
-                               fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
-                           });
+                        {
+                            if(prefix == "/")
+                                fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+                            else 
+                                fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+                        });
 }
 
 std::vector<std::pair<std::string, std::string> > Router::all_routes() const

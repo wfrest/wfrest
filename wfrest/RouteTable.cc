@@ -17,6 +17,14 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor
     if (cursor == route.size())
         return verb_handler_;
 
+    // store GET("/", ...)
+    if(cursor == 0 && route.as_string() == "/")
+    {
+        auto *new_node = new RouteTableNode();
+        children_.insert({route, new_node});
+        return new_node->find_or_create(route, ++cursor);
+    }
+
     if (route[cursor] == '/')
         cursor++; // skip the /
     int anchor = cursor;
@@ -49,6 +57,22 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     // route does not match any.
     if (cursor == route.size() and verb_handler_.handler == nullptr)
         return iterator{nullptr, route, verb_handler_};
+
+    // find GET("/", ...)
+    if(cursor == 0 && route.as_string() == "/")
+    {
+        // look for "/" in the children.
+        auto it = children_.find(route);
+        // it == <StringPiece: path level part, RouteTableNode* >
+        if (it != children_.end())
+        {
+            // it2 == RouteTableNode::iterator
+            // search in the corresponding child.
+            auto it2 = it->second->find(route, ++cursor, route_params, route_match_path); 
+            if (it2 != it->second->end())
+                return it2;
+        }
+    }   
 
     if (route[cursor] == '/')
         cursor++; // skip the first /

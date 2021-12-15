@@ -6,6 +6,11 @@ using namespace wfrest;
 int main()
 {
     Router router;
+
+    router.handle("/", 0, [](const HttpReq* , HttpResp* , SeriesWork *) -> WFGoTask * {
+        return nullptr;
+    }, Verb::GET);
+
     router.handle("/hello", 0, [](const HttpReq* , HttpResp* , SeriesWork *) -> WFGoTask * {
         return nullptr;
     }, Verb::GET);

@@ -80,7 +80,7 @@ public:
     { route_params_ = std::move(params); }
 
     // /match*  
-    // /match123 -> 123
+    // /match123 -> match123
     void set_route_match_path(const std::string &match_path)
     { route_match_path_ = match_path; }
 

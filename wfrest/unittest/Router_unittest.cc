@@ -72,6 +72,31 @@ TEST_F(RouterRegisterTest, reg_route)
     }
 }
 
+TEST_F(RouterRegisterTest, root_route) 
+{
+    RegRoutes routes_list = {
+        {"/", "GET"},
+        {"/ping/", "POST"},
+    };
+
+    // register
+    register_route_list(routes_list);
+
+    // Becareful : /hello -> hello, we won't store the '/' at the front 
+    RegRoutes reg_list_exp = {
+        {"GET", "/"},
+        {"POST", "ping/"},
+    };
+    
+    RegRoutes reg_list = router_.all_routes();
+    EXPECT_EQ(reg_list_exp.size(), reg_list.size());
+    for(int i = 0; i < reg_list.size(); i++)
+    {
+        EXPECT_EQ(reg_list_exp[i].first, reg_list[i].first);
+        EXPECT_EQ(reg_list_exp[i].second, reg_list[i].second);
+    }
+}
+
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

@@ -55,4 +55,7 @@ target_link_libraries(16_cookie wfrest)
 add_executable(17_server_config 17_server_config.cc)
 target_link_libraries(17_server_config wfrest)
 
+add_executable(benchmark benchmark.cc)
+target_link_libraries(benchmark wfrest)
+
 
