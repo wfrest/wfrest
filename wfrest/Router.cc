@@ -51,10 +51,11 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
     HttpReq *req = server_task->get_req();
     HttpResp *resp = server_task->get_resp();
 
-    // skip the last / of the url.
+    // skip the last / of the url. Except for /
     // /hello ==  /hello/
+    // / not change
     StringPiece route2(route);
-    if (!route2.empty() and route2[static_cast<int>(route2.size()) - 1] == '/')
+    if (route2.size() > 1 and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
 
     std::map<std::string, std::string> route_params;

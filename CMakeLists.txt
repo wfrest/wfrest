@@ -81,6 +81,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 #if(WFREST_BUILD_EXAMPLES)
 add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/test)
 #endif()
 

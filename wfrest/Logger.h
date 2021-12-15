@@ -117,7 +117,7 @@ public:
     { return flush_interval_; }
 
 private:
-    LogLevel level_ = LogLevel::INFO;
+    LogLevel level_ = LogLevel::ERROR;
     bool log_in_console_ = true;
     bool log_in_file_ = false;
     std::string file_path_ = "./";
