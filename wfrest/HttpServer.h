@@ -45,7 +45,7 @@ public:
             WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
 
-    HttpServer &max_connection(size_t max_connections)
+    HttpServer &max_connections(size_t max_connections)
     {
         this->params.max_connections = max_connections;
         return *this;

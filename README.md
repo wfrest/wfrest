@@ -917,17 +917,16 @@ using namespace wfrest;
 int main()
 {
     HttpServer svr;
-
-    svr.max_connection(4000)
-        .peer_response_timeout(20 * 1000)
-        .keep_alive_timeout(30 * 1000);
     
     svr.GET("/config", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("config");
     });
 
-    if (svr.start(8888) == 0)
+    if (svr.max_connections(4000)
+            .peer_response_timeout(20 * 1000)
+            .keep_alive_timeout(30 * 1000)
+            .start(8888) == 0)
     {
         getchar();
         svr.stop();
