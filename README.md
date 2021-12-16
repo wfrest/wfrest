@@ -918,9 +918,9 @@ int main()
 {
     HttpServer svr;
 
-    svr.set_max_connection(4000)
-        .set_peer_response_timeout(20 * 1000)
-        .set_keep_alive_timeout(30 * 1000);
+    svr.max_connection(4000)
+        .peer_response_timeout(20 * 1000)
+        .keep_alive_timeout(30 * 1000);
     
     svr.GET("/config", [](const HttpReq *req, HttpResp *resp)
     {

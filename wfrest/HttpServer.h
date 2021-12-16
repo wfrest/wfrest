@@ -45,37 +45,37 @@ public:
             WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
 
-    HttpServer &set_max_connection(size_t max_connections)
+    HttpServer &max_connection(size_t max_connections)
     {
         this->params.max_connections = max_connections;
         return *this;
     }
 
-    HttpServer &set_peer_response_timeout(int peer_response_timeout)
+    HttpServer &peer_response_timeout(int peer_response_timeout)
     {
         this->params.peer_response_timeout = peer_response_timeout;
         return *this;
     }
 
-    HttpServer &set_receive_timeout(int receive_timeout)
+    HttpServer &receive_timeout(int receive_timeout)
     {
         this->params.receive_timeout = receive_timeout;
         return *this;
     }
 
-    HttpServer &set_keep_alive_timeout(int keep_alive_timeout)
+    HttpServer &keep_alive_timeout(int keep_alive_timeout)
     {
         this->params.keep_alive_timeout = keep_alive_timeout;
         return *this;
     }
 
-    HttpServer &set_request_size_limit(size_t request_size_limit)
+    HttpServer &request_size_limit(size_t request_size_limit)
     {
         this->params.request_size_limit = request_size_limit;
         return *this;
     }
 
-    HttpServer &set_ssl_accept_timeout(int ssl_accept_timeout)
+    HttpServer &ssl_accept_timeout(int ssl_accept_timeout)
     {
         this->params.ssl_accept_timeout = ssl_accept_timeout;
         return *this;
