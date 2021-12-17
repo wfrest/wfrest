@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <tuple>
-#include "wfrest/Aop.h"
+#include "wfrest/Aspect.h"
 
 namespace wfrest
 {
@@ -30,7 +30,7 @@ bool aop_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
     bool ret = true;
     for_each(
             tp,
-            [&ret, req, resp](AOP &item)
+            [&ret, req, resp](Aspect &item)
             {
                 if (!ret)
                     return;
@@ -45,7 +45,7 @@ bool aop_after(const HttpReq *req, HttpResp *resp, Tuple &tp)
     bool ret = true;
     for_each(
             tp,
-            [&ret, req, resp](AOP &item)
+            [&ret, req, resp](Aspect &item)
             {
                 if (!ret)
                     return;

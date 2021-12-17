@@ -186,14 +186,16 @@ public:
     void add_cookie(const HttpCookie &cookie)
     { cookies_.push_back(cookie); }
 
-    SeriesWork *series();
+    int get_state();
 
+    int get_error();
 private:
     std::string compress(const std::string &str);
 
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers_;
     std::vector<HttpCookie> cookies_;
+    void *user_data;
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

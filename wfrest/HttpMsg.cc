@@ -140,7 +140,7 @@ bool HttpReq::has_query(const std::string &key) const
 
 void HttpReq::fill_content_type()
 {
-    std::string content_type_str = header("Content-Type");
+    const std::string &content_type_str = header("Content-Type");
     content_type_ = ContentType::to_enum(content_type_str);
 
     if (content_type_ == MULTIPART_FORM_DATA)
@@ -155,7 +155,7 @@ void HttpReq::fill_content_type()
         StringPiece boundary_piece(boundary);
 
         StringPiece boundary_str = StrUtil::trim_pairs(boundary_piece, R"(""'')");
-        multi_part_.set_boundary(std::move(boundary_str.as_string()));
+        multi_part_.set_boundary(boundary_str.as_string());
     }
 }
 
@@ -326,8 +326,14 @@ void HttpResp::set_compress(const enum Compress &compress)
     headers_["Content-Encoding"] = compress_method_to_str(compress);
 }
 
-SeriesWork *HttpResp::series()
+int HttpResp::get_state()
 {
-    return series_of(task_of(this));
+    HttpServerTask *server_task = task_of(this);
+    return server_task->get_state();   
 }
 
+int HttpResp::get_error()
+{
+    HttpServerTask *server_task = task_of(this);
+    return server_task->get_error();   
+}

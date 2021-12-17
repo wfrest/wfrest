@@ -11,22 +11,29 @@ template<typename Tuple>
 WFGoTask *aop_process(const Handler &handler,
                       const HttpReq *req,
                       HttpResp *resp,
-                      Tuple &tp)
+                      Tuple *tp)
 {
-    bool ret = aop_before(req, resp, tp);
+    bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
-        LOG_DEBUG << "before wrong";
+        LOG_DEBUG << "Aspect before wrong";
         return nullptr;
     }
 
     handler(req, resp);
 
-    ret = aop_after(req, resp, tp);
-    if (!ret)
+    HttpServerTask *server_task = task_of(resp);
+
+    server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        LOG_DEBUG << "after wrong";
-    }
+        bool ret = aop_after(req, resp, *tp);
+        if (!ret)
+        {
+            LOG_DEBUG << "Aspect after wrong";
+        }
+        delete tp;
+    });
+
     return nullptr;
 }
 
@@ -35,23 +42,29 @@ WFGoTask *aop_process(const SeriesHandler &handler,
                       const HttpReq *req,
                       HttpResp *resp,
                       SeriesWork *series,
-                      Tuple &tp)
+                      Tuple *tp)
 {
-    bool ret = aop_before(req, resp, tp);
+    bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         LOG_DEBUG << "before wrong";
         return nullptr;
     }
 
-
     handler(req, resp, series);
 
-    ret = aop_after(req, resp, tp);
-    if (!ret)
+    HttpServerTask *server_task = task_of(resp);
+
+    server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        LOG_DEBUG << "after wrong";
-    }
+        bool ret = aop_after(req, resp, *tp);
+        if (!ret)
+        {
+            LOG_DEBUG << "Aspect after wrong";
+        }
+        delete tp;
+    });
+
     return nullptr;
 }
 
@@ -60,9 +73,9 @@ WFGoTask *aop_compute_process(const Handler &handler,
                               int compute_queue_id,
                               const HttpReq *req,
                               HttpResp *resp,
-                              Tuple *ptp)
+                              Tuple *tp)
 {
-    bool ret = aop_before(req, resp, *ptp);
+    bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         LOG_DEBUG << "before wrong";
@@ -75,15 +88,18 @@ WFGoTask *aop_compute_process(const Handler &handler,
             req,
             resp);
 
-    go_task->set_callback([req, resp, ptp](WFGoTask *)
-                          {
-                              bool ret = aop_after(req, resp, *ptp);
-                              if (!ret)
-                              {
-                                  LOG_DEBUG << "after wrong";
-                              }
-                              delete ptp;
-                          });
+    HttpServerTask *server_task = task_of(resp);
+
+    server_task->add_callback([req, resp, tp](HttpTask *) 
+    {
+        bool ret = aop_after(req, resp, *tp);
+        if (!ret)
+        {
+            LOG_DEBUG << "Aspect after wrong";
+        }
+        delete tp;
+    });
+
     return go_task;
 }
 
@@ -94,9 +110,9 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
                               const HttpReq *req,
                               HttpResp *resp,
                               SeriesWork *series,
-                              Tuple *ptp)
+                              Tuple *tp)
 {
-    bool ret = aop_before(req, resp, *ptp);
+    bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         LOG_DEBUG << "before wrong";
@@ -110,15 +126,18 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
             resp,
             series);
 
-    go_task->set_callback([req, resp, ptp](WFGoTask *)
-                          {
-                              bool ret = aop_after(req, resp, *ptp);
-                              if (!ret)
-                              {
-                                  LOG_DEBUG << "after wrong";
-                              }
-                              delete ptp;
-                          });
+    HttpServerTask *server_task = task_of(resp);
+
+    server_task->add_callback([req, resp, tp](HttpTask *) 
+    {
+        bool ret = aop_after(req, resp, *tp);
+        if (!ret)
+        {
+            LOG_DEBUG << "Aspect after wrong";
+        }
+        delete tp;
+    });
+    
     return go_task;
 }
 
@@ -133,7 +152,7 @@ void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
                              HttpResp *resp,
                              SeriesWork *) -> WFGoTask *
             {
-                std::tuple<AP...> tp(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
@@ -153,12 +172,12 @@ void BluePrint::GET(const char *route, int compute_queue_id,
                                                HttpResp *resp,
                                                SeriesWork *) -> WFGoTask *
             {
-                auto *ptp = new std::tuple<AP...>(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_compute_process(handler,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
-                                                                ptp);
+                                                                tp);
                 return go_task;
             };
 
@@ -173,7 +192,7 @@ void BluePrint::POST(const char *route, const Handler &handler, const AP &... ap
                              HttpResp *resp,
                              SeriesWork *) -> WFGoTask *
             {
-                std::tuple<AP...> tp(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
@@ -193,12 +212,12 @@ void BluePrint::POST(const char *route, int compute_queue_id,
                                                HttpResp *resp,
                                                SeriesWork *) -> WFGoTask *
             {
-                auto *ptp = new std::tuple<AP...>(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_compute_process(handler,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
-                                                                ptp);
+                                                                tp);
                 return go_task;
             };
 
@@ -213,7 +232,7 @@ void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &.
                              HttpResp *resp,
                              SeriesWork *series) -> WFGoTask *
             {
-                std::tuple<AP...> tp(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
@@ -234,13 +253,13 @@ void BluePrint::GET(const char *route, int compute_queue_id,
                                                HttpResp *resp,
                                                SeriesWork *series) -> WFGoTask *
             {
-                auto *ptp = new std::tuple<AP...>(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_compute_process(handler,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
                                                                 series,
-                                                                ptp);
+                                                                tp);
                 return go_task;
             };
 
@@ -255,7 +274,7 @@ void BluePrint::POST(const char *route, const SeriesHandler &handler, const AP &
                              HttpResp *resp,
                              SeriesWork *series) -> WFGoTask *
             {
-                std::tuple<AP...> tp(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
@@ -276,13 +295,13 @@ void BluePrint::POST(const char *route, int compute_queue_id,
                                                HttpResp *resp,
                                                SeriesWork *series) -> WFGoTask *
             {
-                auto *ptp = new std::tuple<AP...>(std::move(ap)...);
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
                 WFGoTask *go_task = detail::aop_compute_process(handler,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
                                                                 series,
-                                                                ptp);
+                                                                tp);
                 return go_task;
             };
 

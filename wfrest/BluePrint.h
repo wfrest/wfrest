@@ -4,10 +4,13 @@
 #include <functional>
 #include <utility>
 #include "wfrest/Noncopyable.h"
-#include "wfrest/AopUtil.h"
-#include "wfrest/Router.h"
 #include "wfrest/Logger.h"
-#include "wfrest/Aop.h"
+#include "wfrest/Aspect.h"
+#include "wfrest/AopUtil.h"
+
+// todo : hide
+#include "wfrest/Router.h"
+#include "wfrest/HttpServerTask.h" 
 
 class SeriesWork;
 

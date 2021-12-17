@@ -23,7 +23,7 @@ void HttpServer::process(HttpTask *task)
     req->fill_header_map();
     req->fill_content_type();
 
-    std::string host = req->header("Host");
+    const std::string &host = req->header("Host");
     
     if (host.empty())
     {
@@ -52,7 +52,7 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
-    // todo : defer 
+
     req->set_parsed_uri(std::move(uri));
     blue_print_.router().call(req->get_method(), route, server_task);
 }

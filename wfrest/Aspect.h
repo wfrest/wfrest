@@ -1,5 +1,5 @@
-#ifndef WFREST_AOP_H_
-#define WFREST_AOP_H_
+#ifndef WFREST_ASPECT_H__
+#define WFREST_ASPECT_H__
 
 namespace wfrest
 {
@@ -8,7 +8,7 @@ class HttpReq;
 
 class HttpResp;
 
-class AOP
+class Aspect
 {
 public:
     virtual bool before(const HttpReq *req, HttpResp *resp) = 0;
@@ -21,4 +21,4 @@ public:
 
 
 
-#endif // WFREST_AOP_H_
+#endif // WFREST_ASPECT_H__

@@ -1,14 +1,14 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-#include "wfrest/Aop.h"
+#include "wfrest/Aspect.h"
 
 using namespace wfrest;
 
 static WFFacilities::WaitGroup wait_group(1);
 
 // Logging aspect
-struct LogAop : public AOP
+struct LogAop : public Aspect
 {
 	bool before(const HttpReq *req, HttpResp *resp) override 
     {
@@ -23,7 +23,7 @@ struct LogAop : public AOP
 	}
 };
 
-struct OtherAop : public AOP
+struct OtherAop : public Aspect
 {
 	bool before(const HttpReq *req, HttpResp *resp) override 
     {
@@ -31,30 +31,32 @@ struct OtherAop : public AOP
 		return true;
 	}
 
+    // 'after()' should be called after reply
 	bool after(const HttpReq *req, HttpResp *resp) override
     {
 		fprintf(stderr, "After other\n");
+        fprintf(stderr, "state : %d\terror : %d\n", 
+                    resp->get_state(), resp->get_error());
 		return true;
 	}
 };
 
 // transfer data from aspect to http handler
-struct TransferAop : public AOP
+struct TransferAop : public Aspect
 {
 	bool before(const HttpReq *req, HttpResp *resp) override 
     {
         auto *content = new std::string("transfer data");
-        auto *series = resp->series();
-        series->set_context(content);
-        series->set_callback([content](const SeriesWork *)
-        {
-            delete content;
-        });
+        resp->user_data = content;
 		return true;
 	}
 
+    // If resp's 'user_data' needs to be deleted, delete it in 'after()'.
 	bool after(const HttpReq *req, HttpResp *resp) override
-    { return true;}
+    { 
+        delete static_cast<std::string *>(resp->user_data);
+        return true;
+    }
 };
 
 void sig_handler(int signo)
@@ -83,9 +85,9 @@ int main()
         resp->String("more aop");
     }, LogAop{}, OtherAop{});
 
-    svr.GET("/data", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/data", [](const HttpReq *req, HttpResp *resp)
     {
-        auto *content = static_cast<std::string *>(series->get_context());
+        auto *content = static_cast<std::string *>(resp->user_data);
         resp->String(std::move(*content));
     }, TransferAop{});
 
