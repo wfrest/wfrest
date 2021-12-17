@@ -78,18 +78,18 @@ int main()
     svr.GET("/aop", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("aop");
-    }, LogAop{});
+    }, LogAop());
 
     svr.GET("/more_aop", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("more aop");
-    }, LogAop{}, OtherAop{});
+    }, LogAop(), OtherAop());
 
     svr.GET("/data", [](const HttpReq *req, HttpResp *resp)
     {
         auto *content = static_cast<std::string *>(resp->user_data);
         resp->String(std::move(*content));
-    }, TransferAop{});
+    }, TransferAop());
 
     if (svr.start(8888) == 0)
     {

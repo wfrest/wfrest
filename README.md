@@ -1007,7 +1007,7 @@ int main()
     svr.GET("/aop", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("aop");
-    }, LogAop{});
+    }, LogAop());
 
     if (svr.start(8888) == 0)
     {
@@ -1056,7 +1056,7 @@ int main()
     {
         auto *content = static_cast<std::string *>(resp->user_data);
         resp->String(std::move(*content));
-    }, TransferAop{});
+    }, TransferAop());
 
     if (svr.start(8888) == 0)
     {

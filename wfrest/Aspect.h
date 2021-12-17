@@ -1,5 +1,5 @@
-#ifndef WFREST_ASPECT_H__
-#define WFREST_ASPECT_H__
+#ifndef WFREST_ASPECT_H_
+#define WFREST_ASPECT_H_
 
 namespace wfrest
 {
@@ -21,4 +21,4 @@ public:
 
 
 
-#endif // WFREST_ASPECT_H__
+#endif // WFREST_ASPECT_H_
