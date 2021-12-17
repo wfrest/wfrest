@@ -140,11 +140,15 @@ int main()
     // request will hold the route definition
     svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
-        const std::string& full_path = req->full_path();
+        // if /user/chanchan/match1234
+        // full_path : /user/{name}/match*
+        // current_path : /user/chanchan/match1234
+        const std::string &full_path = req->full_path();
+        const std::string &current_path = req->current_path();
         std::string res;
         if (full_path == "/user/{name}/match*")
         {
-            res = full_path + " match";
+            res = full_path + " match : " + current_path;
         } else
         {
             res = full_path + " dosen't match";
