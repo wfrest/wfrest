@@ -19,6 +19,7 @@ void HttpServer::process(HttpTask *task)
 
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
+    
     req->fill_header_map();
     req->fill_content_type();
 

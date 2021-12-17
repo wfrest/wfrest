@@ -41,7 +41,7 @@ void AsyncFileLogger::write_log_to_file(const char *buf, int len)
 void AsyncFileLogger::start()
 {
     running_ = true;
-    fprintf(stderr, "Async File Logger start...\n");
+    fprintf(stderr, "[WFREST] Async File Logger start...\n");
     thread_ = std::thread(std::bind(&AsyncFileLogger::thread_func, this));
     wait_group_.wait();
 }
