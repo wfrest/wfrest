@@ -67,6 +67,9 @@ public:
     const std::string &full_path() const
     { return route_full_path_; }
 
+    std::string current_path() const
+    { return parsed_uri_.path; }
+
     const std::map<std::string, std::string> &cookies() const;
 
     const std::string &cookie(const std::string &key) const;
@@ -90,6 +93,9 @@ public:
     void set_query_params(std::map<std::string, std::string> &&query_params)
     { query_params_ = std::move(query_params); }
 
+    void set_parsed_uri(ParsedURI &&parsed_uri)
+    { parsed_uri_ = std::move(parsed_uri); }
+
 public:
     HttpReq();
 
@@ -110,6 +116,8 @@ private:
 
     MultiPartForm multi_part_;
     HeaderMap headers_;
+
+    ParsedURI parsed_uri_;
 };
 
 template<>

@@ -978,23 +978,23 @@ using namespace wfrest;
 // Logging aspect
 struct LogAop : public AOP
 {
-	bool before(const HttpReq *req, HttpResp *resp) override 
+    bool before(const HttpReq *req, HttpResp *resp) override 
     {
         fprintf(stderr, "before log\n");
-		return true;
-	}
+        return true;
+    }
 
-	bool after(const HttpReq *req, HttpResp *resp) override
+    bool after(const HttpReq *req, HttpResp *resp) override
     {
-		fprintf(stderr, "After log\n");
-		return true;
-	}
+        fprintf(stderr, "After log\n");
+        return true;
+    }
 };
 
 int main()
 {
     HttpServer svr;
-    
+
     svr.GET("/aop", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("aop");

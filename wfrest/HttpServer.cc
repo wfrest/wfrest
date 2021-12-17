@@ -52,6 +52,8 @@ void HttpServer::process(HttpTask *task)
         StringPiece query(uri.query);
         req->set_query_params(UriUtil::split_query(query));
     }
+    // todo : defer 
+    req->set_parsed_uri(std::move(uri));
     blue_print_.router().call(req->get_method(), route, server_task);
 }
 
