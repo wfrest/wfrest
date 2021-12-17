@@ -998,7 +998,7 @@ struct LogAop : public Aspect
         fprintf(stderr, "After log\n");
         return true;
     }
-};
+    };
 
 int main()
 {
@@ -1031,15 +1031,15 @@ using namespace wfrest;
 
 struct TransferAop : public Aspect
 {
-	bool before(const HttpReq *req, HttpResp *resp) override 
+    bool before(const HttpReq *req, HttpResp *resp) override 
     {
         auto *content = new std::string("transfer data");
         resp->user_data = content;
-		return true;
-	}
+        return true;
+    }
 
     // If resp's 'user_data' needs to be deleted, delete it in 'after()'.
-	bool after(const HttpReq *req, HttpResp *resp) override
+    bool after(const HttpReq *req, HttpResp *resp) override
     { 
         fprintf(stderr, "state : %d\terror : %d\n", 
                 resp->get_state(), resp->get_error());
