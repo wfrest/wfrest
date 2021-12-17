@@ -43,7 +43,7 @@ set(HEADERS
         PathUtil.h
         base64.h
         FileUtil.h
-        Aop.h
+        Aspect.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
