@@ -51,10 +51,10 @@ int main()
     });
 
     // Here is the right way:
-    // curl -v -X POST "ip:port/upload" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
+    // curl -v -X POST "ip:port/upload_fix" -F "file=@demo.txt; filename=../demo.txt" -H "Content-Type: multipart/form-data"
 
     // And you can test for upload multiple files
-    // curl -X POST http://ip:port/upload_multiple \
+    // curl -X POST http://ip:port/upload_fix \
     // -F "file1=@file1" \
     // -F "file2=@file2" \
     // -H "Content-Type: multipart/form-data"
@@ -63,7 +63,7 @@ int main()
         Form &form = req->form();
 
         if (form.empty())
-        {
+        {   
             resp->set_status(HttpStatusBadRequest);
         } else
         {
@@ -99,3 +99,5 @@ int main()
     }
     return 0;
 }
+
+

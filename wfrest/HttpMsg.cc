@@ -73,9 +73,11 @@ std::map<std::string, std::string> &HttpReq::form_kv() const
 
 Form &HttpReq::form() const
 {
+    fprintf(stderr, "%s\n", ContentType::to_str(content_type_).c_str());
     if (content_type_ == MULTIPART_FORM_DATA && req_data_->form.empty())
     {
         StringPiece body_piece(this->body());
+        fprintf(stderr, "%s\n", body_piece.data());
         req_data_->form = multi_part_.parse_multipart(body_piece);
     }
     return req_data_->form;
@@ -140,6 +142,7 @@ bool HttpReq::has_query(const std::string &key) const
 void HttpReq::fill_content_type()
 {
     std::string content_type_str = header("Content-Type");
+    fprintf(stderr, "11 %s\n", content_type_str.c_str());
     content_type_ = ContentType::to_enum(content_type_str);
 
     if (content_type_ == MULTIPART_FORM_DATA)
