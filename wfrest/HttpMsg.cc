@@ -325,5 +325,8 @@ void HttpResp::set_compress(const enum Compress &compress)
     headers_["Content-Encoding"] = compress_method_to_str(compress);
 }
 
-
+SeriesWork *HttpResp::series()
+{
+    return series_of(task_of(this));
+}
 

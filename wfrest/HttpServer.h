@@ -23,22 +23,52 @@ public:
         blue_print_.GET(route, handler, ap...);
     }
 
-    void GET(const char *route, const Handler &handler);
+    template <typename... AP>
+    void GET(const char *route, int compute_queue_id, 
+            const Handler &handler, const AP &...ap)
+    {
+        blue_print_.GET(route, compute_queue_id, handler, ap...);
+    }
 
-    void GET(const char *route, int compute_queue_id, const Handler &handler);
+    template <typename... AP>
+    void POST(const char *route, const Handler &handler, const AP &...ap)
+    {
+        blue_print_.POST(route, handler, ap...);
+    }
 
-    void POST(const char *route, const Handler &handler);
-
-    void POST(const char *route, int compute_queue_id, const Handler &handler);
+    template <typename... AP>
+    void POST(const char *route, int compute_queue_id, 
+            const Handler &handler, const AP &...ap)
+    {
+        blue_print_.POST(route, compute_queue_id, handler, ap...);
+    }
 
 public:
-    void GET(const char *route, const SeriesHandler &handler);
+    template <typename... AP>
+    void GET(const char *route, const SeriesHandler &handler, const AP &...ap)
+    {
+        blue_print_.GET(route, handler, ap...);
+    }
 
-    void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
+    template <typename... AP>
+    void GET(const char *route, int compute_queue_id, 
+            const SeriesHandler &handler, const AP &...ap)
+    {
+        blue_print_.GET(route, compute_queue_id, handler, ap...);
+    }
 
-    void POST(const char *route, const SeriesHandler &handler);
+    template <typename... AP>
+    void POST(const char *route, const SeriesHandler &handler, const AP &...ap)
+    {
+        blue_print_.POST(route, handler, ap...);
+    }
 
-    void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);
+    template <typename... AP>
+    void POST(const char *route, int compute_queue_id, 
+            const SeriesHandler &handler, const AP &...ap)
+    {
+        blue_print_.POST(route, compute_queue_id, handler, ap...);
+    }
 
 public:
     void Static(const char *relative_path, const char *root);

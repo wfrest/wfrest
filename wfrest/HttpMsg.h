@@ -178,6 +178,8 @@ public:
     void add_cookie(const HttpCookie &cookie)
     { cookies_.push_back(cookie); }
 
+    SeriesWork *series();
+
 private:
     std::string compress(const std::string &str);
 

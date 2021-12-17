@@ -27,6 +27,7 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Serving static files](#serving-static-files)
       - [Cookie](#cookie)
       - [Custom Server Configuration](#custom-server-configuration)
+      - [AOP (aspect-oriented programming)](#aop-(aspect-oriented-programming))
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -966,6 +967,52 @@ static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
 	.ssl_accept_timeout		=	10 * 1000,
 };
 ```
+
+### AOP (aspect-oriented programming)
+
+```cpp
+#include "wfrest/HttpServer.h"
+#include "wfrest/Aop.h"
+using namespace wfrest;
+
+// Logging aspect
+struct LogAop : public AOP
+{
+	bool before(const HttpReq *req, HttpResp *resp) override 
+    {
+        fprintf(stderr, "before log\n");
+		return true;
+	}
+
+	bool after(const HttpReq *req, HttpResp *resp) override
+    {
+		fprintf(stderr, "After log\n");
+		return true;
+	}
+};
+
+int main()
+{
+    HttpServer svr;
+    
+    svr.GET("/aop", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->String("aop");
+    }, LogAop{});
+
+    if (svr.start(8888) == 0)
+    {
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server");
+        exit(1);
+    }
+    return 0;
+}
+```
+
 
 ## How to use logger
 

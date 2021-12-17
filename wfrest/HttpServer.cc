@@ -55,47 +55,6 @@ void HttpServer::process(HttpTask *task)
     blue_print_.router().call(req->get_method(), route, server_task);
 }
 
-
-void HttpServer::GET(const char *route, const Handler &handler)
-{
-    blue_print_.GET(route, handler);
-}
-
-void HttpServer::GET(const char *route, int compute_queue_id, const Handler &handler)
-{
-    blue_print_.GET(route, compute_queue_id, handler);
-}
-
-void HttpServer::POST(const char *route, const Handler &handler)
-{
-    blue_print_.POST(route, handler);
-}
-
-void HttpServer::POST(const char *route, int compute_queue_id, const Handler &handler)
-{
-    blue_print_.POST(route, compute_queue_id, handler);
-}
-
-void HttpServer::GET(const char *route, const SeriesHandler &series_handler)
-{
-    blue_print_.GET(route, series_handler);
-}
-
-void HttpServer::GET(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
-{
-    blue_print_.GET(route, compute_queue_id, series_handler);
-}
-
-void HttpServer::POST(const char *route, const SeriesHandler &series_handler)
-{
-    blue_print_.POST(route, series_handler);
-}
-
-void HttpServer::POST(const char *route, int compute_queue_id, const SeriesHandler &series_handler)
-{
-    blue_print_.POST(route, compute_queue_id, series_handler);
-}
-
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
 {
     HttpTask *task = new HttpServerTask(this, this->WFServer<HttpReq, HttpResp>::process);

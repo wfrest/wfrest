@@ -16,7 +16,7 @@ struct LogAop : public AOP
 		return true;
 	}
 
-	bool after(const HttpReq *req, HttpResp *resp) 
+	bool after(const HttpReq *req, HttpResp *resp) override
     {
 		fprintf(stderr, "After log\n");
 		return true;
@@ -31,11 +31,30 @@ struct OtherAop : public AOP
 		return true;
 	}
 
-	bool after(const HttpReq *req, HttpResp *resp) 
+	bool after(const HttpReq *req, HttpResp *resp) override
     {
 		fprintf(stderr, "After other\n");
 		return true;
 	}
+};
+
+// transfer data from aspect to http handler
+struct TransferAop : public AOP
+{
+	bool before(const HttpReq *req, HttpResp *resp) override 
+    {
+        auto *content = new std::string("transfer data");
+        auto *series = resp->series();
+        series->set_context(content);
+        series->set_callback([content](const SeriesWork *)
+        {
+            delete content;
+        });
+		return true;
+	}
+
+	bool after(const HttpReq *req, HttpResp *resp) override
+    { return true;}
 };
 
 void sig_handler(int signo)
@@ -63,6 +82,12 @@ int main()
     {
         resp->String("more aop");
     }, LogAop{}, OtherAop{});
+
+    svr.GET("/data", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    {
+        auto *content = static_cast<std::string *>(series->get_context());
+        resp->String(std::move(*content));
+    }, TransferAop{});
 
     if (svr.start(8888) == 0)
     {
