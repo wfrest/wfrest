@@ -5,13 +5,13 @@
 
 using namespace wfrest;
 
-void bp_reg_login(BluePrint *bp)
+void set_login_bp(BluePrint &bp)
 {
-    bp->GET("name", [](const HttpReq* req, HttpResp* resp){
+    bp.GET("name", [](const HttpReq* req, HttpResp* resp){
         printf("name login");
     });
 
-    bp->POST("token", [](const HttpReq* req, HttpResp* resp){
+    bp.POST("token", [](const HttpReq* req, HttpResp* resp){
         printf("token login");
     });
 }
@@ -24,7 +24,7 @@ TEST(BluePrint, add_blueprint)
     });
 
     BluePrint login_bp;
-    login_bp.Register(bp_reg_login);
+    set_login_bp(login_bp);
 
     bp.add_blueprint(login_bp, "/login");
 

@@ -13,73 +13,55 @@ class SeriesWork;
 
 namespace wfrest
 {
-class Router;
-class HttpReq;
-class HttpResp;
-
-using Handler = std::function<void(HttpReq * , HttpResp *)>;
-using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
+using Handler = std::function<void(const HttpReq *, HttpResp *)>;
+using SeriesHandler = std::function<void(const HttpReq *, HttpResp *, SeriesWork *)>;
 
 class BluePrint : public Noncopyable
 {
 public:
-    template <typename... AP>
-    void GET(const char *route, const Handler &handler, const AP &... ap)
-    {
-        WrapHandler wrap_handler = [handler, ap...](HttpReq *req, HttpResp *resp, SeriesWork *)
-                                    { 
-                                        std::tuple<AP...> tp(std::move(ap)...);
-                                        bool r = do_ap_before(req, resp, tp);
-                                        if(!r) 
-                                        {
-                                            LOG_DEBUG << "before wrong";
-                                            return nullptr;
-                                        }
-                                        
-                                        handler(req, resp); 
-                                        return nullptr; 
-                                    };
+    template<typename... AP>
+    void GET(const char *route, const Handler &handler, const AP &... ap);
 
-        router_->handle(route, -1, wrap_handler, Verb::GET);
-    }
+    template<typename... AP>
+    void GET(const char *route, int compute_queue_id,
+             const Handler &handler, const AP &... ap);
 
-    // void GET(const char *route, const Handler &handler);
+    template<typename... AP>
+    void POST(const char *route, const Handler &handler, const AP &... ap);
 
-    void GET(const char *route, int compute_queue_id, const Handler &handler);
-
-    void POST(const char *route, const Handler &handler);
-
-    void POST(const char *route, int compute_queue_id, const Handler &handler);
+    template<typename... AP>
+    void POST(const char *route, int compute_queue_id,
+              const Handler &handler, const AP &... ap);
 
 public:
-    void GET(const char *route, const SeriesHandler &handler);
+    template<typename... AP>
+    void GET(const char *route, const SeriesHandler &handler, const AP &... ap);
 
-    void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
+    template<typename... AP>
+    void GET(const char *route, int compute_queue_id,
+             const SeriesHandler &handler, const AP &... ap);
 
-    void POST(const char *route, const SeriesHandler &handler);
+    template<typename... AP>
+    void POST(const char *route, const SeriesHandler &handler, const AP &... ap);
 
-    void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);
+    template<typename... AP>
+    void POST(const char *route, int compute_queue_id,
+              const SeriesHandler &handler, const AP &... ap);
 
 public:
-    const Router &router() const;
+    const Router &router() const
+    { return router_; }
 
     void add_blueprint(const BluePrint &bp, const std::string &url_prefix);
 
-    void Register(std::function<void(BluePrint *)> register_func)
-    { register_func(this); }
-    
-public:
-    BluePrint();
-
-    ~BluePrint();
-    
-private: 
-    Router *router_;    // ptr for hiding internel class
+private:
+    Router router_;    // ptr for hiding internel class
 
 };
 
+
 } // namespace wfrest
 
-
+#include "BluePrint.inl"
 
 #endif // WFREST_BLUEPRINT_H_

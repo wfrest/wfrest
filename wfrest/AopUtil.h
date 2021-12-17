@@ -25,7 +25,7 @@ class HttpReq;
 class HttpResp;
 
 template<typename Tuple>
-bool do_ap_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
+bool aop_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
 {
     bool ret = true;
     for_each(
@@ -38,6 +38,22 @@ bool do_ap_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
             });
     return ret;
 }
+
+template<typename Tuple>
+bool aop_after(const HttpReq *req, HttpResp *resp, Tuple &tp)
+{
+    bool ret = true;
+    for_each(
+            tp,
+            [&ret, req, resp](AOP &item)
+            {
+                if (!ret)
+                    return;
+                ret = item.after(req, resp);
+            });
+    return ret;
+}
+
 } // namespace wfrest
 
 

@@ -735,14 +735,14 @@ For bigger projects, all your code shouldn't be in the same file. Instead you ca
 using namespace wfrest;
 
 // You can split your different business logic into different files / modules
-void admin_pages(BluePrint *bp)
+void set_admin_bp(BluePrint &bp)
 {
-    bp->GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
+    bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "New page\n");
     });
 
-    bp->GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
+    bp.GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "Edit page\n");
     });
@@ -758,7 +758,7 @@ int main()
     });
 
     BluePrint admin_bp;
-    admin_bp.Register(admin_pages);
+    set_admin_bp(admin_bp);
 
     svr.register_blueprint(admin_bp, "/admin");
 
