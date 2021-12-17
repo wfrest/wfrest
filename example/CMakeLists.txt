@@ -55,5 +55,8 @@ target_link_libraries(16_cookie wfrest)
 add_executable(17_server_config 17_server_config.cc)
 target_link_libraries(17_server_config wfrest)
 
+add_executable(18_aop 18_aop.cc)
+target_link_libraries(18_aop wfrest)
+
 
 

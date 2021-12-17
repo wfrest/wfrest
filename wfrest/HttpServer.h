@@ -16,6 +16,13 @@ namespace wfrest
 class HttpServer : public WFServer<HttpReq, HttpResp>, public Noncopyable
 {
 public:
+
+    template <typename... AP>
+    void GET(const char *route, const Handler &handler, const AP &...ap)
+    {
+        blue_print_.GET(route, handler, ap...);
+    }
+
     void GET(const char *route, const Handler &handler);
 
     void GET(const char *route, int compute_queue_id, const Handler &handler);

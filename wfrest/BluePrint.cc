@@ -1,16 +1,16 @@
 #include "wfrest/BluePrint.h"
-#include "wfrest/Router.h"
+
 #include "wfrest/HttpMsg.h"
 
 using namespace wfrest;
 
-void BluePrint::GET(const char *route, const Handler &handler)
-{
-    WrapHandler wrap_handler = [handler](HttpReq *req, HttpResp *resp, SeriesWork *)
-                                    { handler(req, resp); return nullptr; };
+// void BluePrint::GET(const char *route, const Handler &handler)
+// {
+//     WrapHandler wrap_handler = [handler](HttpReq *req, HttpResp *resp, SeriesWork *)
+//                                     { handler(req, resp); return nullptr; };
 
-    router_->handle(route, -1, wrap_handler, Verb::GET);
-}
+//     router_->handle(route, -1, wrap_handler, Verb::GET);
+// }
 
 void BluePrint::GET(const char *route, int compute_queue_id, const Handler &handler)
 {

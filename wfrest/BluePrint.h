@@ -2,7 +2,12 @@
 #define WFREST_BLUEPRINT_H_
 
 #include <functional>
+#include <utility>
 #include "wfrest/Noncopyable.h"
+#include "wfrest/AopUtil.h"
+#include "wfrest/Router.h"
+#include "wfrest/Logger.h"
+#include "wfrest/Aop.h"
 
 class SeriesWork;
 
@@ -18,7 +23,27 @@ using SeriesHandler = std::function<void(HttpReq * , HttpResp *, SeriesWork *)>;
 class BluePrint : public Noncopyable
 {
 public:
-    void GET(const char *route, const Handler &handler);
+    template <typename... AP>
+    void GET(const char *route, const Handler &handler, const AP &... ap)
+    {
+        WrapHandler wrap_handler = [handler, ap...](HttpReq *req, HttpResp *resp, SeriesWork *)
+                                    { 
+                                        std::tuple<AP...> tp(std::move(ap)...);
+                                        bool r = do_ap_before(req, resp, tp);
+                                        if(!r) 
+                                        {
+                                            LOG_DEBUG << "before wrong";
+                                            return nullptr;
+                                        }
+                                        
+                                        handler(req, resp); 
+                                        return nullptr; 
+                                    };
+
+        router_->handle(route, -1, wrap_handler, Verb::GET);
+    }
+
+    // void GET(const char *route, const Handler &handler);
 
     void GET(const char *route, int compute_queue_id, const Handler &handler);
 
