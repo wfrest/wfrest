@@ -27,7 +27,7 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Serving static files](#serving-static-files)
       - [Cookie](#cookie)
       - [Custom Server Configuration](#custom-server-configuration)
-      - [AOP (aspect-oriented programming)](#aop-(aspect-oriented-programming))
+      - [Aspect-oriented programming](#aspect-oriented-programming)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -972,7 +972,11 @@ static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
 };
 ```
 
-### AOP (aspect-oriented programming)
+### Aspect-oriented programming
+
+In computing, aspect-oriented programming (AOP) is a programming paradigm that aims to increase modularity by allowing the separation of cross-cutting concerns.
+
+For more information, you can see [What is AOP](https://en.wikipedia.org/wiki/Aspect-oriented_programming),
 
 ```cpp
 #include "wfrest/HttpServer.h"
