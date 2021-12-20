@@ -58,15 +58,12 @@ private:
     std::vector<ServerCallBack> cb_list_;
 };
 
-
-template<typename T>
-inline HttpServerTask *task_of(const T *task)
+inline HttpServerTask *task_of(const SubTask *task)
 {
     auto *series = static_cast<HttpServerTask::Series *>(series_of(task));
     return static_cast<HttpServerTask *>(series->task);
 }
 
-template<>
 inline HttpServerTask *task_of(const HttpResp *resp)
 {
     size_t http_resp_offset = HttpServerTask::get_resp_offset();
