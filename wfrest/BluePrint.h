@@ -22,6 +22,15 @@ using SeriesHandler = std::function<void(const HttpReq *, HttpResp *, SeriesWork
 class BluePrint : public Noncopyable
 {
 public:
+    void GET(const char *route, const Handler &handler);
+
+    void GET(const char *route, int compute_queue_id, const Handler &handler);
+
+    void POST(const char *route, const Handler &handler);
+
+    void POST(const char *route, int compute_queue_id, const Handler &handler);
+
+public:
     template<typename... AP>
     void GET(const char *route, const Handler &handler, const AP &... ap);
 
@@ -35,6 +44,15 @@ public:
     template<typename... AP>
     void POST(const char *route, int compute_queue_id,
               const Handler &handler, const AP &... ap);
+
+public:
+    void GET(const char *route, const SeriesHandler &handler);
+
+    void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
+
+    void POST(const char *route, const SeriesHandler &handler);
+
+    void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);  
 
 public:
     template<typename... AP>

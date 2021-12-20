@@ -72,6 +72,13 @@ inline HttpServerTask *task_of(HttpResp *resp)
     return (HttpServerTask *) ((char *) (resp) - http_resp_offset);
 }
 
+template<>
+inline HttpServerTask *task_of(const HttpResp *resp)
+{
+    size_t http_resp_offset = HttpServerTask::get_resp_offset();
+    return (HttpServerTask *) ((char *) (resp) - http_resp_offset);
+}
+
 } // namespace wfrest
 
 

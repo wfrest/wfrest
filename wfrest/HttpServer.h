@@ -16,7 +16,27 @@ namespace wfrest
 class HttpServer : public WFServer<HttpReq, HttpResp>, public Noncopyable
 {
 public:
+    void GET(const char *route, const Handler &handler)
+    {
+        blue_print_.GET(route, handler);
+    }
 
+    void GET(const char *route, int compute_queue_id, const Handler &handler)
+    {
+        blue_print_.GET(route, compute_queue_id, handler);
+    }
+
+    void POST(const char *route, const Handler &handler)
+    {
+        blue_print_.POST(route, handler);
+    }
+
+    void POST(const char *route, int compute_queue_id, const Handler &handler)
+    {
+        blue_print_.POST(route, compute_queue_id, handler);
+    }
+
+public:
     template <typename... AP>
     void GET(const char *route, const Handler &handler, const AP &...ap)
     {
@@ -41,6 +61,27 @@ public:
             const Handler &handler, const AP &...ap)
     {
         blue_print_.POST(route, compute_queue_id, handler, ap...);
+    }
+
+public:
+    void GET(const char *route, const SeriesHandler &handler)
+    {
+        blue_print_.GET(route, handler);
+    }
+
+    void GET(const char *route, int compute_queue_id, const SeriesHandler &handler)
+    {
+        blue_print_.GET(route, compute_queue_id, handler);
+    }
+
+    void POST(const char *route, const SeriesHandler &handler)
+    {
+        blue_print_.POST(route, handler);
+    }
+
+    void POST(const char *route, int compute_queue_id, const SeriesHandler &handler)
+    {
+        blue_print_.POST(route, compute_queue_id, handler);
     }
 
 public:

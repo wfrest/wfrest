@@ -326,13 +326,13 @@ void HttpResp::set_compress(const enum Compress &compress)
     headers_["Content-Encoding"] = compress_method_to_str(compress);
 }
 
-int HttpResp::get_state()
+int HttpResp::get_state() const
 {
     HttpServerTask *server_task = task_of(this);
     return server_task->get_state();   
 }
 
-int HttpResp::get_error()
+int HttpResp::get_error() const
 {
     HttpServerTask *server_task = task_of(this);
     return server_task->get_error();   
