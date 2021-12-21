@@ -95,7 +95,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -166,7 +166,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -224,7 +224,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -292,7 +292,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -327,7 +327,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -388,7 +388,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -425,7 +425,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -481,7 +481,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {
@@ -551,7 +551,7 @@ int main()
 
     if (svr.start(8888) == 0)
     {
-        getchar()
+        getchar();
         svr.stop();
     } else
     {

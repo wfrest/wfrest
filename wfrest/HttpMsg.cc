@@ -246,12 +246,12 @@ void HttpResp::String(std::string &&str)
 std::string HttpResp::compress(const std::string &str)
 {
     std::string compress_data;
-    if (headers_.find("Content-Encoding") != headers_.end())
+    if (headers.find("Content-Encoding") != headers.end())
     {
-        if (headers_["Content-Encoding"].find("gzip") != std::string::npos)
+        if (headers["Content-Encoding"].find("gzip") != std::string::npos)
         {
             compress_data = Compressor::gzip(str.c_str(), str.size());
-        } else if (headers_["Content-Encoding"].find("br") != std::string::npos)
+        } else if (headers["Content-Encoding"].find("br") != std::string::npos)
         {
             compress_data = Compressor::brotli(str.c_str(), str.size());
         }
@@ -276,7 +276,7 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
 
 void HttpResp::File(const std::vector<std::string> &path_list)
 {
-    headers_["Content-Type"] = "multipart/form-data";
+    headers["Content-Type"] = "multipart/form-data";
     for (int i = 0; i < path_list.size(); i++)
     {
         HttpFile::send_file_for_multi(path_list, i, this);
@@ -303,7 +303,7 @@ void HttpResp::Json(const ::Json &json)
     // The header value itself does not allow for multiple values, 
     // and it is also not allowed to send multiple Content-Type headers
     // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
-    headers_["Content-Type"] = "application/json";
+    headers["Content-Type"] = "application/json";
     this->String(json.dump());
 }
 
@@ -314,7 +314,7 @@ void HttpResp::Json(const std::string &str)
         this->String("JSON is invalid");
         return;
     }
-    this->headers_["Content-Type"] = "application/json";
+    this->headers["Content-Type"] = "application/json";
     // todo : should we just don't care format?
     // this->String(str);
     this->String(Json::parse(str).dump());
@@ -323,7 +323,7 @@ void HttpResp::Json(const std::string &str)
 void HttpResp::set_compress(const enum Compress &compress)
 {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
-    headers_["Content-Encoding"] = compress_method_to_str(compress);
+    headers["Content-Encoding"] = compress_method_to_str(compress);
 }
 
 int HttpResp::get_state() const

@@ -53,7 +53,7 @@ CommMessageOut *HttpServerTask::message_out()
 {
     HttpResp *resp = this->get_resp();
 
-    std::map<std::string, std::string, MapStringCaseLess> &headers = resp->headers_;
+    std::map<std::string, std::string, MapStringCaseLess> &headers = resp->headers;
     // content type
     if(headers.find("Content-Type") == headers.end())
     {

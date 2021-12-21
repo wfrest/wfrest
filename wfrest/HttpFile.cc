@@ -151,7 +151,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
         if (ret == -1)
         {
             resp->set_status(404);
-            resp->headers_["Content-Type"] = "text/html";
+            resp->headers["Content-Type"] = "text/html";
             resp->append_output_body_nocopy("404 File NOT FOUND\n", 19);
             return;
         }
@@ -173,7 +173,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
     if (content_type == CONTENT_TYPE_NONE || content_type == CONTENT_TYPE_UNDEFINED) {
         content_type = APPLICATION_OCTET_STREAM;
     }
-    resp->headers_["Content-Type"] = ContentType::to_str(content_type);
+    resp->headers["Content-Type"] = ContentType::to_str(content_type);
 
     size_t size = end - start;
     void *buf = malloc(size);
@@ -183,7 +183,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                               });
     // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
     // Content-Range: bytes 42-1233/1234
-    resp->headers_["Content-Range"] = "bytes " + std::to_string(start)
+    resp->headers["Content-Range"] = "bytes " + std::to_string(start)
                                             + "-" + std::to_string(end)
                                             + "/" + std::to_string(size);
     

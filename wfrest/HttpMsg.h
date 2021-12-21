@@ -193,7 +193,7 @@ private:
     std::string compress(const std::string &str);
 
 public:
-    std::map<std::string, std::string, MapStringCaseLess> headers_;
+    std::map<std::string, std::string, MapStringCaseLess> headers;
     std::vector<HttpCookie> cookies_;
     void *user_data;
 };
