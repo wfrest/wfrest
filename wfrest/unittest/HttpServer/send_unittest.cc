@@ -19,7 +19,7 @@ TEST(HttpServer, String_short_str)
     {
         resp->String("world\n");
     });
-    svr.start(8888);
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task = create_http_task("test");
     client_task->set_callback([&wait_group](WFHttpTask *task)
@@ -37,6 +37,7 @@ TEST(HttpServer, String_short_str)
 
     client_task->start();
     wait_group.wait();
+    svr.stop();
 }
 
 std::string generate_long_str()
@@ -59,7 +60,7 @@ TEST(HttpServer, String_long_str)
         std::string str = generate_long_str();
         resp->String(std::move(str));
     });
-    svr.start(8888);
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task = create_http_task("test");
     client_task->set_callback([&wait_group](WFHttpTask *task)
@@ -77,6 +78,7 @@ TEST(HttpServer, String_long_str)
 
     client_task->start();
     wait_group.wait();
+    svr.stop();
 }
 
 int main(int argc, char **argv) {

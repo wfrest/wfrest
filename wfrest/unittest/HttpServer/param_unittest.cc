@@ -34,7 +34,7 @@ TEST(HttpServer, param)
         json["current_path"] = current_path;
         resp->Json(json);
     });
-    svr.start(8888);
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task_1 = create_http_task("/user/{name}/match123");
     SeriesWork *series = Workflow::create_series_work(client_task_1, nullptr);
@@ -68,6 +68,7 @@ TEST(HttpServer, param)
     });
     series->start();
     wait_group.wait();
+    svr.stop();
 }
 
 int main(int argc, char **argv) 
