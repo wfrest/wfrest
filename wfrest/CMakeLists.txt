@@ -44,6 +44,7 @@ set(HEADERS
         base64.h
         FileUtil.h
         Aspect.h
+        json.hpp
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
