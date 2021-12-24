@@ -64,7 +64,6 @@ TEST(HttpServer, String_long_str)
     WFHttpTask *client_task = create_http_task("test");
     client_task->set_callback([&wait_group](WFHttpTask *task)
     {
-        HttpRequest *req = task->get_req();
         HttpResponse *resp = task->get_resp();
 
         const void *body;
