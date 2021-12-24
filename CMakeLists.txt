@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(wfrest C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 # only build examples if this is the main project
@@ -15,6 +15,7 @@ set(CXX_FLAGS
         -std=c++11
         -rdynamic
         -pthread
+        -fno-exceptions
         )
 
 if(CMAKE_BUILD_BITS EQUAL 32)
