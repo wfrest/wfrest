@@ -1086,12 +1086,12 @@ int main(int argc, char **argv)
 {
     // in cert file 
     // sudo ./gen.sh to generate crt / key files
-	if (argc != 3)
-	{
-		fprintf(stderr, "%s [cert file] [key file]\n",
-				argv[0]);
-		exit(1);
-	}
+    if (argc != 3)
+    {
+        fprintf(stderr, "%s [cert file] [key file]\n",
+                argv[0]);
+        exit(1);
+    }
 
     HttpServer svr;
 

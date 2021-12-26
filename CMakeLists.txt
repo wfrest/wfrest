@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.6)
 project(wfrest C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -48,9 +48,10 @@ else()
     MESSAGE("Brotli Not Found")  
 endif (Brotli_FOUND)
 
-find_package(workflow QUIET)
-if (NOT workflow_FOUND)  
-    MESSAGE("-- Third Party workflow not found, build target") 
+SET(WORKFLOW_MIN_VERSION "0.9.9")
+find_package(workflow ${WORKFLOW_MIN_VERSION} QUIET)
+if (NOT workflow_FOUND)
+    MESSAGE("-- workflow not found or version < 0.9.9, Building workflow")
     include(ExternalProject)
     ExternalProject_Add(
         workflow_repo
@@ -61,19 +62,20 @@ if (NOT workflow_FOUND)
         INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
         GIT_SHALLOW         TRUE
     )
-    add_library(workflow STATIC IMPORTED GLOBAL)                                                                                                      
-    add_dependencies(workflow workflow_repo)  
+    add_library(workflow STATIC IMPORTED GLOBAL)                                                                                   
+    add_dependencies(workflow workflow_repo)
     set_target_properties(
         workflow PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                                       
+        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                    
         INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
     )
     include_directories(${PROJECT_BINARY_DIR}/include)
     link_directories(${PROJECT_BINARY_DIR}/lib)
 else()
-    MESSAGE("-- Third Party workflow exist, not build")  
+    MESSAGE("-- workflow exists(version >= 0.9.9), not build")
 endif()
 
+message(STATUS "workflow version : ${WORKFLOW_VERSION}")
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
@@ -94,3 +96,6 @@ if(GTest_FOUND)
     enable_testing()
     add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
 endif(GTest_FOUND)
+
+
+
