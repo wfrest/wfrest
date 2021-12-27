@@ -49,7 +49,12 @@ else()
 endif (Brotli_FOUND)
 
 SET(WORKFLOW_MIN_VERSION "0.9.9")
-find_package(workflow ${WORKFLOW_MIN_VERSION} QUIET)
+find_package(workflow 
+    ${WORKFLOW_MIN_VERSION} 
+    QUIET 
+    # PATHS ${CMAKE_BINARY_DIR}/lib/cmake/workflow
+)
+message(STATUS "workflow version : ${WORKFLOW_VERSION}")
 if (NOT workflow_FOUND)
     MESSAGE("-- workflow not found or version < 0.9.9, Building workflow")
     include(ExternalProject)
@@ -60,6 +65,7 @@ if (NOT workflow_FOUND)
         BUILD_IN_SOURCE TRUE
         BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
         INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
+        UPDATE_COMMAND ""
         GIT_SHALLOW         TRUE
     )
     add_library(workflow STATIC IMPORTED GLOBAL)                                                                                   
