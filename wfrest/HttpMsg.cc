@@ -12,7 +12,7 @@
 #include "wfrest/HttpServerTask.h"
 
 using namespace wfrest;
-
+using namespace protocol;
 using Json = nlohmann::json;
 
 namespace wfrest
@@ -25,6 +25,78 @@ struct ReqData
     Form form;
     Json json;
 };
+
+struct ProxyCtx
+{
+    std::string url;
+    HttpServerTask *server_task;
+    bool is_keep_alive;
+};
+
+void proxy_http_callback(WFHttpTask *http_task)
+{   
+    int state = http_task->get_state();
+    int error = http_task->get_error();
+    auto *proxy_ctx = static_cast<ProxyCtx *>(http_task->user_data);
+    HttpServerTask *server_task = proxy_ctx->server_task;
+    HttpResponse *http_resp = http_task->get_resp();
+    HttpResp *server_resp = server_task->get_resp();
+    /* Some servers may close the socket as the end of http response. */
+    if (state == WFT_STATE_SYS_ERROR && error == ECONNRESET)
+        state = WFT_STATE_SUCCESS;
+
+    if (state == WFT_STATE_SUCCESS)
+    {
+        /* add a callback for getting reply status. */
+        server_task->add_callback([proxy_ctx](HttpTask *server_task)
+        {
+            HttpResp *server_resp = server_task->get_resp();
+            size_t size = server_resp->get_output_body_size();
+            if (server_task->get_state() == WFT_STATE_SUCCESS)
+                fprintf(stderr, "%s: Success. Http Status: %s, BodyLength: %zu\n",
+                        proxy_ctx->url.c_str(), server_resp->get_status_code(), size);
+            else /* WFT_STATE_SYS_ERROR*/
+                fprintf(stderr, "%s: Reply failed: %s, BodyLength: %zu\n",
+                        proxy_ctx->url.c_str(), strerror(server_task->get_error()), size);
+
+            delete proxy_ctx;
+        });
+
+        const void *body;
+        size_t len;
+        // Copy the remote webserver's response, to server response.
+        if (http_resp->get_parsed_body(&body, &len))
+            http_resp->append_output_body_nocopy(body, len);
+
+        HttpResp resp(std::move(*http_resp));
+        *server_resp = std::move(resp);
+        
+        if (!proxy_ctx->is_keep_alive)
+            server_resp->set_header_pair("Connection", "close");
+    }
+    else
+    {
+        fprintf(stderr, "555");
+        const char *err_string;
+        int error = http_task->get_error();
+
+        if (state == WFT_STATE_SYS_ERROR)
+            err_string = strerror(error);
+        else if (state == WFT_STATE_DNS_ERROR)
+            err_string = gai_strerror(error);
+        else if (state == WFT_STATE_SSL_ERROR)
+            err_string = "SSL error";
+        else /* if (state == WFT_STATE_TASK_ERROR) */
+            err_string = "URL error (Cannot be a HTTPS proxy)";
+
+        fprintf(stderr, "%s: Fetch failed. state = %d, error = %d: %s\n",
+                proxy_ctx->url.c_str(), state, http_task->get_error(),
+                err_string);
+
+        server_resp->set_status_code("404");
+        server_resp->append_output_body_nocopy("<html>404 Not Found.</html>", 27);
+    }
+}
 
 } // namespace wfrest
 
@@ -216,6 +288,42 @@ const std::string &HttpReq::cookie(const std::string &key) const
     return string_not_found;
 }
 
+HttpReq::HttpReq(HttpReq&& other)
+    : HttpRequest(std::move(other)),
+    content_type_(other.content_type_),
+    route_match_path_(std::move(other.route_match_path_)),
+    route_full_path_(std::move(other.route_full_path_)),
+    route_params_(std::move(other.route_params_)),
+    query_params_(std::move(other.query_params_)),
+    cookies_(std::move(other.cookies_)),
+    multi_part_(std::move(other.multi_part_)),
+    headers_(std::move(other.headers_)),
+    parsed_uri_(std::move(other.parsed_uri_))
+{
+    req_data_ = other.req_data_;
+    other.req_data_ = nullptr;
+}
+
+HttpReq &HttpReq::operator=(HttpReq&& other)
+{
+    HttpRequest::operator=(std::move(other));
+    content_type_ = other.content_type_;
+
+    req_data_ = other.req_data_;
+    other.req_data_ = nullptr;
+
+    route_match_path_ = std::move(other.route_match_path_);
+    route_full_path_ = std::move(other.route_full_path_);
+    route_params_ = std::move(other.route_params_);
+    query_params_ = std::move(other.query_params_);
+    cookies_ = std::move(other.cookies_);
+    multi_part_ = std::move(other.multi_part_);
+    headers_ = std::move(other.headers_);
+    parsed_uri_ = std::move(other.parsed_uri_);
+
+    return *this;
+}
+
 void HttpResp::String(const std::string &str)
 {
     std::string compres_data = this->compress(str);
@@ -336,4 +444,55 @@ int HttpResp::get_error() const
 {
     HttpServerTask *server_task = task_of(this);
     return server_task->get_error();   
+}
+
+void HttpResp::Http(const std::string &url, size_t limit_size)
+{
+    HttpServerTask *server_task = task_of(this);
+    HttpReq *server_req = server_task->get_req();
+
+    // for requesting remote webserver. 
+    WFHttpTask *http_task = WFTaskFactory::create_http_task(url, 
+                                                            0, 
+                                                            0, 
+                                                            proxy_http_callback);
+
+    auto *proxy_ctx = new ProxyCtx;
+    proxy_ctx->url = url;
+    proxy_ctx->server_task = server_task;
+    proxy_ctx->is_keep_alive = server_req->is_keep_alive();
+    http_task->user_data = proxy_ctx;
+
+    const void *body;
+	size_t len;             
+
+	// Copy user's request to the new task's reuqest using std::move() 
+	server_req->set_request_uri(url);
+	server_req->get_parsed_body(&body, &len);
+	server_req->append_output_body_nocopy(body, len);
+	*http_task->get_req() = std::move(*server_req);  
+
+	// also, limit the remote webserver response size. 
+	http_task->get_resp()->set_size_limit(limit_size);
+
+	**server_task << http_task;
+}
+
+HttpResp::HttpResp(HttpResp&& other)
+    : HttpResponse(std::move(other)),
+    headers(std::move(other.headers)),
+    cookies_(std::move(other.cookies_))
+{
+    user_data = other.user_data;
+    other.user_data = nullptr;
+}
+
+HttpResp &HttpResp::operator=(HttpResp&& other)
+{
+    HttpResponse::operator=(std::move(other));
+    headers = std::move(other.headers);
+    user_data = other.user_data;
+    other.user_data = nullptr;
+    cookies_ = std::move(other.cookies_);
+    return *this;
 }

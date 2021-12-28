@@ -61,4 +61,8 @@ target_link_libraries(18_aop wfrest)
 add_executable(19_https 19_https.cc)
 target_link_libraries(19_https wfrest)
 
+add_executable(20_proxy 20_proxy.cc)
+target_link_libraries(20_proxy wfrest)
+
+
 

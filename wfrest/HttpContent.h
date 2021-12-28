@@ -32,11 +32,9 @@ public:
 using Form = std::map<std::string, std::pair<std::string, std::string>>;
 
 // Modified From libhv
-class MultiPartForm : public Noncopyable
+class MultiPartForm 
 {
 public:
-    MultiPartForm();
-
     Form parse_multipart(const StringPiece &body) const;
 
     void set_boundary(std::string &&boundary)
@@ -47,6 +45,8 @@ public:
 
 public:
     static const std::string k_default_boundary;
+
+    MultiPartForm();
 private:
     static int header_field_cb(multipart_parser *parser, const char *buf, size_t len);
 
@@ -63,7 +63,6 @@ private:
     static int body_end_cb(multipart_parser *parser);
 
 private:
-    multipart_parser *parser_;
     std::string boundary_;
 
     multipart_parser_settings settings_;

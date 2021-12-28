@@ -1,11 +1,10 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 2.8)
 project(wfrest C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-# only build examples if this is the main project
 if(CMAKE_PROJECT_NAME STREQUAL "wfrest")
     option(WFREST_BUILD_EXAMPLES "Build wfrest examples" ON)
 endif()
@@ -48,15 +47,16 @@ else()
     MESSAGE("Brotli Not Found")  
 endif (Brotli_FOUND)
 
+# set(workflow_DIR ${PROJECT_BINARY_DIR}/lib/cmake/workflow)
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 
     ${WORKFLOW_MIN_VERSION} 
     QUIET 
-    # PATHS ${CMAKE_BINARY_DIR}/lib/cmake/workflow
 )
-message(STATUS "workflow version : ${WORKFLOW_VERSION}")
+
 if (NOT workflow_FOUND)
-    MESSAGE("-- workflow not found or version < 0.9.9, Building workflow")
+    MESSAGE("-- workflow in system not found or version < 0.9.9")
+    MESSAGE("-- Building workflow in this project automatically")
     include(ExternalProject)
     ExternalProject_Add(
         workflow_repo
@@ -81,18 +81,17 @@ else()
     MESSAGE("-- workflow exists(version >= 0.9.9), not build")
 endif()
 
-message(STATUS "workflow version : ${WORKFLOW_VERSION}")
-
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
 include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
-#if(WFREST_BUILD_EXAMPLES)
-add_subdirectory(${PROJECT_SOURCE_DIR}/example)
-add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
-add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/test)
-#endif()
+
+if(WFREST_BUILD_EXAMPLES)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/test)
+endif()
 
 
 # unit test part
@@ -101,7 +100,7 @@ if(GTest_FOUND)
     message(STATUS "Building tests")
     enable_testing()
     add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
-endif(GTest_FOUND)
+endif()
 
 
 

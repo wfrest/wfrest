@@ -101,6 +101,10 @@ public:
 
     ~HttpReq();
 
+    HttpReq(HttpReq&& other);
+
+    HttpReq &operator=(HttpReq&& other);
+
 private:
     using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
     
@@ -180,22 +184,41 @@ public:
     // Compress
     void set_compress(const Compress &compress);
 
+    // cookie
     void add_cookie(HttpCookie &&cookie)
     { cookies_.emplace_back(std::move(cookie)); }
 
     void add_cookie(const HttpCookie &cookie)
     { cookies_.push_back(cookie); }
 
+    const std::vector<HttpCookie> &cookies() const
+    { return cookies_; }
+
     int get_state() const; 
 
     int get_error() const;
+
+    // proxy
+    void Http(const std::string &url, size_t limit_size);
 private:
     std::string compress(const std::string &str);
 
 public:
+    HttpResp() = default;
+
+    HttpResp(HttpResponse && base_resp) : HttpResponse(std::move(base_resp)) {}
+
+    ~HttpResp() = default;
+
+    HttpResp(HttpResp&& other);
+
+    HttpResp &operator=(HttpResp&& other);
+    
+public:
     std::map<std::string, std::string, MapStringCaseLess> headers;
-    std::vector<HttpCookie> cookies_;
     void *user_data;
+private:
+    std::vector<HttpCookie> cookies_;
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
