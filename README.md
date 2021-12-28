@@ -29,6 +29,7 @@ Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflo
       - [Custom Server Configuration](#custom-server-configuration)
       - [Aspect-oriented programming](#aspect-oriented-programming)
       - [Https Server](#https-server)
+      - [Proxy](#proxy)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -1107,6 +1108,35 @@ int main(int argc, char **argv)
     } else
     {
         fprintf(stderr, "Cannot start server\n");
+        exit(1);
+    }
+    return 0;
+}
+```
+
+## Proxy
+
+```cpp
+#include "wfrest/HttpServer.h"
+using namespace wfrest;
+
+int main()
+{
+    HttpServer svr;
+
+    // curl -v http://ip:port/proxy
+    svr.GET("/proxy", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->Http("http://www.baidu.com");
+    });
+
+    if (svr.start(8888) == 0)
+    {
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server");
         exit(1);
     }
     return 0;

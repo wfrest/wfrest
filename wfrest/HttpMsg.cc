@@ -38,16 +38,16 @@ void proxy_http_callback(WFHttpTask *http_task)
     int state = http_task->get_state();
     int error = http_task->get_error();
     auto *proxy_ctx = static_cast<ProxyCtx *>(http_task->user_data);
+    
     HttpServerTask *server_task = proxy_ctx->server_task;
     HttpResponse *http_resp = http_task->get_resp();
     HttpResp *server_resp = server_task->get_resp();
-    /* Some servers may close the socket as the end of http response. */
+    // Some servers may close the socket as the end of http response. 
     if (state == WFT_STATE_SYS_ERROR && error == ECONNRESET)
         state = WFT_STATE_SUCCESS;
 
     if (state == WFT_STATE_SUCCESS)
     {
-        /* add a callback for getting reply status. */
         server_task->add_callback([proxy_ctx](HttpTask *server_task)
         {
             HttpResp *server_resp = server_task->get_resp();
@@ -76,7 +76,6 @@ void proxy_http_callback(WFHttpTask *http_task)
     }
     else
     {
-        fprintf(stderr, "555");
         const char *err_string;
         int error = http_task->get_error();
 
@@ -446,17 +445,14 @@ int HttpResp::get_error() const
     return server_task->get_error();   
 }
 
-void HttpResp::Http(const std::string &url, size_t limit_size)
+void HttpResp::Http(const std::string &url, int redirect_max)
 {
     HttpServerTask *server_task = task_of(this);
     HttpReq *server_req = server_task->get_req();
-
-    // for requesting remote webserver. 
     WFHttpTask *http_task = WFTaskFactory::create_http_task(url, 
-                                                            0, 
+                                                            redirect_max, 
                                                             0, 
                                                             proxy_http_callback);
-
     auto *proxy_ctx = new ProxyCtx;
     proxy_ctx->url = url;
     proxy_ctx->server_task = server_task;
@@ -466,15 +462,10 @@ void HttpResp::Http(const std::string &url, size_t limit_size)
     const void *body;
 	size_t len;             
 
-	// Copy user's request to the new task's reuqest using std::move() 
 	server_req->set_request_uri(url);
 	server_req->get_parsed_body(&body, &len);
 	server_req->append_output_body_nocopy(body, len);
 	*http_task->get_req() = std::move(*server_req);  
-
-	// also, limit the remote webserver response size. 
-	http_task->get_resp()->set_size_limit(limit_size);
-
 	**server_task << http_task;
 }
 

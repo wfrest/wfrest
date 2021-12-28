@@ -1,7 +1,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-#include "wfrest/Aspect.h"
 
 using namespace wfrest;
 
@@ -18,9 +17,10 @@ int main()
 
     HttpServer svr;
 
+    // curl -v http://ip:port/proxy
     svr.GET("/proxy", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Http("http://www.baidu.com", 20 * 1024 * 1024);
+        resp->Http("http://www.baidu.com");
     });
 
     if (svr.start(8888) == 0)
