@@ -21,6 +21,8 @@ set(SRCS
         BluePrint.cc
         FileUtil.cc
         HttpCookie.cc
+        BlockSeries.cc
+        Mysql.cc
         )
 
 add_library(wfrest ${SRCS})
@@ -45,6 +47,7 @@ set(HEADERS
         FileUtil.h
         Aspect.h
         json.hpp
+        Mysql.h
   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)

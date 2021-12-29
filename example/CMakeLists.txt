@@ -64,5 +64,9 @@ target_link_libraries(19_https wfrest)
 add_executable(20_proxy 20_proxy.cc)
 target_link_libraries(20_proxy wfrest)
 
+add_executable(21_mysql_show_database 21_mysql/21_mysql_show_database.cc)
+target_link_libraries(21_mysql_show_database wfrest)
+
+
 
 
