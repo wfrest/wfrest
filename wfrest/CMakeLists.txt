@@ -34,19 +34,23 @@ endif ()
 
 # install(TARGETS wfrest DESTINATION lib)
 install(TARGETS
-        wfrest
+        ${PROJECT_NAME}
     EXPORT wfrest-config
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 export(TARGETS
-        wfrest
+        ${PROJECT_NAME}
     FILE "${CMAKE_CURRENT_BINARY_DIR}/wfrest-config.cmake"
 )
+
+# todo : ${CMAKE_INSTALL_LIBDIR} can't find
+set(CMAKE_CONFIG_INSTALL_DIR "/usr/local/lib/cmake/${PROJECT_NAME}")
+message(${CMAKE_CONFIG_INSTALL_DIR})
 install(EXPORT
         wfrest-config
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/wfrest/cmake"
+    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
 )
 
 file(GLOB HEADERS "*.h")
