@@ -35,17 +35,6 @@ jobs:
       run: |
         make -j $(nproc) && sudo make install
 
-    # - name: Checkout googletest
-    #   uses: actions/checkout@main
-    #   with:
-    #     repository: google/googletest 
-    
-    # - name: Install googletest
-    #   shell: bash
-    #   working-directory: ./build
-    #   run: |
-    #     cmake .. && make -j $(nproc) && sudo make install
-
     - name: Checkout wfrest source code
       uses: actions/checkout@v2
 
@@ -57,7 +46,9 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
-        cmake .. 
+        cmake -DWFREST_BUILD_EXAMPLES=ON \ 
+            -DWFREST_BUILD_BENCHMARK=ON \
+            -DWFREST_BUILD_TEST=ON ..
 
     - name: Build
       working-directory: ./build

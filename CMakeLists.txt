@@ -6,7 +6,7 @@ if(CMAKE_BUILD_TYPE)
 else()
     set(CMAKE_BUILD_TYPE "Release")
 endif()
-message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
 
@@ -41,8 +41,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-
-
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -107,21 +105,30 @@ include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
 if(WFREST_BUILD_EXAMPLES)
-message(STATUS "Build wfrest examples")
-add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+    message(STATUS "Build wfrest examples")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
 endif()
 
 
 if(WFREST_BUILD_BENCHMARK)
-message(STATUS "Build wfrest benchmark")
-add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
+    message(STATUS "Build wfrest benchmark")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
 endif()
 
 if(WFREST_BUILD_TEST)
-message(STATUS "Build wfrest unit tests")
-enable_testing()
-add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
+    find_package(GTest)
+    if(GTest_FOUND)
+        message(STATUS "Build wfrest unit tests")
+        enable_testing()
+        add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
+    else()
+        message(STATUS "GTest Not Found. wfrest unit tests will not be built")
+    endif()
 endif()
+
+
+
+
 
 
 
