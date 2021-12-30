@@ -32,7 +32,6 @@ if (Brotli_FOUND)
     target_link_libraries(wfrest Brotli_lib)
 endif ()
 
-# install(TARGETS wfrest DESTINATION lib)
 install(TARGETS
         ${PROJECT_NAME}
     EXPORT wfrest-config
@@ -45,9 +44,9 @@ export(TARGETS
     FILE "${CMAKE_CURRENT_BINARY_DIR}/wfrest-config.cmake"
 )
 
-# todo : ${CMAKE_INSTALL_LIBDIR} can't find
 set(CMAKE_CONFIG_INSTALL_DIR "/usr/local/lib/cmake/${PROJECT_NAME}")
-message(${CMAKE_CONFIG_INSTALL_DIR})
+message(STATUS ${CMAKE_CONFIG_INSTALL_DIR})
+
 install(EXPORT
         wfrest-config
     DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
@@ -56,20 +55,13 @@ install(EXPORT
 file(GLOB HEADERS "*.h")
 file(GLOB HEADERS_HPP "*.hpp")
 file(GLOB HEADERS_INL "*.inl")
-# set(HEADERS
-#         Compress.h
-#         HttpMsg.h
-#         HttpServer.h
-#         Logger.h
-#         StringPiece.h
-#         PathUtil.h
-#         base64.h
-#         FileUtil.h
-#         Aspect.h
-#         json.hpp
-#         Mysql.h
-#   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
 install(FILES ${HEADERS_HPP} DESTINATION include/wfrest)
 install(FILES ${HEADERS_INL} DESTINATION include/wfrest)
+
+install(FILES
+    "${CMAKE_SOURCE_DIR}/cmake/FindBrotli.cmake"
+    DESTINATION "${CMAKE_CONFIG_INSTALL_DIR}"
+    COMPONENT dev)
+

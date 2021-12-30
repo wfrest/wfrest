@@ -1,6 +1,12 @@
 # ✨ wfrest: C++ Web Framework REST API
 
-Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflow](https://github.com/sogou/workflow).
+Fast, efficient, and easiest c++ async micro web framework based on [C++ Workflow](https://github.com/sogou/workflow)!!!
+
+**C++ Workflow** supports almost all back-end C++ online services of Sogou, including all search services, cloud input method, online advertisements, etc., handling more than 10 billion requests every day. 
+
+**wfrest** benefits from the high performance and functional diversity of **Workflow**, the performance of **wfrest** is even better than that of Nginx, and it can also take advantage of the rich features of **Workflow**, such as HTTP, Redis, MySQL, and Kafka protocols, computing scheduling, asynchronous file IO and so on.
+
+If you need performance and good productivity, you will love **wfrest**.
 
 ## 🌟 Contents
 
@@ -40,15 +46,21 @@ For more information, you can first see discussions:
 
 ## ⌛️ Build
 
+### Shell 
+
+```cpp
+./build.sh
+```
+
 ### Cmake
 
 ```
-git clone https://github.com/chanchann/wfrest.git
+git clone https://github.com/wfrest/wfrest
 cd wfrest
 mkdir build && cd build
-cmake ..
-make -j 
-make install
+cmake .. 
+sudo make -j  
+sudo make install
 ```
 
 ### Docker

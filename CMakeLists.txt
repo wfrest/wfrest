@@ -43,27 +43,14 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-
-# option(BUILD_BROTLI "Build Brotli" OFF)
-# if (BUILD_BROTLI)
-#     find_package(Brotli QUIET)
-#     if (Brotli_FOUND)
-#         message(STATUS "Brotli found")
-#         add_definitions(-DUSE_BROTLI)
-#     else()
-#         MESSAGE("Brotli Not Found")  
-#     endif (Brotli_FOUND)
-# endif (BUILD_BROTLI)
-
 find_package(Brotli QUIET)
 if (Brotli_FOUND)
-    message(STATUS "Brotli found")
+    message(STATUS "Brotli Found")
     add_definitions(-DUSE_BROTLI)
 else()
     MESSAGE("Brotli Not Found")  
-endif (Brotli_FOUND)
+endif ()
 
-# set(workflow_DIR ${PROJECT_BINARY_DIR}/lib/cmake/workflow)
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 
     ${WORKFLOW_MIN_VERSION} 
@@ -74,25 +61,27 @@ if (NOT workflow_FOUND)
     MESSAGE("-- workflow in system not found or version < 0.9.9")
     MESSAGE("-- Building workflow in this project automatically")
     include(ExternalProject)
+    
     ExternalProject_Add(
         workflow_repo
         GIT_REPOSITORY https://github.com/sogou/workflow.git
-        CONFIGURE_COMMAND mkdir -p build
         BUILD_IN_SOURCE TRUE
-        BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
-        INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND make -j
+        INSTALL_COMMAND make install
         UPDATE_COMMAND ""
-        GIT_SHALLOW         TRUE
+        GIT_SHALLOW TRUE
     )
+
     add_library(workflow STATIC IMPORTED GLOBAL)                                                                                   
     add_dependencies(workflow workflow_repo)
     set_target_properties(
         workflow PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                    
-        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
+        IMPORTED_LOCATION ${INSTALL_DIR}/lib/libworkflow.a                                                                    
+        INCLUDE_DIRECTORIES ${INSTALL_DIR}/include
     )
-    include_directories(${PROJECT_BINARY_DIR}/include)
-    link_directories(${PROJECT_BINARY_DIR}/lib)
+    include_directories(${INSTALL_DIR}/include)
+    link_directories(${INSTALL_DIR}/lib)
 else()
     MESSAGE("-- workflow exists(version >= 0.9.9), not build")
 endif()
@@ -107,7 +96,6 @@ if(WFREST_BUILD_EXAMPLES)
     message(STATUS "Build wfrest examples")
     add_subdirectory(${PROJECT_SOURCE_DIR}/example)
 endif()
-
 
 if(WFREST_BUILD_BENCHMARK)
     message(STATUS "Build wfrest benchmark")
@@ -124,11 +112,3 @@ if(WFREST_BUILD_TEST)
         message(STATUS "GTest Not Found. wfrest unit tests will not be built")
     endif()
 endif()
-
-
-
-
-
-
-
-
