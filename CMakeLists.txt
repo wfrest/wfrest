@@ -14,7 +14,6 @@ option(WFREST_BUILD_BENCHMARK "Build wfrest benchmark" OFF)
 
 option(WFREST_BUILD_TEST "Build wfrest unit test" OFF)
 
-
 set(CXX_FLAGS
         -g
         -std=c++11
