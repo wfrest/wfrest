@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.6)
+
 project(wfrest C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
+message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
 if(CMAKE_PROJECT_NAME STREQUAL "wfrest")
     option(WFREST_BUILD_EXAMPLES "Build wfrest examples" ON)

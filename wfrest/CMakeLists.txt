@@ -32,11 +32,26 @@ if (Brotli_FOUND)
     target_link_libraries(wfrest Brotli_lib)
 endif ()
 
-install(TARGETS wfrest DESTINATION lib)
+# install(TARGETS wfrest DESTINATION lib)
+install(TARGETS
+        wfrest
+    EXPORT wfrest-config
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+export(TARGETS
+        wfrest
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/wfrest-config.cmake"
+)
+install(EXPORT
+        wfrest-config
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/wfrest/cmake"
+)
 
 file(GLOB HEADERS "*.h")
 file(GLOB HEADERS_HPP "*.hpp")
-
+file(GLOB HEADERS_INL "*.inl")
 # set(HEADERS
 #         Compress.h
 #         HttpMsg.h
@@ -53,3 +68,4 @@ file(GLOB HEADERS_HPP "*.hpp")
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
 install(FILES ${HEADERS_HPP} DESTINATION include/wfrest)
+install(FILES ${HEADERS_INL} DESTINATION include/wfrest)
