@@ -46,9 +46,7 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
-        cmake -DWFREST_BUILD_EXAMPLES=ON \ 
-            -DWFREST_BUILD_BENCHMARK=ON \
-            -DWFREST_BUILD_TEST=ON ..
+        cmake -DWFREST_BUILD_EXAMPLES=ON -DWFREST_BUILD_BENCHMARK=ON -DWFREST_BUILD_TEST=ON ..
 
     - name: Build
       working-directory: ./build
