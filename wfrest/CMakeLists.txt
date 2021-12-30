@@ -35,6 +35,8 @@ endif ()
 install(TARGETS wfrest DESTINATION lib)
 
 file(GLOB HEADERS "*.h")
+file(GLOB HEADERS_HPP "*.hpp")
+
 # set(HEADERS
 #         Compress.h
 #         HttpMsg.h
@@ -50,3 +52,4 @@ file(GLOB HEADERS "*.h")
 #   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
+install(FILES ${HEADERS_HPP} DESTINATION include/wfrest)
