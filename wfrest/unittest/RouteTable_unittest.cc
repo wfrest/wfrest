@@ -21,6 +21,25 @@ TEST(RouteTableNode, create_and_find)
     EXPECT_EQ(route_params["name"], "chanchan");
     EXPECT_EQ(route_params["passwd"], "123");
     EXPECT_EQ(route_match_path, "actiongogogo");
+
+    StringPiece route3("/api/v1/chanchan/123/actiongogogo/test.css");
+    it = rtn.find(route3, 0, route_params, route_match_path);
+    EXPECT_TRUE(it != rtn.end());
+    EXPECT_EQ(route_match_path, "actiongogogo/test.css");
+
+    StringPiece route4("/api/v1/chanchan/123/actiongogogo/111/222/test.css");
+    it = rtn.find(route4, 0, route_params, route_match_path);
+    EXPECT_TRUE(it != rtn.end());
+    EXPECT_EQ(route_match_path, "actiongogogo/111/222/test.css");
+
+    StringPiece route5("/api/v1/chanchan/123/action");
+    it = rtn.find(route5, 0, route_params, route_match_path);
+    EXPECT_TRUE(it != rtn.end());
+    EXPECT_EQ(route_match_path, "action");
+
+    StringPiece route6("/api/v1/chanchan/123/actio11");
+    it = rtn.find(route6, 0, route_params, route_match_path);
+    EXPECT_TRUE(it == rtn.end());
 }
 
 TEST(RouteTableNode, root_path)
