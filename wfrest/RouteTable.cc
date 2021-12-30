@@ -107,8 +107,9 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
             match.remove_suffix(1);
             if (mid.starts_with(match))
             {
-                fprintf(stderr, "wildcast * : %s\n", route.data());
-                route_match_path = mid.as_string();
+                LOG_INFO << "wildcast * : " << route;
+                StringPiece match_path(route.data() + cursor);
+                route_match_path = mid.as_string() + match_path.as_string();
                 LOG_INFO << "match path : " << route_match_path;
                 return iterator{kv.second, route, kv.second->verb_handler_};
             }

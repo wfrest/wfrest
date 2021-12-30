@@ -38,20 +38,29 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-option(BUILD_BROTLI "Build Brotli" OFF)
+
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-if (BUILD_BROTLI)
-    find_package(Brotli QUIET)
-    if (Brotli_FOUND)
-        message(STATUS "Brotli found")
-        add_definitions(-DUSE_BROTLI)
-    else()
-        MESSAGE("Brotli Not Found")  
-    endif (Brotli_FOUND)
-endif (BUILD_BROTLI)
+# option(BUILD_BROTLI "Build Brotli" OFF)
+# if (BUILD_BROTLI)
+#     find_package(Brotli QUIET)
+#     if (Brotli_FOUND)
+#         message(STATUS "Brotli found")
+#         add_definitions(-DUSE_BROTLI)
+#     else()
+#         MESSAGE("Brotli Not Found")  
+#     endif (Brotli_FOUND)
+# endif (BUILD_BROTLI)
+
+find_package(Brotli QUIET)
+if (Brotli_FOUND)
+    message(STATUS "Brotli found")
+    add_definitions(-DUSE_BROTLI)
+else()
+    MESSAGE("Brotli Not Found")  
+endif (Brotli_FOUND)
 
 # set(workflow_DIR ${PROJECT_BINARY_DIR}/lib/cmake/workflow)
 SET(WORKFLOW_MIN_VERSION "0.9.9")
@@ -98,7 +107,6 @@ if(WFREST_BUILD_EXAMPLES)
     add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
     add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/test)
 endif()
-
 
 # unit test part
 find_package(GTest)

@@ -199,11 +199,14 @@ public:
     int get_error() const;
 
     // proxy
-    void Http(const std::string &url, int redirect_max);
+    void Http(const std::string &url, int redirect_max, size_t size_limit);
 
+    void Http(const std::string &url, int redirect_max)
+    { this->Http(url, redirect_max, 200 * 1024 * 1024); }
+    
     void Http(const std::string &url)
-    { this->Http(url, 0); }
-
+    { this->Http(url, 0, 200 * 1024 * 1024); }
+    
 private:
     std::string compress(const std::string &str);
 
