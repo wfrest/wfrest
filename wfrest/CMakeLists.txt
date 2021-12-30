@@ -28,9 +28,9 @@ set(SRCS
 add_library(wfrest ${SRCS})
 
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
-if (Brotli_FOUND)
+if (BUILD_BROTLI AND Brotli_FOUND)
     target_link_libraries(wfrest Brotli_lib)
-endif ()
+endif()
 
 install(TARGETS
         ${PROJECT_NAME}

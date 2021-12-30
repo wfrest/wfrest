@@ -2,7 +2,7 @@
 
 Fast, efficient, and easiest c++ async micro web framework based on [**C++ Workflow**](https://github.com/sogou/workflow).
 
-[**C++ Workflow**](https://github.com/sogou/workflow) is a C++ Parallel Computing and Asynchronous Networking Engine. 
+[**C++ Workflow**](https://github.com/sogou/workflow) is a light-weighted C++ Parallel Computing and Asynchronous Networking Engine. 
 
 If you need performance and good productivity, you will love wfrest.
 

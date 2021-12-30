@@ -14,6 +14,8 @@ option(WFREST_BUILD_BENCHMARK "Build wfrest benchmark" OFF)
 
 option(WFREST_BUILD_TEST "Build wfrest unit test" OFF)
 
+option(BUILD_BROTLI "Build Brotli" OFF)
+
 set(CXX_FLAGS
         -g
         -std=c++11
@@ -43,13 +45,18 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+
 find_package(Brotli QUIET)
-if (Brotli_FOUND)
-    message(STATUS "Brotli Found")
-    add_definitions(-DUSE_BROTLI)
-else()
-    MESSAGE("Brotli Not Found")  
-endif ()
+if (BUILD_BROTLI)
+    find_package(Brotli QUIET)
+    if (Brotli_FOUND)
+        message(STATUS "Brotli found")
+        add_definitions(-DUSE_BROTLI)
+    else()
+        MESSAGE("Brotli Not Found")  
+    endif (Brotli_FOUND)
+endif (BUILD_BROTLI)
+
 
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 
