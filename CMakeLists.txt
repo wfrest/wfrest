@@ -8,9 +8,12 @@ else()
 endif()
 message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 
-if(CMAKE_PROJECT_NAME STREQUAL "wfrest")
-    option(WFREST_BUILD_EXAMPLES "Build wfrest examples" ON)
-endif()
+option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
+
+option(WFREST_BUILD_BENCHMARK "Build wfrest benchmark" OFF)
+
+option(WFREST_BUILD_TEST "Build wfrest unit test" OFF)
+
 
 set(CXX_FLAGS
         -g
@@ -95,19 +98,21 @@ include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
 if(WFREST_BUILD_EXAMPLES)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/test)
+message(STATUS "Build wfrest examples")
+add_subdirectory(${PROJECT_SOURCE_DIR}/example)
 endif()
 
-
-# unit test part
-find_package(GTest)
-if(GTest_FOUND)
-    message(STATUS "Building tests")
-    enable_testing()
-    add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
+if(WFREST_BUILD_BENCHMARK)
+message(STATUS "Build wfrest benchmark")
+add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
 endif()
+
+if(WFREST_BUILD_TEST)
+message(STATUS "Build wfrest unit tests")
+enable_testing()
+add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
+endif()
+
 
 
 
