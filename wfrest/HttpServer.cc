@@ -105,6 +105,7 @@ void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
     bp.GET("/*", [real_root](const HttpReq *req, HttpResp *resp) {
         std::string path = real_root + req->match_path();
         LOG_DEBUG << "File path : " << path;
+        fprintf(stderr, "File path : %s\n", path.c_str());
         resp->File(path);
     });
 }

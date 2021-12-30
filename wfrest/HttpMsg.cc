@@ -445,7 +445,7 @@ int HttpResp::get_error() const
     return server_task->get_error();   
 }
 
-void HttpResp::Http(const std::string &url, int redirect_max)
+void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 {
     HttpServerTask *server_task = task_of(this);
     HttpReq *server_req = server_task->get_req();
@@ -466,6 +466,8 @@ void HttpResp::Http(const std::string &url, int redirect_max)
 	server_req->get_parsed_body(&body, &len);
 	server_req->append_output_body_nocopy(body, len);
 	*http_task->get_req() = std::move(*server_req);  
+
+    http_task->get_resp()->set_size_limit(size_limit);
 	**server_task << http_task;
 }
 
