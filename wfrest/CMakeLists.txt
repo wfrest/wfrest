@@ -26,7 +26,6 @@ set(SRCS
         )
 
 add_library(wfrest ${SRCS})
-# add_dependencies(wfrest workflow)
 
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
 if (Brotli_FOUND)
@@ -35,19 +34,19 @@ endif ()
 
 install(TARGETS wfrest DESTINATION lib)
 
-# file(GLOB HEADERS "*.h")
-set(HEADERS
-        Compress.h
-        HttpMsg.h
-        HttpServer.h
-        Logger.h
-        StringPiece.h
-        PathUtil.h
-        base64.h
-        FileUtil.h
-        Aspect.h
-        json.hpp
-        Mysql.h
-  )
+file(GLOB HEADERS "*.h")
+# set(HEADERS
+#         Compress.h
+#         HttpMsg.h
+#         HttpServer.h
+#         Logger.h
+#         StringPiece.h
+#         PathUtil.h
+#         base64.h
+#         FileUtil.h
+#         Aspect.h
+#         json.hpp
+#         Mysql.h
+#   )
 
 install(FILES ${HEADERS} DESTINATION include/wfrest)
