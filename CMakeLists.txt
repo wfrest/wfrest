@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(wfrest C CXX)
+project(wfrest
+        VERSION 0.1.1
+        LANGUAGES C CXX)
 
 if(CMAKE_BUILD_TYPE)
 else()
@@ -110,12 +112,35 @@ if(WFREST_BUILD_BENCHMARK)
 endif()
 
 if(WFREST_BUILD_TEST)
-    find_package(GTest)
-    if(GTest_FOUND)
-        message(STATUS "Build wfrest unit tests")
-        enable_testing()
-        add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
-    else()
-        message(STATUS "GTest Not Found. wfrest unit tests will not be built")
-    endif()
+    message(STATUS "Build wfrest unit tests")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
 endif()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+set(CMAKE_VERSION_FILE       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake)
+set(CMAKE_CONFIG_FILE        ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake)
+
+configure_package_config_file(
+     ${PROJECT_NAME}-config.cmake.in
+     ${CMAKE_CONFIG_FILE}
+     INSTALL_DESTINATION  ${CMAKE_CONFIG_INSTALL_DIR}
+)
+
+write_basic_package_version_file(
+     ${CMAKE_VERSION_FILE}
+     VERSION ${PROJECT_VERSION}
+     COMPATIBILITY AnyNewerVersion 
+)
+
+install(
+    FILES       ${CMAKE_VERSION_FILE}   ${CMAKE_CONFIG_FILE}
+    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+    COMPONENT devel
+)
+
+
+
+
