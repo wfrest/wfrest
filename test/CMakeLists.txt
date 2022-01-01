@@ -1,3 +1,28 @@
+cmake_minimum_required(VERSION 3.6)
+
+project(unit_test)
+
+find_package(GTest REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+find_package(wfrest REQUIRED)
+if(NOT wfrest_FOUND)
+message(FATAL_ERROR "can't find wfrest,please build it first")
+endif()
+
+
+
+if(GTest_FOUND)
+message(STATUS "Build wfrest unit test")
+enable_testing()
+else()
+message(FATAL_ERROR  "can't find GTest,please install it first")
+endif()
+
+
+
+
 add_executable(StrUtil_unittest StrUtil_unittest.cc)
 target_link_libraries(StrUtil_unittest wfrest GTest::GTest)
 add_test(NAME StrUtil_unittest COMMAND StrUtil_unittest)
