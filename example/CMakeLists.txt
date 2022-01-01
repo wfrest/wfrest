@@ -6,7 +6,10 @@ find_package(ZLIB REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 find_package(wfrest REQUIRED CONFIG HINTS ..)
-if(NOT wfrest_FOUND)
+
+if(wfrest_FOUND)
+message(STATUS "Build wfrest examples")
+else()
 message(FATAL_ERROR "can't find wfrest,please build it first")
 endif()
 

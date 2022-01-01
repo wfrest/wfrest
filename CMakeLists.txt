@@ -127,20 +127,14 @@ install(
     COMPONENT devel
 )
 
-
-
-
 if(WFREST_BUILD_EXAMPLES)
-    message(STATUS "Build wfrest examples")
     add_subdirectory(${PROJECT_SOURCE_DIR}/example)
 endif()
 
 if(WFREST_BUILD_BENCHMARK)
-    message(STATUS "Build wfrest benchmark")
     add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
 endif()
 
 if(WFREST_BUILD_TEST)
-    message(STATUS "Build wfrest unit tests")
     add_subdirectory(${PROJECT_SOURCE_DIR}/unittest)
 endif()
