@@ -12,6 +12,7 @@ If you need performance and good productivity, you will love wfrest.
     - [Discussion](#💥-dicssussion)
     - [Contents](#🌟-contents)
     - [Build](#⌛️-build)
+        - [Shell](#shell)
         - [CMake](#cmake)
         - [Docker](#docker)
     - [Quick start](#🚀-quick-start)
@@ -40,7 +41,7 @@ If you need performance and good productivity, you will love wfrest.
 
 For more information, you can first see discussions:
 
-**https://github.com/chanchann/wfrest/discussions**
+**https://github.com/wfrest/wfrest/discussions**
 
 ## ⌛️ Build
 
