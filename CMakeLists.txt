@@ -101,20 +101,6 @@ message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_T
 include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
-if(WFREST_BUILD_EXAMPLES)
-    message(STATUS "Build wfrest examples")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
-endif()
-
-if(WFREST_BUILD_BENCHMARK)
-    message(STATUS "Build wfrest benchmark")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
-endif()
-
-if(WFREST_BUILD_TEST)
-    message(STATUS "Build wfrest unit tests")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest/unittest)
-endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -144,3 +130,17 @@ install(
 
 
 
+if(WFREST_BUILD_EXAMPLES)
+    message(STATUS "Build wfrest examples")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+endif()
+
+if(WFREST_BUILD_BENCHMARK)
+    message(STATUS "Build wfrest benchmark")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
+endif()
+
+if(WFREST_BUILD_TEST)
+    message(STATUS "Build wfrest unit tests")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/unittest)
+endif()

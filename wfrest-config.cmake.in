@@ -2,6 +2,8 @@
 
 set(wfrest_VERSION "@wfrest_VERSION@")
 
-include("${CMAKE_CURRENT_LIST_DIR}/wfrest-targets.cmake")
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/wfrest-targets.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/wfrest-targets.cmake")
+endif()
 
 check_required_components(wfrest)

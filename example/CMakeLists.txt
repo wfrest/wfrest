@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.6)
 
 project(example)
 
-find_package(GTest REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-find_package(wfrest REQUIRED)
+find_package(wfrest REQUIRED CONFIG HINTS ..)
 if(NOT wfrest_FOUND)
 message(FATAL_ERROR "can't find wfrest,please build it first")
 endif()
