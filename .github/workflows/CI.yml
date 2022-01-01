@@ -46,7 +46,7 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
-        cmake ..
+        cmake -DWFREST_BUILD_EXAMPLES=ON ..
 
     - name: Build
       working-directory: ./build
@@ -58,5 +58,5 @@ jobs:
       working-directory: ./test
       shell: bash
       run: |
-        mkdir build && cd build && make -j $(nproc) && make test
+        mkdir build && cd build && cmake .. && make -j $(nproc) && make test
       
