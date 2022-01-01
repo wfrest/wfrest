@@ -83,3 +83,5 @@ bin/lib-bash
 */logs/*
 
 _include/*
+
+wfrest-config.cmake

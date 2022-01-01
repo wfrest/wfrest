@@ -46,7 +46,7 @@ jobs:
       shell: bash
       working-directory: ./build
       run: |
-        cmake -DWFREST_BUILD_EXAMPLES=ON -DWFREST_BUILD_BENCHMARK=ON -DWFREST_BUILD_TEST=ON ..
+        cmake ..
 
     - name: Build
       working-directory: ./build
@@ -55,8 +55,8 @@ jobs:
         sudo make -j $(nproc) && sudo make install
 
     - name: Test
-      working-directory: ./build
+      working-directory: ./test
       shell: bash
       run: |
-        sudo make test
+        mkdir build && cd build && make -j $(nproc) && make test
       

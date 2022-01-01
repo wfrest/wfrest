@@ -12,7 +12,6 @@ message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
 
-
 option(BUILD_BROTLI "Build Brotli" OFF)
 
 set(CXX_FLAGS
