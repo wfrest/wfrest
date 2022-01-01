@@ -12,9 +12,6 @@ message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
 
-option(WFREST_BUILD_BENCHMARK "Build wfrest benchmark" OFF)
-
-option(WFREST_BUILD_TEST "Build wfrest unit test" OFF)
 
 option(BUILD_BROTLI "Build Brotli" OFF)
 
@@ -109,6 +106,7 @@ set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 set(CMAKE_VERSION_FILE       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake)
 set(CMAKE_CONFIG_FILE        ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake)
 
+
 configure_package_config_file(
      ${PROJECT_NAME}-config.cmake.in
      ${CMAKE_CONFIG_FILE}
@@ -128,13 +126,7 @@ install(
 )
 
 if(WFREST_BUILD_EXAMPLES)
+    message(STATUS "Build wfrest examples")
     add_subdirectory(${PROJECT_SOURCE_DIR}/example)
 endif()
 
-if(WFREST_BUILD_BENCHMARK)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark)
-endif()
-
-if(WFREST_BUILD_TEST)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/unittest)
-endif()

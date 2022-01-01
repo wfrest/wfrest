@@ -1,19 +1,3 @@
-cmake_minimum_required(VERSION 3.6)
-
-project(example)
-
-find_package(ZLIB REQUIRED)
-find_package(OpenSSL REQUIRED)
-
-find_package(wfrest REQUIRED CONFIG HINTS ..)
-
-if(wfrest_FOUND)
-message(STATUS "Build wfrest examples")
-else()
-message(FATAL_ERROR "can't find wfrest,please build it first")
-endif()
-
-
 add_executable(01_basic 01_basic.cc)
 target_link_libraries(01_basic wfrest)
 
