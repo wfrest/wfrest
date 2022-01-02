@@ -11,17 +11,26 @@ namespace wfrest
 {
 
 class BlockSeries;
-class Mysql : public Noncopyable
+
+class MySQL : public Noncopyable
 {
 public:
-    void execute(const std::string &sql, mysql_callback_t callback);
+    struct Status
+    {
+        int state;
+        int error;
+    };
+    using MySQLFunc = std::function<void(protocol::MySQLResultCursor &cursor, 
+                                        const Status &status)>;
+
+    void execute(const std::string &sql, const MySQLFunc &mysql_func);
 
     // void reset(const std::string &url);
 
 public:
-    explicit Mysql(const std::string &url);
+    explicit MySQL(const std::string &url);
 
-    ~Mysql();
+    ~MySQL();
 
 private:
     std::string url_;
@@ -29,12 +38,6 @@ private:
     std::atomic<int64_t> id_;
 };
 
-
 } // namespace wfrest
-
-
-
-
-
 
 #endif // WFREST_MYSQL_H_

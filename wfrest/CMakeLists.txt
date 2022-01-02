@@ -1,3 +1,5 @@
+file(GLOB SRCS "*.cc")
+
 set(SRCS
         StrUtil.cc
         HttpMsg.cc
@@ -23,6 +25,7 @@ set(SRCS
         HttpCookie.cc
         BlockSeries.cc
         Mysql.cc
+        MysqlUtil.cc
         )
 
 add_library(wfrest ${SRCS})
