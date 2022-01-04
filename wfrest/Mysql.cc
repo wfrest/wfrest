@@ -1,16 +1,18 @@
 #include "workflow/WFTaskFactory.h"
+#include "workflow/Workflow.h"
 #include "wfrest/Mysql.h"
-#include "wfrest/BlockSeries.h"
 #include "wfrest/Logger.h"
 
 using namespace wfrest;
 using namespace protocol;
 
-void MySQL::execute(const std::string &sql, const MySQLFunc &mysql_func)
+// init static member var
+std::atomic<int64_t> MySQL::id_{0};
+
+void MySQL::query(const std::string &sql, const MySQLFunc &mysql_func)
 {
-    WFMySQLTask *task = WFTaskFactory::create_mysql_task(url_, 
-                                                        0, 
-                                                        [mysql_func](WFMySQLTask *task)
+    WFMySQLTask *task = conn_->create_query_task(sql,
+                                                [mysql_func](WFMySQLTask *task)
     {
         Status status;
         if (task->get_state() != WFT_STATE_SUCCESS)
@@ -30,23 +32,31 @@ void MySQL::execute(const std::string &sql, const MySQLFunc &mysql_func)
             mysql_func(cursor, status);
     });
 
-    task->get_req()->set_query(sql);
-    block_series_->push_back(task);
+    if(head_task_ == nullptr)
+    {
+        head_task_ = task;
+        SeriesWork *series = Workflow::create_series_work(head_task_, nullptr);
+    }
+    else 
+    {
+        **head_task_ << task;
+    }
 }
 
+void MySQL::start()
+{
+    series_of(head_task_)->start();
+}
 
 MySQL::MySQL(const std::string& url)
-    : url_(url)
 {
-    WFEmptyTask *empty_task = WFTaskFactory::create_empty_task();
-    block_series_ = new BlockSeries(empty_task, std::to_string(id_++));
-    block_series_->start();
+    conn_ = new WFMySQLConnection(id_++);
+    conn_->init(url);
 }
 
 MySQL::~MySQL()
 {
-    delete block_series_;
+    conn_->deinit();
+    delete conn_;
 }
-
-
 

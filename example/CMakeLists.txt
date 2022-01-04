@@ -64,8 +64,14 @@ target_link_libraries(19_https wfrest)
 add_executable(20_proxy 20_proxy.cc)
 target_link_libraries(20_proxy wfrest)
 
-add_executable(21_mysql_show_database 21_mysql/21_mysql_show_database.cc)
-target_link_libraries(21_mysql_show_database wfrest)
+add_executable(21_mysql_show_db 21_mysql/21_show_db.cc)
+target_link_libraries(21_mysql_show_db wfrest)
+
+add_executable(21_mysql_create_add_query 21_mysql/21_create_add_query.cc)
+target_link_libraries(21_mysql_create_add_query wfrest)
+
+add_executable(21_mysql_web_db 21_mysql/21_web_db.cc)
+target_link_libraries(21_mysql_web_db wfrest)
 
 
 
