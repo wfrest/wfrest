@@ -73,6 +73,10 @@ target_link_libraries(21_mysql_create_add_query wfrest)
 add_executable(21_mysql_web_db 21_mysql/21_web_db.cc)
 target_link_libraries(21_mysql_web_db wfrest)
 
+add_executable(21_mysql_json 21_mysql/21_db_json.cc)
+target_link_libraries(21_mysql_json wfrest)
+
+
 
 
 

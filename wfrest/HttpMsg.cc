@@ -1,4 +1,6 @@
 #include "workflow/HttpUtil.h"
+#include "workflow/MySQLResult.h"
+#include "workflow/WFMySQLConnection.h"
 
 #include <unistd.h>
 #include <algorithm>
@@ -10,6 +12,7 @@
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"
+#include "wfrest/MysqlUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -95,6 +98,116 @@ void proxy_http_callback(WFHttpTask *http_task)
         server_resp->set_status_code("404");
         server_resp->append_output_body_nocopy("<html>404 Not Found.</html>", 27);
     }
+}
+
+void mysql_callback(WFMySQLTask *mysql_task)
+{
+    MySQLResponse *mysql_resp = mysql_task->get_resp();
+    Json json;
+    MySQLResultCursor cursor(mysql_resp);
+    const MySQLField *const *fields;
+    std::vector<MySQLCell> arr;
+
+    if (mysql_task->get_state() != WFT_STATE_SUCCESS)
+    {
+        json["error"] = WFGlobal::get_error_string(mysql_task->get_state(),
+                                                    mysql_task->get_error());
+        return;
+    }
+    do {
+        Json result_set;
+        if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
+            cursor.get_cursor_status() != MYSQL_STATUS_OK)
+        {
+            break;
+        }
+
+        if (cursor.get_cursor_status() == MYSQL_STATUS_GET_RESULT)
+        {
+            result_set["field_count"] = cursor.get_field_count();
+            result_set["rows_count"] = cursor.get_rows_count();
+
+            fields = cursor.fetch_fields();
+            std::vector<std::string> fields_name;
+            std::vector<std::string> fields_type;
+            for (int i = 0; i < cursor.get_field_count(); i++)
+            {
+                if (i == 0)
+                {
+                    result_set["database"] = fields[i]->get_db();
+                    result_set["table"] = fields[i]->get_table();
+                }
+                
+                fields_name.push_back(fields[i]->get_name());
+                fields_type.push_back(datatype2str(fields[i]->get_data_type()));
+            }
+            result_set["fields_name"] = fields_name;
+            result_set["fields_type"] = fields_type;
+
+            while (cursor.fetch_row(arr))
+            {
+                Json row;                  
+                for (size_t i = 0; i < arr.size(); i++)
+                {
+                    if (arr[i].is_string())
+                    {
+                        row.push_back(arr[i].as_string());
+                    } 
+                    else if (arr[i].is_time() || arr[i].is_datetime()) 
+                    {
+                        row.push_back(MySQLUtil::to_string(arr[i]));
+                    } 
+                    else if (arr[i].is_null()) 
+                    {
+                        row.push_back("NULL");
+                    } 
+                    else if(arr[i].is_double()) 
+                    {
+                        row.push_back(arr[i].as_double());
+                    } 
+                    else if(arr[i].is_float())
+                    {
+                        row.push_back(arr[i].as_float());
+                    }
+                    else if(arr[i].is_int())
+                    {
+                        row.push_back(arr[i].as_int());
+                    }
+                    else if(arr[i].is_ulonglong())
+                    {
+                        row.push_back(arr[i].as_ulonglong());
+                    }
+                }
+                result_set["rows"].push_back(row);
+            }
+        }
+        else if (cursor.get_cursor_status() == MYSQL_STATUS_OK)
+        {
+            result_set["status"] = "OK";
+            result_set["affected_rows"] = cursor.get_affected_rows();
+            result_set["warnings"] = cursor.get_warnings();
+            result_set["insert_id"] = cursor.get_insert_id();
+            result_set["info"] = cursor.get_info();
+        }
+        json.push_back(result_set);
+    } while (cursor.next_result_set());
+
+
+    if (mysql_resp->get_packet_type() == MYSQL_PACKET_ERROR)
+    {
+        json["errcode"] = mysql_task->get_resp()->get_error_code();
+        json["errmsg"] = mysql_task->get_resp()->get_error_msg();
+    }
+    else if (mysql_resp->get_packet_type() == MYSQL_PACKET_OK) 
+    {
+        json["status"] = "OK";
+        json["affected_rows"] = mysql_task->get_resp()->get_affected_rows();
+        json["warnings"] = mysql_task->get_resp()->get_warnings();
+        json["insert_id"] = mysql_task->get_resp()->get_last_insert_id();
+        json["info"] = mysql_task->get_resp()->get_info();
+    }
+    auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
+    server_resp->String(json.dump());
 }
 
 } // namespace wfrest
@@ -469,6 +582,15 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 
     http_task->get_resp()->set_size_limit(size_limit);
 	**server_task << http_task;
+}
+
+void HttpResp::MySQL(const std::string &url, const std::string &sql)
+{
+    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, mysql_callback);
+    mysql_task->get_req()->set_query(sql);
+    mysql_task->user_data = this;
+    HttpServerTask *server_task = task_of(this);
+    **server_task << mysql_task;
 }
 
 HttpResp::HttpResp(HttpResp&& other)

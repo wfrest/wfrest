@@ -2,6 +2,7 @@
 #include "workflow/Workflow.h"
 #include "wfrest/Mysql.h"
 #include "wfrest/Logger.h"
+#include "wfrest/MysqlUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -28,6 +29,7 @@ void MySQL::query(const std::string &sql, const MySQLFunc &mysql_func)
         }
         MySQLResponse *resp = task->get_resp();
         MySQLResultCursor cursor(resp);
+        
         if(mysql_func)
             mysql_func(cursor, status);
     });

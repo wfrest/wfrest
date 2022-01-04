@@ -207,6 +207,8 @@ public:
     void Http(const std::string &url)
     { this->Http(url, 0, 200 * 1024 * 1024); }
     
+    void MySQL(const std::string &url, const std::string &sql);
+
 private:
     std::string compress(const std::string &str);
 
