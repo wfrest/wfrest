@@ -14,7 +14,6 @@
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
-#include "wfrest/Mysql.h"
 #include "HttpMsg.h"
 
 using namespace wfrest;
