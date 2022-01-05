@@ -30,9 +30,6 @@ public:
     void start();
 
 public:
-    void *user_data = nullptr;
-
-public:
     explicit MySQL(const std::string &url);
 
     ~MySQL();

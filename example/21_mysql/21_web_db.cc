@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 
     HttpServer svr;
 
-    svr.GET("/db", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/db", [](const HttpReq *req, HttpResp *resp)
     {
         MySQL db("mysql://root:111111@localhost");
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
         resp->MySQL(db);
     });
 
-    svr.GET("/show_db", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/show_db", [](const HttpReq *req, HttpResp *resp)
     {
         MySQL db("mysql://root:111111@localhost");
         db.query("SHOW DATABASES", [resp](MySQLResultCursor &cursor, 
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         resp->MySQL(db);
     });
 
-    if (svr.start(8888, argv[1], argv[2]) == 0)
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

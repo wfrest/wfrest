@@ -10,5 +10,5 @@ mkdir -p $BUILD_DIR \
     && cmake \
             -DWFREST_BUILD_EXAMPLES=ON \
             $SOURCE_DIR \
-    && make $*
+    && make $* 
 

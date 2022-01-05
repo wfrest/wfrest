@@ -124,6 +124,7 @@ void mysql_callback(WFMySQLTask *mysql_task)
         if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
             cursor.get_cursor_status() != MYSQL_STATUS_OK)
         {
+            LOG_INFO << "MySQL Status OK";
             break;
         }
 
@@ -131,7 +132,7 @@ void mysql_callback(WFMySQLTask *mysql_task)
         {
             result_set["field_count"] = cursor.get_field_count();
             result_set["rows_count"] = cursor.get_rows_count();
-
+            result_set["cursor_status"] = cursor.get_cursor_status();
             fields = cursor.fetch_fields();
             std::vector<std::string> fields_name;
             std::vector<std::string> fields_type;
@@ -139,7 +140,9 @@ void mysql_callback(WFMySQLTask *mysql_task)
             {
                 if (i == 0)
                 {
-                    result_set["database"] = fields[i]->get_db();
+                    std::string database = fields[i]->get_db();
+                    if(!database.empty())
+                        result_set["database"] = std::move(database);
                     result_set["table"] = fields[i]->get_table();
                 }
                 
@@ -194,7 +197,7 @@ void mysql_callback(WFMySQLTask *mysql_task)
             result_set["insert_id"] = cursor.get_insert_id();
             result_set["info"] = cursor.get_info();
         }
-        json.push_back(result_set);
+        json["result_set"].push_back(result_set);
     } while (cursor.next_result_set());
 
     if (mysql_resp->get_packet_type() == MYSQL_PACKET_ERROR)

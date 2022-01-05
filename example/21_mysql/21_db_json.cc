@@ -17,22 +17,28 @@ int main(int argc, char **argv)
 
     HttpServer svr;
 
-    svr.GET("/show_db", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/show_db", [](const HttpReq *req, HttpResp *resp)
     {
         resp->MySQL("mysql://root:111111@localhost", "SHOW DATABASES");
     });
 
-    svr.GET("/query", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
     {
         resp->MySQL("mysql://root:111111@localhost/wfrest_test", "SELECT * FROM wfrest");
     });
 
-    svr.GET("/multi", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/multi", [](const HttpReq *req, HttpResp *resp)
     {
         resp->MySQL("mysql://root:111111@localhost/wfrest_test", "SHOW DATABASES; SELECT * FROM wfrest");
     });
 
-    if (svr.start(8888, argv[1], argv[2]) == 0)
+    svr.POST("/client", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string &sql = req->body();
+        resp->MySQL("mysql://root:111111@localhost/wfrest_test", std::move(sql));
+    });
+
+    if (svr.start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

@@ -35,6 +35,7 @@ If you need performance and good productivity, you will love wfrest.
       - [Aspect-oriented programming](#aspect-oriented-programming)
       - [Https Server](#https-server)
       - [Proxy](#proxy)
+    - [MySQL](#mysql)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -1154,6 +1155,41 @@ int main()
     } else
     {
         fprintf(stderr, "Cannot start server");
+        exit(1);
+    }
+    return 0;
+}
+```
+
+## MySQL
+
+```cpp
+#include "wfrest/HttpServer.h"
+using namespace wfrest;
+
+int main(int argc)
+{
+    HttpServer svr;
+
+    svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
+    {
+        // It will transform mysql result to json.
+        resp->MySQL("mysql://root:111111@localhost/wfrest_test", "SELECT * FROM wfrest");
+    });
+
+    svr.POST("/client", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string &sql = req->body();
+        resp->MySQL("mysql://root:111111@localhost/wfrest_test", std::move(sql));
+    });
+
+    if (svr.start(8888) == 0)
+    {
+        getchar();
+        svr.stop();
+    } else
+    {
+        fprintf(stderr, "Cannot start server\n");
         exit(1);
     }
     return 0;
