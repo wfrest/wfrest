@@ -18,6 +18,26 @@ else()
     message(FATAL_ERROR  "can't find GTest,please install it first")
 endif()
 
+# test
+
+add_executable(router_test router_test.cc)
+target_link_libraries(router_test wfrest)
+
+add_executable(multi_part_test multi_part_test.cc)
+
+add_executable(StringPiece_feature StringPiece_feature.cc)
+target_link_libraries(StringPiece_feature wfrest)
+
+add_executable(logger_test logger_test.cc)
+target_link_libraries(logger_test wfrest)
+
+add_executable(AsyncLogger_test AsyncLogger_test.cc)
+target_link_libraries(AsyncLogger_test wfrest)
+
+add_executable(RouteTableNode_test RouteTableNode_test.cc)
+target_link_libraries(RouteTableNode_test wfrest)
+
+# unit test
 add_executable(StrUtil_unittest StrUtil_unittest.cc)
 target_link_libraries(StrUtil_unittest wfrest GTest::GTest)
 add_test(NAME StrUtil_unittest COMMAND StrUtil_unittest)

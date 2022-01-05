@@ -3,12 +3,14 @@
 #include "wfrest/Mysql.h"
 #include "wfrest/Logger.h"
 #include "wfrest/MysqlUtil.h"
+#include "Mysql.h"
+
 
 using namespace wfrest;
 using namespace protocol;
 
 // init static member var
-std::atomic<int64_t> MySQL::id_{0};
+std::atomic<int> MySQL::id_{0};
 
 void MySQL::query(const std::string &sql, const MySQLFunc &mysql_func)
 {
@@ -61,4 +63,3 @@ MySQL::~MySQL()
     conn_->deinit();
     delete conn_;
 }
-

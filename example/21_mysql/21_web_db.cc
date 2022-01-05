@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         {
             fprintf(stderr, "query 3\n");
         });
-        *series << db;
+        resp->MySQL(db);
     });
 
     svr.GET("/show_db", [](const HttpReq *req, HttpResp *resp, SeriesWork *series)
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
             }
             resp->String(std::move(res));
         });
-        *series << db;
+        resp->MySQL(db);
     });
 
     if (svr.start(8888, argv[1], argv[2]) == 0)

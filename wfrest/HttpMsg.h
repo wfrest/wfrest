@@ -23,6 +23,7 @@ namespace wfrest
 using Json = nlohmann::json;
 
 struct ReqData;
+class MySQL;
 
 class HttpReq : public protocol::HttpRequest, public Noncopyable
 {
@@ -208,6 +209,8 @@ public:
     { this->Http(url, 0, 200 * 1024 * 1024); }
     
     void MySQL(const std::string &url, const std::string &sql);
+
+    void MySQL(const wfrest::MySQL &mysql);
 
 private:
     std::string compress(const std::string &str);

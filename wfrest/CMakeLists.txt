@@ -23,7 +23,6 @@ set(SRCS
         BluePrint.cc
         FileUtil.cc
         HttpCookie.cc
-        BlockSeries.cc
         Mysql.cc
         MysqlUtil.cc
         )

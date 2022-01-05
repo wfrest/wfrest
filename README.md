@@ -51,6 +51,12 @@ For more information, you can first see discussions:
 ./build.sh
 ```
 
+For test
+
+```
+./test.sh
+```
+
 ### Cmake
 
 ```

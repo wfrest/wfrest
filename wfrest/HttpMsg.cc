@@ -1,6 +1,7 @@
 #include "workflow/HttpUtil.h"
 #include "workflow/MySQLResult.h"
 #include "workflow/WFMySQLConnection.h"
+#include "workflow/Workflow.h"
 
 #include <unistd.h>
 #include <algorithm>
@@ -13,6 +14,9 @@
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
+#include "wfrest/Mysql.h"
+#include "HttpMsg.h"
+
 
 using namespace wfrest;
 using namespace protocol;
@@ -114,6 +118,7 @@ void mysql_callback(WFMySQLTask *mysql_task)
                                                     mysql_task->get_error());
         return;
     }
+
     do {
         Json result_set;
         if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
@@ -191,7 +196,6 @@ void mysql_callback(WFMySQLTask *mysql_task)
         }
         json.push_back(result_set);
     } while (cursor.next_result_set());
-
 
     if (mysql_resp->get_packet_type() == MYSQL_PACKET_ERROR)
     {
@@ -593,6 +597,17 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql)
     **server_task << mysql_task;
 }
 
+void HttpResp::MySQL(const wfrest::MySQL &mysql)
+{
+    SubTask *first_task = mysql.front();
+    if(!first_task) return;  
+    ParallelWork *parallel = Workflow::create_parallel_work(nullptr);
+    parallel->add_series(series_of(first_task));
+
+    HttpServerTask *server_task = task_of(this);
+    **server_task << parallel;
+}
+
 HttpResp::HttpResp(HttpResp&& other)
     : HttpResponse(std::move(other)),
     headers(std::move(other.headers)),
@@ -611,3 +626,5 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     cookies_ = std::move(other.cookies_);
     return *this;
 }
+
+
