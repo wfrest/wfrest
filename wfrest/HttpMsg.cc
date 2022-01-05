@@ -17,7 +17,6 @@
 #include "wfrest/Mysql.h"
 #include "HttpMsg.h"
 
-
 using namespace wfrest;
 using namespace protocol;
 using Json = nlohmann::json;
@@ -104,10 +103,10 @@ void proxy_http_callback(WFHttpTask *http_task)
     }
 }
 
-void mysql_callback(WFMySQLTask *mysql_task)
+Json mysql_concat_json_res(WFMySQLTask *mysql_task)
 {
-    MySQLResponse *mysql_resp = mysql_task->get_resp();
     Json json;
+    MySQLResponse *mysql_resp = mysql_task->get_resp();
     MySQLResultCursor cursor(mysql_resp);
     const MySQLField *const *fields;
     std::vector<MySQLCell> arr;
@@ -116,7 +115,7 @@ void mysql_callback(WFMySQLTask *mysql_task)
     {
         json["error"] = WFGlobal::get_error_string(mysql_task->get_state(),
                                                     mysql_task->get_error());
-        return;
+        return json;
     }
 
     do {
@@ -132,7 +131,6 @@ void mysql_callback(WFMySQLTask *mysql_task)
         {
             result_set["field_count"] = cursor.get_field_count();
             result_set["rows_count"] = cursor.get_rows_count();
-            result_set["cursor_status"] = cursor.get_cursor_status();
             fields = cursor.fetch_fields();
             std::vector<std::string> fields_name;
             std::vector<std::string> fields_type;
@@ -213,6 +211,12 @@ void mysql_callback(WFMySQLTask *mysql_task)
         json["insert_id"] = mysql_task->get_resp()->get_last_insert_id();
         json["info"] = mysql_task->get_resp()->get_info();
     }
+    return json;
+}
+
+void mysql_callback(WFMySQLTask *mysql_task)
+{
+    Json json = mysql_concat_json_res(mysql_task);
     auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
     server_resp->String(json.dump());
 }
@@ -600,15 +604,42 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql)
     **server_task << mysql_task;
 }
 
-void HttpResp::MySQL(const wfrest::MySQL &mysql)
+void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLJsonFunc &func)
 {
-    SubTask *first_task = mysql.front();
-    if(!first_task) return;  
-    ParallelWork *parallel = Workflow::create_parallel_work(nullptr);
-    parallel->add_series(series_of(first_task));
+    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, 
+    [func](WFMySQLTask *mysql_task)
+    {
+        ::Json json = mysql_concat_json_res(mysql_task);
+        func(&json);
+    });
 
+    mysql_task->get_req()->set_query(sql);
     HttpServerTask *server_task = task_of(this);
-    **server_task << parallel;
+    **server_task << mysql_task;
+}
+
+void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func)
+{
+    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, 
+    [func](WFMySQLTask *mysql_task)
+    {
+        if (mysql_task->get_state() != WFT_STATE_SUCCESS)
+        {
+            std::string errmsg = WFGlobal::get_error_string(mysql_task->get_state(),
+                                                mysql_task->get_error());
+            LOG_ERROR << "error msg:" << errmsg;
+            auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
+            server_resp->String(std::move(errmsg));
+            return;
+        }
+        MySQLResponse *mysql_resp = mysql_task->get_resp();
+        MySQLResultCursor cursor(mysql_resp);
+        func(&cursor);
+    });
+    mysql_task->get_req()->set_query(sql);
+    mysql_task->user_data = this;
+    HttpServerTask *server_task = task_of(this);
+    **server_task << mysql_task;
 }
 
 HttpResp::HttpResp(HttpResp&& other)

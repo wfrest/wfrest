@@ -35,7 +35,7 @@ If you need performance and good productivity, you will love wfrest.
       - [Aspect-oriented programming](#aspect-oriented-programming)
       - [Https Server](#https-server)
       - [Proxy](#proxy)
-    - [MySQL](#mysql)
+    - [MySQL](./docs/mysql.md)
     - [How to use logger](#how-to-use-logger)
   
 ## 💥 Dicssussion
@@ -49,7 +49,7 @@ For more information, you can first see discussions:
 ### Shell 
 
 ```cpp
-./build.sh
+sudo ./build.sh
 ```
 
 For test

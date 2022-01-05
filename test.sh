@@ -8,5 +8,5 @@ mkdir -p $BUILD_DIR \
     && cd $BUILD_DIR \
     && cmake .. \
     && make $* \
-    && make test
+    && make test 
 

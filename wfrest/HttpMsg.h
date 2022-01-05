@@ -17,6 +17,13 @@
 #include "wfrest/HttpCookie.h"
 #include "wfrest/Noncopyable.h"
 
+namespace protocol
+{
+class MySQLResultCursor;
+
+}  // namespace protocol
+
+
 namespace wfrest
 {
 
@@ -155,6 +162,11 @@ inline double HttpReq::param<double>(const std::string &key) const
 class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
+    using MySQLJsonFunc = std::function<void(Json *json)>;
+
+    using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
+
+public:
     // send string
     void String(const std::string &str);
 
@@ -208,9 +220,12 @@ public:
     void Http(const std::string &url)
     { this->Http(url, 0, 200 * 1024 * 1024); }
     
+    // MySQL
     void MySQL(const std::string &url, const std::string &sql);
 
-    void MySQL(const wfrest::MySQL &mysql);
+    void MySQL(const std::string &url, const std::string &sql, const MySQLJsonFunc &func);
+
+    void MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func);
 
 private:
     std::string compress(const std::string &str);
