@@ -71,11 +71,14 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
             req->set_route_match_path(std::move(route_match_path));
-            server_task->add_callback([server_task, verb, route](HttpTask *)
-                                      {
-                                          LOG_INFO << "| " << get_peer_addr_str(server_task)
-                                                   << " | " << verb << " : " << route << " |";
-                                      });
+            // todo : give interface to user(Log Aspect)
+            // server_task->add_callback([server_task, verb, route](HttpTask *)
+            //                           {
+            //                               fprintf(stderr, "| %s | %s : %s |\n", 
+            //                                             get_peer_addr_str(server_task).c_str(), 
+            //                                             verb.c_str(), 
+            //                                             route.c_str());
+            //                           });
             
             WFGoTask * go_task = it->second.handler(req, resp, series_of(server_task));
             if(go_task)
@@ -84,12 +87,13 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
         } else
         {
             resp->set_status(HttpStatusNotFound);
-            LOG_ERROR << verb << " not implemented on route " << route2;
+            std::string res = verb + " not implemented on route " + route2.as_string() + "\n";
+            resp->String(std::move(res));
         }
     } else
     {
         resp->set_status(HttpStatusNotFound);
-        LOG_ERROR << "Route dose not exist";
+        resp->String("Route dose not exist\n");
     }
 }
 

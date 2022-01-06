@@ -14,7 +14,7 @@ struct LogAop : public Aspect
 {
     bool before(const HttpReq *req, HttpResp *resp) override 
     {
-        fprintf(stderr, "before log\n");
+        fprintf(stderr, "before \n");
         return true;
     }
 

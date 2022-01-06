@@ -90,11 +90,17 @@ void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
     // extract root realpath. 
     char realpath_out[PATH_MAX]{0};
     if (nullptr == realpath(dir_path, OUT realpath_out))
-        LOG_SYSERR << "Directory " << dir_path << " does not exists.";
-    
+    {
+        fprintf(stderr, "Serve Dir failed. Directory %s dose not exists\n", dir_path);
+        return;
+    }
+        
     // Check if it is a directory.
     if (!PathUtil::is_dir(realpath_out))
-        LOG_SYSERR << dir_path << " is not a directory.";
+    {
+        fprintf(stderr, "Serve Dir failed. %s is not a directory\n", dir_path);
+        return;
+    }
         
     std::string real_root(realpath_out);
     if(real_root.back() != '/')
@@ -104,8 +110,8 @@ void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
 
     bp.GET("/*", [real_root](const HttpReq *req, HttpResp *resp) {
         std::string path = real_root + req->match_path();
-        LOG_DEBUG << "File path : " << path;
-        fprintf(stderr, "File path : %s\n", path.c_str());
+        // todo : file_exist
+        // fprintf(stderr, "Get File path : %s\n", path.c_str()); 
         resp->File(path);
     });
 }

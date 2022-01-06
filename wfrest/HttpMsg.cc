@@ -57,10 +57,7 @@ void proxy_http_callback(WFHttpTask *http_task)
         {
             HttpResp *server_resp = server_task->get_resp();
             size_t size = server_resp->get_output_body_size();
-            if (server_task->get_state() == WFT_STATE_SUCCESS)
-                fprintf(stderr, "%s: Success. Http Status: %s, BodyLength: %zu\n",
-                        proxy_ctx->url.c_str(), server_resp->get_status_code(), size);
-            else /* WFT_STATE_SYS_ERROR*/
+            if (server_task->get_state() != WFT_STATE_SUCCESS)
                 fprintf(stderr, "%s: Reply failed: %s, BodyLength: %zu\n",
                         proxy_ctx->url.c_str(), strerror(server_task->get_error()), size);
 
@@ -122,7 +119,6 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
         if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
             cursor.get_cursor_status() != MYSQL_STATUS_OK)
         {
-            LOG_INFO << "MySQL Status OK";
             break;
         }
 
@@ -240,11 +236,9 @@ std::string &HttpReq::body() const
         std::string header = this->header("Content-Encoding");
         if (header.find("gzip") != std::string::npos)
         {
-            LOG_DEBUG << "Ungzip ReqData";
             req_data_->body = Compressor::ungzip(content.c_str(), content.size());
         } else if (header.find("br") != std::string::npos)
         {
-            LOG_DEBUG << "UnBrotli ReqData";
             // not implement yet
             req_data_->body = Compressor::unbrotli(content.c_str(), content.size());
         } else
@@ -283,7 +277,6 @@ Json &HttpReq::json() const
         const std::string &body_content = this->body();
         if (!Json::accept(body_content))
         {
-            LOG_ERROR << "Json is invalid";
             return req_data_->json;
             // todo : how to let user know the error ?
         }
@@ -625,7 +618,6 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
         {
             std::string errmsg = WFGlobal::get_error_string(mysql_task->get_state(),
                                                 mysql_task->get_error());
-            LOG_ERROR << "error msg:" << errmsg;
             auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
             server_resp->String(std::move(errmsg));
             return;

@@ -36,7 +36,6 @@ If you need performance and good productivity, you will love ✨**wfrest**✨.
       - [Https Server](./docs/https.md)
       - [Proxy](./docs/proxy.md)
     - [MySQL](./docs/mysql.md)
-    - [How to use logger](./docs/logger.md)
   
 ## Dicssussion
 

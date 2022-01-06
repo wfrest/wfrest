@@ -14,7 +14,7 @@ int FileUtil::size(const std::string &path, OUT size_t *size)
     if(ret == -1)
     {
         *size = 0;
-        LOG_SYSERR << "stat error ," << " path = " << path;
+        fprintf(stderr, "stat error, path = %s\n", path.c_str());
     } else 
     {
         *size = st.st_size;

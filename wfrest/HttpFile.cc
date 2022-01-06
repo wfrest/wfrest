@@ -141,7 +141,6 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
     HttpServerTask *server_task = task_of(resp);
-    LOG_DEBUG << "File Path : " << path;
     
     if (end == -1 || start < 0)
     {
@@ -201,7 +200,7 @@ void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, in
 {
     HttpServerTask *server_task = task_of(resp);
     const std::string &file_path = path_list[path_idx];
-    LOG_DEBUG << "File Path : " << file_path;
+
 
     auto *ctx = new pread_multi_context;
     ctx->file_name = PathUtil::base(file_path);

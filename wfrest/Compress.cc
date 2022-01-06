@@ -70,7 +70,7 @@ std::string Compressor::gzip(const char *data, const size_t len)
                          8,
                          Z_DEFAULT_STRATEGY) != Z_OK)
         {
-            LOG_ERROR << "deflateInit2 error!";
+            fprintf(stderr, "deflateInit2 error!\n");
             return std::string{};
         }
         std::string outstr;
@@ -135,7 +135,7 @@ std::string Compressor::ungzip(const char *data, const size_t len)
     strm.zfree = Z_NULL;
     if (inflateInit2(&strm, (15 + 32)) != Z_OK)
     {
-        LOG_ERROR << "inflateInit2 error!";
+        fprintf(stderr, "inflateInit2 error!\n");
         return std::string{};
     }
     while (!done)
@@ -238,15 +238,15 @@ std::string Compressor::unbrotli(const char *data, const size_t ndata)
 
 std::string Compressor::brotli(const char *, const size_t)
 {
-    LOG_ERROR << "If you do not have the brotli package installed, you cannot "
-                 "use brotli()";
+    fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+                 "use brotli()\n");
     abort();
 }
 
 std::string Compressor::unbrotli(const char *, const size_t)
 {
-    LOG_ERROR << "If you do not have the brotli package installed, you cannot "
-                 "use unbrotli()";
+    fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+                 "use brotli()\n");
     abort();
 }
 

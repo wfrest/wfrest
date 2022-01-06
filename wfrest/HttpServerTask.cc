@@ -82,7 +82,6 @@ CommMessageOut *HttpServerTask::message_out()
         header.name_len = 10;
         header.value = cookie_str.c_str();
         header.value_len = cookie_str.size();
-        LOG_INFO << cookie_str;
         resp->add_header(&header);
     }
 

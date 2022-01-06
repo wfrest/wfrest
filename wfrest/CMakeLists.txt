@@ -13,11 +13,8 @@ set(SRCS
         PathUtil.cc
         HttpServerTask.cc
         HttpServer.cc
-        Logger.cc
-        LogStream.cc
         Timestamp.cc
         SysInfo.cc
-        AsyncFileLogger.cc
         Compress.cc
         base64.cc
         BluePrint.cc

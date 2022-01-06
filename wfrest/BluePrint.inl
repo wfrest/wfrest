@@ -16,7 +16,6 @@ WFGoTask *aop_process(const Handler &handler,
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
-        LOG_DEBUG << "Aspect before wrong";
         return nullptr;
     }
 
@@ -26,11 +25,7 @@ WFGoTask *aop_process(const Handler &handler,
 
     server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        bool ret = aop_after(req, resp, *tp);
-        if (!ret)
-        {
-            LOG_DEBUG << "Aspect after wrong";
-        }
+        aop_after(req, resp, *tp);
         delete tp;
     });
 
@@ -47,7 +42,6 @@ WFGoTask *aop_process(const SeriesHandler &handler,
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
-        LOG_DEBUG << "before wrong";
         return nullptr;
     }
 
@@ -57,11 +51,8 @@ WFGoTask *aop_process(const SeriesHandler &handler,
 
     server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        bool ret = aop_after(req, resp, *tp);
-        if (!ret)
-        {
-            LOG_DEBUG << "Aspect after wrong";
-        }
+        aop_after(req, resp, *tp);
+
         delete tp;
     });
 
@@ -78,7 +69,6 @@ WFGoTask *aop_compute_process(const Handler &handler,
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
-        LOG_DEBUG << "before wrong";
         return nullptr;
     }
 
@@ -92,11 +82,7 @@ WFGoTask *aop_compute_process(const Handler &handler,
 
     server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        bool ret = aop_after(req, resp, *tp);
-        if (!ret)
-        {
-            LOG_DEBUG << "Aspect after wrong";
-        }
+        aop_after(req, resp, *tp);
         delete tp;
     });
 
@@ -115,7 +101,6 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
-        LOG_DEBUG << "before wrong";
         return nullptr;
     }
 
@@ -130,11 +115,7 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
 
     server_task->add_callback([req, resp, tp](HttpTask *) 
     {
-        bool ret = aop_after(req, resp, *tp);
-        if (!ret)
-        {
-            LOG_DEBUG << "Aspect after wrong";
-        }
+        aop_after(req, resp, *tp);
         delete tp;
     });
     
