@@ -533,7 +533,7 @@ void HttpResp::Json(const ::Json &json)
     // The header value itself does not allow for multiple values, 
     // and it is also not allowed to send multiple Content-Type headers
     // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
-    headers["Content-Type"] = "application/json";
+    this->headers["Content-Type"] = "application/json";
     this->String(json.dump());
 }
 
@@ -541,13 +541,12 @@ void HttpResp::Json(const std::string &str)
 {
     if (!Json::accept(str))
     {
-        this->String("JSON is invalid");
+        std::string err = R"({"errmsg" : "invalid json syntax"})";
+        this->Json(err);
         return;
     }
     this->headers["Content-Type"] = "application/json";
-    // todo : should we just don't care format?
-    // this->String(str);
-    this->String(Json::parse(str).dump());
+    this->String(str);
 }
 
 void HttpResp::set_compress(const enum Compress &compress)

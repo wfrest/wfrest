@@ -18,7 +18,7 @@ int main()
     signal(SIGINT, sig_handler);
 
     HttpServer svr;
-
+    
     // curl -v http://ip:port/json1
     svr.GET("/json1", [](const HttpReq *req, HttpResp *resp)
     {

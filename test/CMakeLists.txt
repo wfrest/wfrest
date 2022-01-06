@@ -90,5 +90,9 @@ add_executable(server_param_unittest ./HttpServer/param_unittest.cc)
 target_link_libraries(server_param_unittest wfrest GTest::GTest)
 add_test(NAME server_param_unittest COMMAND server_param_unittest)
 
+add_executable(server_json_unittest ./HttpServer/json_unittest.cc)
+target_link_libraries(server_json_unittest wfrest GTest::GTest)
+add_test(NAME server_json_unittest COMMAND server_json_unittest)
+
 
 

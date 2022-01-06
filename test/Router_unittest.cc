@@ -10,14 +10,7 @@ using RegRoutes = std::vector<std::pair<std::string, std::string>>;
 
 class RouterRegisterTest : public testing::Test 
 {
-protected:
-    // void SetUp() override 
-    // {
-    // }
-    // void TearDown() override 
-    // {
-    // }
-    
+protected:    
     // helper function
     void register_route(const std::string &route, const std::string &verb)
     {
