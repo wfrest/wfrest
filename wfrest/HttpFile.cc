@@ -6,7 +6,6 @@
 #include "wfrest/HttpMsg.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/HttpServerTask.h"
-#include "wfrest/Logger.h"
 #include "wfrest/FileUtil.h"
 
 using namespace wfrest;

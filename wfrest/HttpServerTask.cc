@@ -3,7 +3,6 @@
 
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/StrUtil.h"
-#include "wfrest/Logger.h"
 
 using namespace wfrest;
 using namespace protocol;

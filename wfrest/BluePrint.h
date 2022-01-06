@@ -4,7 +4,6 @@
 #include <functional>
 #include <utility>
 #include "wfrest/Noncopyable.h"
-#include "wfrest/Logger.h"
 #include "wfrest/Aspect.h"
 #include "wfrest/AopUtil.h"
 

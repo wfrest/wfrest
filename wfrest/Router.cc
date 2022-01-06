@@ -4,7 +4,6 @@
 
 #include "wfrest/Router.h"
 #include "wfrest/HttpServerTask.h"
-#include "wfrest/Logger.h"
 #include "wfrest/HttpMsg.h"
 
 using namespace wfrest;
@@ -71,7 +70,7 @@ void Router::call(const std::string &verb, const std::string &route, HttpServerT
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
             req->set_route_match_path(std::move(route_match_path));
-            // todo : give interface to user(Log Aspect)
+            // todo : give interface to user( Aspect)
             // server_task->add_callback([server_task, verb, route](HttpTask *)
             //                           {
             //                               fprintf(stderr, "| %s | %s : %s |\n", 

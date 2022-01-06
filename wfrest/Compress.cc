@@ -1,6 +1,6 @@
 
 #include "wfrest/Compress.h"
-#include "wfrest/Logger.h"
+#include <cassert>
 
 namespace wfrest
 {

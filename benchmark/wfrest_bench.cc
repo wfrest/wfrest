@@ -1,7 +1,7 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-#include "wfrest/Logger.h"
+
 using namespace wfrest;
 
 static WFFacilities::WaitGroup wait_group(1);

@@ -1,7 +1,6 @@
 #include <sys/stat.h>
-
+#include <cstring>
 #include "wfrest/FileUtil.h"
-#include "wfrest/Logger.h"
 
 using namespace wfrest;
 

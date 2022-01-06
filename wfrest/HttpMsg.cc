@@ -9,7 +9,6 @@
 #include "wfrest/HttpMsg.h"
 #include "wfrest/UriUtil.h"
 #include "wfrest/PathUtil.h"
-#include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"

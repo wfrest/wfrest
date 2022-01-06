@@ -5,7 +5,6 @@
 #include "wfrest/HttpServer.h"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/UriUtil.h"
-#include "wfrest/Logger.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/Macro.h"
