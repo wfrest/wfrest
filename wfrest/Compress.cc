@@ -1,6 +1,7 @@
 
-#include "wfrest/Compress.h"
 #include <cassert>
+#include "wfrest/Compress.h"
+#include "wfrest/StatusCode.h"
 
 namespace wfrest
 {
@@ -20,33 +21,16 @@ const char* compress_method_to_str(const Compress& compress_method)
 
 using namespace wfrest;
 
-// note : compress :  deflateInit2() ->deflate() ->deflateEnd()
-// decompress : inflateInit2() ->  inflate() ->  inflateEnd();
-
-// typedef struct z_stream_s {
-//     z_const Bytef *next_in;     /* next input byte */
-//     uInt     avail_in;  /* number of bytes available at next_in */
-//     uLong    total_in;  /* total number of input bytes read so far */
-
-//     Bytef    *next_out; /* next output byte will go here */
-//     uInt     avail_out; /* remaining free space at next_out */
-//     uLong    total_out; /* total number of bytes output so far */
-
-//     z_const char *msg;  /* last error message, NULL if no error */
-//     struct internal_state FAR *state; /* not visible by applications */
-
-//     alloc_func zalloc;  /* used to allocate the internal state */
-//     free_func  zfree;   /* used to free the internal state */
-//     voidpf     opaque;  /* private data object passed to zalloc and zfree */
-
-//     int     data_type;  /* best guess about the data type: binary or text
-//                            for deflate, or the decoding state for inflate */
-//     uLong   adler;      /* Adler-32 or CRC-32 value of the uncompressed data */
-//     uLong   reserved;   /* reserved for future use */
-// } z_stream;
-
-std::string Compressor::gzip(const char *data, const size_t len)
+int Compressor::gzip(const std::string * const src, std::string *dest)
 {
+    const char *data = src->c_str();
+    const size_t len = src->size();
+    return gzip(data, len, dest);
+}
+
+int Compressor::gzip(const char *data, const size_t len, std::string *dest)
+{
+    dest->clear();
     z_stream strm = {nullptr,
                      0,
                      0,
@@ -70,8 +54,8 @@ std::string Compressor::gzip(const char *data, const size_t len)
                          8,
                          Z_DEFAULT_STRATEGY) != Z_OK)
         {
-            fprintf(stderr, "deflateInit2 error!\n");
-            return std::string{};
+            // fprintf(stderr, "deflateInit2 error!\n");
+            return StatusCompressError;
         }
         std::string outstr;
         outstr.resize(compressBound(static_cast<uLong>(len)));
@@ -91,7 +75,7 @@ std::string Compressor::gzip(const char *data, const size_t len)
             if (ret == Z_STREAM_ERROR)
             {
                 (void)deflateEnd(&strm);
-                return std::string{};
+                return StatusCompressError;
             }
         } while (strm.avail_out == 0);
         assert(strm.avail_in == 0);
@@ -99,15 +83,23 @@ std::string Compressor::gzip(const char *data, const size_t len)
         outstr.resize(strm.total_out);
         /* clean up and return */
         (void)deflateEnd(&strm);
-        return outstr;
+        *dest = std::move(outstr);
+        return StatusOK;
     }
-    return std::string{};
+    return StatusCompressError;
+}
+int Compressor::ungzip(const std::string * const src, std::string *dest)
+{
+    const char *data = src->c_str();
+    const size_t len = src->size();
+    return ungzip(data, len, dest);
 }
 
-std::string Compressor::ungzip(const char *data, const size_t len)
+int Compressor::ungzip(const char *data, const size_t len, std::string *dest)
 {
+    dest->clear();
     if (len == 0)
-        return std::string(data, len);
+        return StatusOK;
 
     auto full_length = len;
 
@@ -135,8 +127,8 @@ std::string Compressor::ungzip(const char *data, const size_t len)
     strm.zfree = Z_NULL;
     if (inflateInit2(&strm, (15 + 32)) != Z_OK)
     {
-        fprintf(stderr, "inflateInit2 error!\n");
-        return std::string{};
+        // fprintf(stderr, "inflateInit2 error!\n");
+        return StatusUncompressError;
     }
     while (!done)
     {
@@ -160,48 +152,72 @@ std::string Compressor::ungzip(const char *data, const size_t len)
         }
     }
     if (inflateEnd(&strm) != Z_OK)
-        return std::string{};
+        return StatusUncompressError;
     // Set real length.
     if (done)
     {
         decompressed.resize(strm.total_out);
-        return decompressed;
+        *dest = std::move(decompressed);
+        return StatusOK;
     }
     else
     {
-        return std::string{};
+        return StatusUncompressError;
     }
 }
 
 #ifdef USE_BROTLI
 
-std::string Compressor::brotli(const char *data, const size_t ndata)
+int Compressor::brotli(const std::string * const src, std::string *dest)
 {
+    const char *data = src->c_str();
+    const size_t len = src->size();
+    return brotli(data, len, dest);
+}
+
+int Compressor::brotli(const char *data, const size_t len, std::string *dest)
+{
+    dest->clear();
+    if (len == 0)
+        return StatusOK;
+
     std::string ret;
-    if (ndata == 0)
-        return ret;
-    ret.resize(BrotliEncoderMaxCompressedSize(ndata));
+    ret.resize(BrotliEncoderMaxCompressedSize(len));
     size_t encodedSize{ret.size()};
     auto r = BrotliEncoderCompress(5,
                                    BROTLI_DEFAULT_WINDOW,
                                    BROTLI_DEFAULT_MODE,
-                                   ndata,
+                                   len,
                                    (const uint8_t *)(data),
                                    &encodedSize,
                                    (uint8_t *)(ret.data()));
     if (r == BROTLI_FALSE)
-        ret.resize(0);
+    {
+        return StatusCompressError;
+    }
     else
+    {
         ret.resize(encodedSize);
-    return ret;
+        *dest = std::move(ret);
+        return StatusOK;
+    }
 }
 
-std::string Compressor::unbrotli(const char *data, const size_t ndata)
+int Compressor::unbrotli(const std::string * const src, std::string *dest)
 {
-    if (ndata == 0)
-        return std::string(data, ndata);
+    const char *data = src->c_str();
+    const size_t len = src->size();
+    return unbrotli(data, len, dest);
+}
 
-    size_t availableIn = ndata;
+int Compressor::unbrotli(const char *data, const size_t len, std::string *dest)
+{
+    dest->clear();
+    int status = StatusOK;
+    if (len == 0)
+        return StatusOK;
+
+    size_t availableIn = len;
     auto nextIn = (const uint8_t *)(data);
     auto decompressed = std::string(availableIn * 3, 0);
     size_t availableOut = decompressed.size();
@@ -217,6 +233,7 @@ std::string Compressor::unbrotli(const char *data, const size_t ndata)
         {
             decompressed.resize(totalOut);
             done = true;
+            *dest = std::move(decompressed);
         }
         else if (result == BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT)
         {
@@ -227,27 +244,42 @@ std::string Compressor::unbrotli(const char *data, const size_t ndata)
         }
         else
         {
-            decompressed.resize(0);
             done = true;
+            status = StatusUncompressError;
         }
     }
     BrotliDecoderDestroyInstance(s);
-    return decompressed;
+    return status;
 }
+
 #else
 
-std::string Compressor::brotli(const char *, const size_t)
+int Compressor::brotli(const std::string * const, std::string *)
 {
-    fprintf(stderr, "If you do not have the brotli package installed, you cannot "
-                 "use brotli()\n");
-    abort();
+    // fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+    //              "use brotli()\n");
+    return StatusCompressNotSupport;
 }
 
-std::string Compressor::unbrotli(const char *, const size_t)
+int Compressor::brotli(const char *, const size_t, std::string *)
 {
-    fprintf(stderr, "If you do not have the brotli package installed, you cannot "
-                 "use brotli()\n");
-    abort();
+    // fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+    //              "use brotli()\n");
+    return StatusCompressNotSupport;
+}
+
+int Compressor::unbrotli(const std::string * const, std::string *)
+{
+    // fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+    //              "use brotli()\n");
+    return StatusUncompressNotSupport;
+}
+
+int Compressor::unbrotli(const char *, const size_t, std::string *)
+{
+    // fprintf(stderr, "If you do not have the brotli package installed, you cannot "
+    //              "use brotli()\n");
+    return StatusUncompressNotSupport;
 }
 
 #endif

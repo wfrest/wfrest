@@ -26,14 +26,21 @@ const char* compress_method_to_str(const Compress& compress_method);
 class Compressor
 {
 public:
-    static std::string gzip(const char *data, const size_t len);
+    static int gzip(const std::string * const src, std::string *dest);
 
-    static std::string ungzip(const char *data, const size_t len);
+    static int gzip(const char *data, const size_t len, std::string *dest);
 
-    static std::string brotli(const char *data, const size_t len);
+    static int ungzip(const std::string * const src, std::string *dest);
+    
+    static int ungzip(const char *data, const size_t len, std::string *dest);
 
-    static std::string unbrotli(const char *data, const size_t len);
+    static int brotli(const std::string * const src, std::string *dest);
 
+    static int brotli(const char *data, const size_t len, std::string *dest);
+
+    static int unbrotli(const std::string * const src, std::string *dest);
+
+    static int unbrotli(const char *data, const size_t len, std::string *dest);
 };
 
 }  // namespace wfrest

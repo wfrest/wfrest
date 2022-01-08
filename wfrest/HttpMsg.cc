@@ -13,6 +13,7 @@
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
+#include "wfrest/StatusCode.h"
 #include "HttpMsg.h"
 
 using namespace wfrest;
@@ -232,15 +233,19 @@ std::string &HttpReq::body() const
     {
         std::string content = protocol::HttpUtil::decode_chunked_body(this);
 
-        std::string header = this->header("Content-Encoding");
+        const std::string &header = this->header("Content-Encoding");
+        int status = StatusOK;
         if (header.find("gzip") != std::string::npos)
         {
-            req_data_->body = Compressor::ungzip(content.c_str(), content.size());
+            status = Compressor::ungzip(&content, &req_data_->body);
         } else if (header.find("br") != std::string::npos)
         {
-            // not implement yet
-            req_data_->body = Compressor::unbrotli(content.c_str(), content.size());
+            status = Compressor::unbrotli(&content, &req_data_->body);
         } else
+        {
+            status = StatusNoUncomrpess;
+        }
+        if(status != StatusOK)
         {
             req_data_->body = std::move(content);
         }
@@ -440,45 +445,47 @@ HttpReq &HttpReq::operator=(HttpReq&& other)
 
 void HttpResp::String(const std::string &str)
 {
-    std::string compres_data = this->compress(str);
-    if (compres_data.empty())
+    auto *compress_data = new std::string;
+    int ret = this->compress(&str, compress_data);
+    if(ret != StatusOK)   
     {
         this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
-    } else
+    } else 
     {
-        this->append_output_body(static_cast<const void *>(compres_data.c_str()), compres_data.size());
+        this->append_output_body_nocopy(compress_data->c_str(), compress_data->size());
+        task_of(this)->add_callback([compress_data](HttpTask *) { delete compress_data; });
     }
 }
 
 void HttpResp::String(std::string &&str)
 {
-    std::string compres_data = this->compress(str);
-    std::string *data = new std::string;
-    if (compres_data.empty())
-    {
+    auto *data = new std::string;
+    int ret = this->compress(&str, data);
+    if(ret != StatusOK)
+    {   
         *data = std::move(str);
-    } else
-    {
-        *data = std::move(compres_data);
-    }
+    } 
     this->append_output_body_nocopy(data->c_str(), data->size());
     task_of(this)->add_callback([data](HttpTask *) { delete data; });
 }
 
-std::string HttpResp::compress(const std::string &str)
+int HttpResp::compress(const std::string * const data, std::string *compress_data)
 {
-    std::string compress_data;
+    int status = StatusOK;
     if (headers.find("Content-Encoding") != headers.end())
     {
         if (headers["Content-Encoding"].find("gzip") != std::string::npos)
         {
-            compress_data = Compressor::gzip(str.c_str(), str.size());
+            status = Compressor::gzip(data, compress_data);
         } else if (headers["Content-Encoding"].find("br") != std::string::npos)
         {
-            compress_data = Compressor::brotli(str.c_str(), str.size());
+            status = Compressor::brotli(data, compress_data);
         }
+    } else 
+    {
+        status = StatusNoComrpess;
     }
-    return compress_data;
+    return status;
 }
 
 void HttpResp::File(const std::string &path)

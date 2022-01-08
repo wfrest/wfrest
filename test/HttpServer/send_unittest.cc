@@ -40,6 +40,36 @@ TEST(HttpServer, String_short_str)
     svr.stop();
 }
 
+// TEST(HttpServer, String_short_str_compress)
+// {
+//     HttpServer svr;
+//     WFFacilities::WaitGroup wait_group(1);
+
+//     svr.GET("/test", [](const HttpReq *req, HttpResp *resp)
+//     {
+//         resp->String("world\n");
+//     });
+//     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+//     WFHttpTask *client_task = create_http_task("test");
+//     client_task->set_callback([&wait_group](WFHttpTask *task)
+//     {
+//         HttpRequest *req = task->get_req();
+//         HttpResponse *resp = task->get_resp();
+
+//         const void *body;
+//         size_t body_len;
+
+//         resp->get_parsed_body(&body, &body_len);
+//         EXPECT_TRUE(strcmp("world\n", static_cast<const char *>(body)) == 0);
+//         wait_group.done();
+//     });
+
+//     client_task->start();
+//     wait_group.wait();
+//     svr.stop();
+// }
+
 std::string generate_long_str()
 {
     std::string str;

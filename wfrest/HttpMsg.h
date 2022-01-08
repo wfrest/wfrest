@@ -228,7 +228,7 @@ public:
     void MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func);
 
 private:
-    std::string compress(const std::string &str);
+    int compress(const std::string * const data, std::string *compress_data);
 
 public:
     HttpResp() = default;
