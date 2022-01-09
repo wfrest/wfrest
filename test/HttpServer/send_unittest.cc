@@ -1,6 +1,7 @@
+#include "workflow/WFFacilities.h"
 #include <gtest/gtest.h>
 #include "wfrest/HttpServer.h"
-#include "workflow/WFFacilities.h"
+#include "wfrest/StatusCode.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -40,35 +41,52 @@ TEST(HttpServer, String_short_str)
     svr.stop();
 }
 
-// TEST(HttpServer, String_short_str_compress)
-// {
-//     HttpServer svr;
-//     WFFacilities::WaitGroup wait_group(1);
+TEST(HttpServer, String_short_str_gzip)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
 
-//     svr.GET("/test", [](const HttpReq *req, HttpResp *resp)
-//     {
-//         resp->String("world\n");
-//     });
-//     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+    svr.POST("/test", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string &body = req->body();
+        const std::string &compress_type = req->header("Content-Encoding");
+        EXPECT_EQ(compress_type, "gzip");
+        EXPECT_EQ(body, "Client send for test Gzip");
+        resp->set_compress(Compress::GZIP);
+        resp->String(std::move(body));
+    });
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
-//     WFHttpTask *client_task = create_http_task("test");
-//     client_task->set_callback([&wait_group](WFHttpTask *task)
-//     {
-//         HttpRequest *req = task->get_req();
-//         HttpResponse *resp = task->get_resp();
+    WFHttpTask *client_task = create_http_task("test");
+    auto *data = new std::string("Client send for test Gzip");
+    auto *compress_data = new std::string;
+    int ret = Compressor::gzip(data, compress_data);
 
-//         const void *body;
-//         size_t body_len;
+    EXPECT_EQ(ret, StatusOK);
+    HttpRequest *client_req = client_task->get_req();
+    client_req->set_method("POST");
+    client_req->add_header_pair("Content-Encoding", "gzip");
+    client_req->append_output_body_nocopy(compress_data->data(), compress_data->size());
 
-//         resp->get_parsed_body(&body, &body_len);
-//         EXPECT_TRUE(strcmp("world\n", static_cast<const char *>(body)) == 0);
-//         wait_group.done();
-//     });
+    client_task->set_callback([&wait_group, data, compress_data](WFHttpTask *task)
+    {
+        const void *body;
+        size_t body_len;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        EXPECT_FALSE(strcmp(data->c_str(), static_cast<const char *>(body)) == 0);
+        std::string decompress_data;
+        int ret = Compressor::ungzip(static_cast<const char *>(body), body_len, &decompress_data);
+        EXPECT_EQ(ret, StatusOK);
+        EXPECT_EQ(decompress_data, *data);
+        wait_group.done();
+        delete data;
+        delete compress_data;
+    });
 
-//     client_task->start();
-//     wait_group.wait();
-//     svr.stop();
-// }
+    client_task->start();
+    wait_group.wait();
+    svr.stop();
+}
 
 std::string generate_long_str()
 {

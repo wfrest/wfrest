@@ -154,16 +154,17 @@ int Compressor::ungzip(const char *data, const size_t len, std::string *dest)
     if (inflateEnd(&strm) != Z_OK)
         return StatusUncompressError;
     // Set real length.
+    int status = StatusOK;
     if (done)
     {
         decompressed.resize(strm.total_out);
         *dest = std::move(decompressed);
-        return StatusOK;
     }
     else
     {
-        return StatusUncompressError;
+        status = StatusUncompressError;
     }
+    return status;
 }
 
 #ifdef USE_BROTLI
