@@ -46,19 +46,21 @@ TEST(HttpServer, String_short_str_gzip)
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
 
-    svr.POST("/test", [](const HttpReq *req, HttpResp *resp)
+    auto *data = new std::string("Client send for test Gzip");
+
+    svr.POST("/test", [data](const HttpReq *req, HttpResp *resp)
     {
         std::string &body = req->body();
         const std::string &compress_type = req->header("Content-Encoding");
         EXPECT_EQ(compress_type, "gzip");
-        EXPECT_EQ(body, "Client send for test Gzip");
+        EXPECT_EQ(body, *data);
         resp->set_compress(Compress::GZIP);
         resp->String(std::move(body));
     });
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task = create_http_task("test");
-    auto *data = new std::string("Client send for test Gzip");
+    
     auto *compress_data = new std::string;
     int ret = Compressor::gzip(data, compress_data);
 
@@ -72,8 +74,14 @@ TEST(HttpServer, String_short_str_gzip)
     {
         const void *body;
         size_t body_len;
-        task->get_resp()->get_parsed_body(&body, &body_len);
+        HttpResponse *resp = task->get_resp();
+        resp->get_parsed_body(&body, &body_len);
         EXPECT_FALSE(strcmp(data->c_str(), static_cast<const char *>(body)) == 0);
+        
+        HttpHeaderMap header_map(resp);
+        std::string compress_header = header_map.get("Content-Encoding");
+        EXPECT_EQ(compress_header, "gzip");
+
         std::string decompress_data;
         int ret = Compressor::ungzip(static_cast<const char *>(body), body_len, &decompress_data);
         EXPECT_EQ(ret, StatusOK);

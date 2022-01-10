@@ -61,8 +61,12 @@ std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs
 
 bool PathUtil::is_dir(const char* path)
 {
-    struct stat path_stat;
-    if (-1 == stat(path, &path_stat))
-        return false;
-    return S_ISDIR(path_stat.st_mode);
+    struct stat st;
+    return stat(path, &st) >= 0 && S_ISDIR(st.st_mode);
+}
+
+bool PathUtil::is_file(const char* path)
+{
+    struct stat st;
+    return stat(path, &st) >= 0 && S_ISREG(st.st_mode);
 }

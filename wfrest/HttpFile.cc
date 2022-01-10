@@ -7,6 +7,7 @@
 #include "wfrest/PathUtil.h"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/FileUtil.h"
+#include "wfrest/StatusCode.h"
 
 using namespace wfrest;
 
@@ -27,11 +28,9 @@ void pread_callback(WFFileIOTask *pread_task)
     long ret = pread_task->get_retval();
     auto *resp = static_cast<HttpResp *>(pread_task->user_data);
 
-    // clear output body
     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
-        resp->set_status_code("503");
-        resp->append_output_body_nocopy("503 Internal Server Error\n", 26);
+        resp->Error(StatusFileReadError);
     } else
     {
         resp->append_output_body_nocopy(args->buf, ret);
@@ -137,21 +136,20 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 }  // namespace
 
 // note : [start, end)
-void HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
+int HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    HttpServerTask *server_task = task_of(resp);
-    
+    if(!PathUtil::is_file(path.c_str()))
+    {
+        return StatusNotFile;
+    }
     if (end == -1 || start < 0)
     {
         size_t file_size;
         int ret = FileUtil::size(path, OUT &file_size);
 
-        if (ret == -1)
+        if (ret != StatusOK)
         {
-            resp->set_status(404);
-            resp->headers["Content-Type"] = "text/html";
-            resp->append_output_body_nocopy("404 File NOT FOUND\n", 19);
-            return;
+            return ret;
         }
         if (end == -1) end = file_size;
         if (start < 0) start = file_size + start;
@@ -159,7 +157,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 
     if (end <= start)
     {
-        return;
+        return StatusFileRangeInvalid;
     }
 
     http_content_type content_type = CONTENT_TYPE_NONE;
@@ -175,6 +173,8 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
 
     size_t size = end - start;
     void *buf = malloc(size);
+
+    HttpServerTask *server_task = task_of(resp);
     server_task->add_callback([buf](HttpTask *server_task)
                               {
                                   free(buf);
@@ -193,6 +193,7 @@ void HttpFile::send_file(const std::string &path, size_t start, size_t end, Http
                                                                 pread_callback);
     pread_task->user_data = resp;   /* pass resp pointer to pread task. */
     **server_task << pread_task;
+    return StatusOK;
 }
 
 void HttpFile::send_file_for_multi(const std::vector<std::string> &path_list, int path_idx, HttpResp *resp)

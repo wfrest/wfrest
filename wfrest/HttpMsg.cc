@@ -488,19 +488,41 @@ int HttpResp::compress(const std::string * const data, std::string *compress_dat
     return status;
 }
 
+void HttpResp::Error(int status_code)
+{
+    int http_status_code = 503;
+    switch (status_code)
+    {
+    case StatusFileNotFound:
+        http_status_code = 404;
+        break;
+    default:
+        break;
+    }
+    this->headers["Content-Type"] = "application/json";
+    this->set_status(http_status_code); 
+    ::Json js;
+    js["errmsg"] = status_code_to_str(status_code);
+    this->Json(js);
+}
+
 void HttpResp::File(const std::string &path)
 {
-    HttpFile::send_file(path, 0, -1, this);
+    this->File(path, 0, -1);
 }
 
 void HttpResp::File(const std::string &path, size_t start)
 {
-    HttpFile::send_file(path, start, -1, this);
+    this->File(path, start, -1);
 }
 
 void HttpResp::File(const std::string &path, size_t start, size_t end)
 {
-    HttpFile::send_file(path, start, end, this);
+    int ret = HttpFile::send_file(path, start, end, this);
+    if(ret != StatusOK)
+    {
+        this->Error(ret);
+    }
 }
 
 void HttpResp::File(const std::vector<std::string> &path_list)

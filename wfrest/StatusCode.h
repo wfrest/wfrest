@@ -11,12 +11,19 @@ enum StatusCode
     StatusCompressError,
     StatusCompressNotSupport,
     StatusNoComrpess,
-
     StatusUncompressError,
     StatusUncompressNotSupport,
     StatusNoUncomrpess,
 
+    // File
+    StatusFileNotFound,
+    StatusNotFile,
+    StatusFileStatError,
+    StatusFileRangeInvalid,
+    StatusFileReadError,
 };
+
+const char* status_code_to_str(int code);
 
 } // namespace wfrest
 

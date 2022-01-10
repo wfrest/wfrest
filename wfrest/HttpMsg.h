@@ -227,6 +227,8 @@ public:
 
     void MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func);
 
+    void Error(int status_code);
+
 private:
     int compress(const std::string * const data, std::string *compress_data);
 
