@@ -136,8 +136,10 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 }  // namespace
 
 // note : [start, end)
-int HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
+int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_end, HttpResp *resp)
 {
+    int start = file_start;
+    int end = file_end;
     if(!PathUtil::is_file(path))
     {
         return StatusNotFile;
@@ -154,7 +156,7 @@ int HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpR
         if (end == -1) end = file_size;
         if (start < 0) start = file_size + start;
     }
-
+    fprintf(stderr, "start = %zu, end = %zu\n", start, end);
     if (end <= start)
     {
         return StatusFileRangeInvalid;

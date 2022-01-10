@@ -18,6 +18,7 @@ else()
     message(FATAL_ERROR  "can't find GTest,please install it first")
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR})
 # test
 
 add_executable(router_test router_test.cc)
@@ -80,6 +81,9 @@ add_executable(HttpDef_unittest HttpDef_unittest.cc)
 target_link_libraries(HttpDef_unittest wfrest GTest::GTest)
 add_test(NAME HttpDef_unittest COMMAND HttpDef_unittest)
 
+
+# server
+
 add_executable(server_send_unittest ./HttpServer/send_unittest.cc)
 target_link_libraries(server_send_unittest wfrest GTest::GTest)
 add_test(NAME server_send_unittest COMMAND server_send_unittest)
@@ -91,4 +95,10 @@ add_test(NAME server_param_unittest COMMAND server_param_unittest)
 add_executable(server_json_unittest ./HttpServer/json_unittest.cc)
 target_link_libraries(server_json_unittest wfrest GTest::GTest)
 add_test(NAME server_json_unittest COMMAND server_json_unittest)
+
+add_executable(server_file_unittest ./HttpServer/file_unittest.cc FileTestUtil.cc)
+target_link_libraries(server_file_unittest wfrest GTest::GTest)
+add_test(NAME server_file_unittest COMMAND server_file_unittest)
+
+
 

@@ -48,6 +48,16 @@ int main()
         resp->File("todo.txt", 5, 10);
     });
 
+    svr.GET("/file7", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->File("todo.txt", 5, -1);
+    });
+
+    svr.GET("/file8", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->File("todo.txt", -5, -1);
+    });
+
     // multiple files
     svr.GET("/multi_files", [](const HttpReq *req, HttpResp *resp)
     {

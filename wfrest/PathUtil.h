@@ -23,6 +23,7 @@ public:
     // suffix = jpg
     static std::string suffix(const std::string& filepath);
 };
+
 }  // namespace wfrest
 
 

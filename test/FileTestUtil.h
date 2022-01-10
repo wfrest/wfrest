@@ -9,9 +9,5 @@ public:
 
     static int mkpath(const char *path, mode_t mode);
 
-    static int recursive_delete(const char *dir);
+    static int recursive_delete(const char *dir);  
 };
-
-
-
-

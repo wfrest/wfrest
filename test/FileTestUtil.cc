@@ -38,7 +38,6 @@ int FileTestUtil::create_dir(const char *path, mode_t mode)
     return status;
 }
 
-
 // mkpath - ensure all directories in path exist
 int FileTestUtil::mkpath(const char *path, mode_t mode)
 {
