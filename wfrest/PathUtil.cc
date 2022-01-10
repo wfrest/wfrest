@@ -59,14 +59,14 @@ std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs
     return res;
 }
 
-bool PathUtil::is_dir(const char* path)
+bool PathUtil::is_dir(const std::string &path)
 {
     struct stat st;
-    return stat(path, &st) >= 0 && S_ISDIR(st.st_mode);
+    return stat(path.c_str(), &st) >= 0 && S_ISDIR(st.st_mode);
 }
 
-bool PathUtil::is_file(const char* path)
+bool PathUtil::is_file(const std::string &path)
 {
     struct stat st;
-    return stat(path, &st) >= 0 && S_ISREG(st.st_mode);
+    return stat(path.c_str(), &st) >= 0 && S_ISREG(st.st_mode);
 }

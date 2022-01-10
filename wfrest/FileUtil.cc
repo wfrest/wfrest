@@ -2,6 +2,7 @@
 #include <cstring>
 #include "wfrest/FileUtil.h"
 #include "wfrest/StatusCode.h"
+#include "wfrest/PathUtil.h"
 
 using namespace wfrest;
 
@@ -24,3 +25,7 @@ int FileUtil::size(const std::string &path, OUT size_t *size)
     return status;
 }
 
+bool FileUtil::file_exists(const std::string &path)
+{
+    return PathUtil::is_file(path);
+}

@@ -18,15 +18,6 @@ public:
     static std::map<std::string, std::string> parse_post_kv(const StringPiece &body);
 };
 
-// struct FormData
-// {
-//     std::string filename;
-//     std::string body;
-
-//     bool is_file() const
-//     { return !filename.empty(); }
-// };
-
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
 // <name ,<filename, body>>
 using Form = std::map<std::string, std::pair<std::string, std::string>>;

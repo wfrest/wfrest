@@ -56,9 +56,13 @@ add_executable(BluePrint_unittest BluePrint_unittest.cc)
 target_link_libraries(BluePrint_unittest wfrest GTest::GTest)
 add_test(NAME BluePrint_unittest COMMAND BluePrint_unittest)
 
-add_executable(FileUtil_unittest FileUtil_unittest.cc)
+add_executable(FileUtil_unittest FileUtil_unittest.cc FileTestUtil.cc)
 target_link_libraries(FileUtil_unittest wfrest GTest::GTest)
 add_test(NAME FileUtil_unittest COMMAND FileUtil_unittest)
+
+add_executable(PathUtil_unittest PathUtil_unittest.cc FileTestUtil.cc)
+target_link_libraries(PathUtil_unittest wfrest GTest::GTest)
+add_test(NAME PathUtil_unittest COMMAND PathUtil_unittest)
 
 add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
 target_link_libraries(TimeStamp_unittest wfrest GTest::GTest)
@@ -87,6 +91,4 @@ add_test(NAME server_param_unittest COMMAND server_param_unittest)
 add_executable(server_json_unittest ./HttpServer/json_unittest.cc)
 target_link_libraries(server_json_unittest wfrest GTest::GTest)
 add_test(NAME server_json_unittest COMMAND server_json_unittest)
-
-
 

@@ -93,8 +93,9 @@ void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
         fprintf(stderr, "Serve Dir failed. Directory %s dose not exists\n", dir_path);
         return;
     }
-        
+    
     // Check if it is a directory.
+    // todo : copy here
     if (!PathUtil::is_dir(realpath_out))
     {
         fprintf(stderr, "Serve Dir failed. %s is not a directory\n", dir_path);

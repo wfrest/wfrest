@@ -138,7 +138,7 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 // note : [start, end)
 int HttpFile::send_file(const std::string &path, size_t start, size_t end, HttpResp *resp)
 {
-    if(!PathUtil::is_file(path.c_str()))
+    if(!PathUtil::is_file(path))
     {
         return StatusNotFile;
     }
