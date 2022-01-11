@@ -1,5 +1,6 @@
 #include "workflow/WFFacilities.h"
 #include <gtest/gtest.h>
+#include <fstream>
 #include "wfrest/HttpServer.h"
 #include "wfrest/StatusCode.h"
 #include "wfrest/FileUtil.h"
@@ -219,6 +220,47 @@ TEST(HttpServer, not_file)
         EXPECT_TRUE(strcmp(resp->get_status_code(), "404") == 0);
     });
     FileTest::delete_dir(root_dir);
+}
+
+TEST(HttpServer, save_file)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
+
+    std::string path = "test.txt";
+    EXPECT_FALSE(FileUtil::file_exists(path));
+    std::string file_body = FileTest::generate_file_content();
+    svr.GET("/file", [&path, &file_body](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    {
+        resp->Save(path, file_body);
+        series->set_callback([&path, &file_body](const SeriesWork *sereis) {
+            EXPECT_TRUE(FileUtil::file_exists(path));
+            std::ifstream file(path);
+            std::string str;
+            std::string file_contents;
+            file_contents.reserve(1024);
+            while (std::getline(file, str))
+            {
+                file_contents.append(std::move(str));
+            }  
+            EXPECT_EQ(file_body,file_contents);
+            FileTest::delete_file(path);
+            EXPECT_FALSE(FileUtil::file_exists(path));
+        });
+    });
+
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+    WFHttpTask *client_task = FileTest::create_http_task("file");
+    
+    client_task->set_callback([&wait_group](WFHttpTask *task)
+    {
+        wait_group.done();
+    });
+
+    client_task->start();
+    wait_group.wait();
+    svr.stop();
 }
 
 int main(int argc, char **argv) {

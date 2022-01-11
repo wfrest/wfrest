@@ -24,7 +24,7 @@ struct LogAop : public Aspect
         fprintf(stderr, "After log\n");
         return true;
     }
-    };
+};
 
 int main()
 {

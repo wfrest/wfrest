@@ -15,6 +15,7 @@ std::map<int, const char *> status_code_table = {
     { StatusFileNotFound, "File Not Found" },
     { StatusFileRangeInvalid, "File Range Invalid" },
     { StatusFileReadError, "File Read Error" },
+    { StatusFileWriteError, "File Write Error" },
 };
  
 const char* status_code_to_str(int code)

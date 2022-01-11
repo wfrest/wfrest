@@ -46,11 +46,10 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
-        resp->set_status_code("503");
-        resp->append_output_body_nocopy("503 Internal Server Error\n", 26);
+        resp->Error(StatusFileWriteError);
     } else
     {
-        resp->append_output_body_nocopy("Save 200 success\n", 17);
+        resp->append_output_body_nocopy("Save File success\n", 18);
     }
 }
 

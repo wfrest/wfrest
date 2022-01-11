@@ -19,6 +19,7 @@ enum StatusCode
     StatusFileNotFound,
     StatusFileRangeInvalid,
     StatusFileReadError,
+    StatusFileWriteError,
 };
 
 const char* status_code_to_str(int code);
