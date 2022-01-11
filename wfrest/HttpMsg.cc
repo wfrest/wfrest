@@ -59,9 +59,16 @@ void proxy_http_callback(WFHttpTask *http_task)
             HttpResp *server_resp = server_task->get_resp();
             size_t size = server_resp->get_output_body_size();
             if (server_task->get_state() != WFT_STATE_SUCCESS)
-                fprintf(stderr, "%s: Reply failed: %s, BodyLength: %zu\n",
-                        proxy_ctx->url.c_str(), strerror(server_task->get_error()), size);
-
+            {
+                std::string errmsg;
+                errmsg.reserve(64);
+                errmsg.append(proxy_ctx->url);
+                errmsg.append(" : Reply failed: ");
+                errmsg.append(strerror(server_task->get_error()));
+                errmsg.append(", BodyLength: ");
+                errmsg.append(std::to_string(size));
+                server_resp->Error(StatusProxyError, errmsg);
+            }
             delete proxy_ctx;
         });
 
@@ -91,12 +98,16 @@ void proxy_http_callback(WFHttpTask *http_task)
         else /* if (state == WFT_STATE_TASK_ERROR) */
             err_string = "URL error (Cannot be a HTTPS proxy)";
 
-        fprintf(stderr, "%s: Fetch failed. state = %d, error = %d: %s\n",
-                proxy_ctx->url.c_str(), state, http_task->get_error(),
-                err_string);
-
-        server_resp->set_status_code("404");
-        server_resp->append_output_body_nocopy("<html>404 Not Found.</html>", 27);
+        std::string errmsg;
+        errmsg.reserve(64);
+        errmsg.append(proxy_ctx->url);
+        errmsg.append(" : Fetch failed. state = ");
+        errmsg.append(std::to_string(state));
+        errmsg.append(", error = ");
+        errmsg.append(std::to_string(http_task->get_error()));
+        errmsg.append(" ");
+        errmsg.append(err_string);
+        server_resp->Error(StatusProxyError, errmsg);
     }
 }
 
@@ -491,6 +502,11 @@ int HttpResp::compress(const std::string * const data, std::string *compress_dat
 
 void HttpResp::Error(int status_code)
 {
+    this->Error(status_code, "");
+}
+
+void HttpResp::Error(int status_code, const std::string &errmsg)
+{
     int http_status_code = 503;
     switch (status_code)
     {
@@ -503,10 +519,12 @@ void HttpResp::Error(int status_code)
     this->headers["Content-Type"] = "application/json";
     this->set_status(http_status_code); 
     ::Json js;
-    js["errmsg"] = status_code_to_str(status_code);
+    std::string resp_msg = status_code_to_str(status_code);
+    if(!errmsg.empty()) resp_msg = resp_msg + " : " + errmsg;
+    js["errmsg"] = resp_msg;
+
     this->Json(js);
 }
-
 void HttpResp::File(const std::string &path)
 {
     this->File(path, 0, -1);

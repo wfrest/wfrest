@@ -17,6 +17,8 @@ std::map<int, const char *> status_code_table = {
     { StatusFileReadError, "File Read Error" },
     { StatusFileWriteError, "File Write Error" },
     { StatusJsonInvalid, "Invalid Json Syntax" },
+    { StatusProxyError, "Http Proxy Error" },
+    
 };
  
 const char* status_code_to_str(int code)

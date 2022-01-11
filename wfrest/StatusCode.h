@@ -23,6 +23,8 @@ enum StatusCode
 
     // Json
     StatusJsonInvalid,
+
+    StatusProxyError,
 };
 
 const char* status_code_to_str(int code);

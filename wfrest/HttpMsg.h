@@ -226,6 +226,8 @@ public:
 
     void Error(int status_code);
 
+    void Error(int status_code, const std::string &errmsg);
+
 private:
     int compress(const std::string * const data, std::string *compress_data);
 
