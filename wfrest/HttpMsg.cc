@@ -554,8 +554,7 @@ void HttpResp::Json(const std::string &str)
 {
     if (!Json::accept(str))
     {
-        std::string err = R"({"errmsg" : "invalid json syntax"})";
-        this->Json(err);
+        this->Error(StatusJsonInvalid);
         return;
     }
     this->headers["Content-Type"] = "application/json";

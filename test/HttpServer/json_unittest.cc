@@ -126,7 +126,7 @@ TEST(JsonTest, invalid_str)
 
         std::string json_str(static_cast<const char *>(body), body_len);
         Json js = Json::parse(json_str);
-        EXPECT_EQ(js["errmsg"], "invalid json syntax");
+        EXPECT_EQ(js["errmsg"], "Invalid Json Syntax");
         wait_group.done();
     });
 

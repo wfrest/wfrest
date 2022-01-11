@@ -20,6 +20,9 @@ enum StatusCode
     StatusFileRangeInvalid,
     StatusFileReadError,
     StatusFileWriteError,
+
+    // Json
+    StatusJsonInvalid,
 };
 
 const char* status_code_to_str(int code);

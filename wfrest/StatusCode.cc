@@ -16,6 +16,7 @@ std::map<int, const char *> status_code_table = {
     { StatusFileRangeInvalid, "File Range Invalid" },
     { StatusFileReadError, "File Read Error" },
     { StatusFileWriteError, "File Write Error" },
+    { StatusJsonInvalid, "Invalid Json Syntax" },
 };
  
 const char* status_code_to_str(int code)
