@@ -23,6 +23,30 @@ TEST(FileUtil, size)
     EXPECT_FALSE(FileUtil::file_exists(file_path));
 }
 
+TEST(FileUtil, file_exists)
+{
+    std::string file_path = "./example";
+    bool write_ok = FileTestUtil::write_file(file_path, "Writing this to a file.\n");
+    EXPECT_EQ(write_ok, true);
+
+    EXPECT_TRUE(FileUtil::file_exists(file_path));
+
+    std::remove(file_path.c_str());
+    EXPECT_FALSE(FileUtil::file_exists(file_path));
+}
+
+TEST(FileUtil, file_exists_txt)
+{
+    std::string file_path = "./example.txt";
+    bool write_ok = FileTestUtil::write_file(file_path, "Writing this to a file.\n");
+    EXPECT_EQ(write_ok, true);
+
+    EXPECT_TRUE(FileUtil::file_exists(file_path));
+
+    std::remove(file_path.c_str());
+    EXPECT_FALSE(FileUtil::file_exists(file_path));
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

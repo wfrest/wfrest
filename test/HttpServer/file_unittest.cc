@@ -3,24 +3,52 @@
 #include "wfrest/HttpServer.h"
 #include "wfrest/StatusCode.h"
 #include "wfrest/FileUtil.h"
+#include "wfrest/PathUtil.h"
+#include "wfrest/json.hpp"
 #include "FileTestUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
+using Json = nlohmann::json;
 
 class FileTest
 {
 public:
-    static void process(const std::string &path, size_t start, size_t end)
+    static void create_file(const std::string &path)
+    {
+        std::string file_body = generate_file_content();
+        bool write_ok = FileTestUtil::write_file(path, file_body);
+        EXPECT_TRUE(write_ok);
+        EXPECT_TRUE(FileUtil::file_exists(path));
+    }
+
+    static void delete_file(const std::string &path)
+    {
+        std::remove(path.c_str());
+        EXPECT_FALSE(FileUtil::file_exists(path));
+    }
+
+    static void create_path(const std::string &path)
+    {
+        FileTestUtil::mkpath(path.c_str(), 0777);
+        EXPECT_TRUE(PathUtil::is_dir(path));
+    }
+
+    static void delete_dir(const std::string &path)
+    {
+        FileTestUtil::recursive_delete(path.c_str());
+        EXPECT_FALSE(PathUtil::is_dir(path));
+    }
+
+    static void process(const std::string &path, 
+                        size_t start, 
+                        size_t end, 
+                        const std::function<void(WFHttpTask *task)> &callback = nullptr)
     {
         HttpServer svr;
         WFFacilities::WaitGroup wait_group(1);
 
-        std::string *file_body = generate_file_content();
-        bool write_ok = FileTestUtil::write_file(path, *file_body);
-        EXPECT_TRUE(write_ok);
-
-        svr.GET("/file", [path, start, end](const HttpReq *req, HttpResp *resp)
+        svr.GET("/file", [&path, start, end](const HttpReq *req, HttpResp *resp)
         {
             resp->File(path, start, end);
         });
@@ -28,35 +56,42 @@ public:
         EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
         WFHttpTask *client_task = create_http_task("file");
-        client_task->set_callback([&wait_group, file_body, path, start, end](WFHttpTask *task)
+        
+        if(callback)
         {
-            const void *body;
-            size_t body_len;
-            HttpResponse *resp = task->get_resp();
-            resp->get_parsed_body(&body, &body_len);
-            HttpHeaderMap header(resp);
-            std::string content_type = header.get("Content-Type");
-            EXPECT_EQ(content_type, "text/plain");
-            std::string content_range = header.get("Content-Range");
-            
-            int exp_start = start;
-            int exp_end = end;
-            if(exp_end == -1) exp_end = file_body->size();
-            if(exp_start < 0) exp_start = file_body->size() + start;
+            client_task->set_callback([&wait_group, &callback](WFHttpTask *task){
+                callback(task);
+                wait_group.done();
+            });
+        } else 
+        {
+            client_task->set_callback([&wait_group, start, end](WFHttpTask *task)
+            {
+                const void *body;
+                size_t body_len;
+                HttpResponse *resp = task->get_resp();
+                resp->get_parsed_body(&body, &body_len);
+                HttpHeaderMap header(resp);
+                std::string content_type = header.get("Content-Type");
+                EXPECT_EQ(content_type, "text/plain");
+                std::string content_range = header.get("Content-Range");
+                std::string file_body = generate_file_content();
 
-            EXPECT_EQ(content_range, "bytes " + std::to_string(exp_start) 
-                                    + "-" + std::to_string(exp_end) 
-                                    + "/" + std::to_string(exp_end - exp_start));
+                int exp_start = start;
+                int exp_end = end;
+                if(exp_end == -1) exp_end = file_body.size();
+                if(exp_start < 0) exp_start = file_body.size() + start;
 
-            std::string file_body_range = file_body->substr(exp_start, exp_end - exp_start); 
-            EXPECT_EQ(file_body_range, std::string(static_cast<const char *>(body), body_len));
+                EXPECT_EQ(content_range, "bytes " + std::to_string(exp_start) 
+                                        + "-" + std::to_string(exp_end) 
+                                        + "/" + std::to_string(exp_end - exp_start));
+                
+                std::string file_body_range = file_body.substr(exp_start, exp_end - exp_start); 
+                EXPECT_EQ(file_body_range, std::string(static_cast<const char *>(body), body_len));
 
-            std::remove(path.c_str());
-            EXPECT_FALSE(FileUtil::file_exists(path));
-            wait_group.done();
-            delete file_body;
-        });
-
+                wait_group.done();
+            });
+        }
         client_task->start();
         wait_group.wait();
         svr.stop();
@@ -67,40 +102,122 @@ private:
         return WFTaskFactory::create_http_task("http://127.0.0.1:8888/" + path, 4, 2, nullptr);
     }
 
-    static std::string *generate_file_content()
+    static std::string generate_file_content()
     {
-        auto *str = new std::string;
+        std::string str;
         for (size_t i = 0; i < 100; i++)
         {
-            str->append(std::to_string(i % 5));
+            str.append(std::to_string(i % 5));
         }
         return str;
-    }
+    }    
 };
 
 TEST(HttpServer, file_range1)
 {
-    FileTest::process("test.txt", 10, 20);
+    std::string path = "test.txt";
+    FileTest::create_file(path);
+    FileTest::process(path, 10, 20);
+    FileTest::delete_file(path);
 }
 
 TEST(HttpServer, file_range2)
 {
-    FileTest::process("test.txt", 0, 20);
+    std::string path = "./test.txt";
+    FileTest::create_file(path);
+    FileTest::process(path, 0, 20);
+    FileTest::delete_file(path);
 }
 
 TEST(HttpServer, file_range3)
 {
-    FileTest::process("test.txt", 10, -1);
+    std::string path = "test.txt";
+    FileTest::create_file(path);
+    FileTest::process(path, 10, -1);
+    FileTest::delete_file(path);
 }
 
 TEST(HttpServer, file_range4)
 {
-    FileTest::process("test.txt", -10, -1);
+    std::string root_dir = "./test_dir";
+    std::string dir_path = root_dir + "/tmp/a";
+    FileTest::create_path(dir_path);
+    std::string file_path = dir_path + "/test.txt";
+    FileTest::create_file(file_path);
+    FileTest::process(file_path, -10, -1);
+    FileTest::delete_dir(root_dir);
 }
 
 TEST(HttpServer, file_range5)
 {
-    FileTest::process("test.txt", -10, 95);
+    std::string path = "./test.txt";
+    FileTest::create_file(path);
+    FileTest::process(path, -10, 95);
+    FileTest::delete_file(path);
+}
+
+TEST(HttpServer, file_no_extension)
+{
+    std::string path = "./test_file";
+    FileTest::create_file(path);
+    FileTest::process(path, -10, 95, [](WFHttpTask *task) {
+        HttpResponse *resp = task->get_resp();
+        HttpHeaderMap header(resp);
+        std::string content_type = header.get("Content-Type");
+        EXPECT_EQ(content_type, "application/octet-stream");
+    });
+    FileTest::delete_file(path);
+}
+
+TEST(HttpServer, file_png)
+{
+    std::string path = "./test.png";
+    FileTest::create_file(path);
+    FileTest::process(path, -10, 95, [](WFHttpTask *task) {
+        HttpResponse *resp = task->get_resp();
+        HttpHeaderMap header(resp);
+        std::string content_type = header.get("Content-Type");
+        EXPECT_EQ(content_type, "image/png");
+    });
+    FileTest::delete_file(path);
+}
+
+TEST(HttpServer, file_range_invalid)
+{
+    std::string path = "./test.png";
+    FileTest::create_file(path);
+    FileTest::process(path, -5, 90, [](WFHttpTask *task) {
+        const void *body;
+        size_t body_len;
+        HttpResponse *resp = task->get_resp();
+        resp->get_parsed_body(&body, &body_len);
+        HttpHeaderMap header(resp);
+        std::string content_type = header.get("Content-Type");
+        EXPECT_EQ(content_type, "application/json");
+        std::string body_str(static_cast<const char *>(body), body_len);
+        Json js = Json::parse(body_str);
+        EXPECT_EQ(js["errmsg"], "File Range Invalid");
+    });
+    FileTest::delete_file(path);
+}
+
+TEST(HttpServer, not_file)
+{
+    std::string root_dir = "./test_dir";
+    std::string dir_path = root_dir + "/tmp/a";
+    FileTest::process(dir_path, -5, 90, [](WFHttpTask *task) {
+        const void *body;
+        size_t body_len;
+        HttpResponse *resp = task->get_resp();
+        resp->get_parsed_body(&body, &body_len);
+        HttpHeaderMap header(resp);
+        std::string content_type = header.get("Content-Type");
+        EXPECT_EQ(content_type, "application/json");
+        std::string body_str(static_cast<const char *>(body), body_len);
+        Json js = Json::parse(body_str);
+        EXPECT_EQ(js["errmsg"], "Not a File");
+    });
+    FileTest::delete_dir(root_dir);
 }
 
 int main(int argc, char **argv) {

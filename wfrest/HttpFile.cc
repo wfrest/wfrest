@@ -138,12 +138,12 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
 // note : [start, end)
 int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_end, HttpResp *resp)
 {
-    int start = file_start;
-    int end = file_end;
     if(!PathUtil::is_file(path))
     {
         return StatusNotFile;
     }
+    int start = file_start;
+    int end = file_end;
     if (end == -1 || start < 0)
     {
         size_t file_size;
@@ -156,7 +156,7 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
         if (end == -1) end = file_size;
         if (start < 0) start = file_size + start;
     }
-    fprintf(stderr, "start = %zu, end = %zu\n", start, end);
+
     if (end <= start)
     {
         return StatusFileRangeInvalid;
@@ -186,14 +186,13 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     resp->headers["Content-Range"] = "bytes " + std::to_string(start)
                                             + "-" + std::to_string(end)
                                             + "/" + std::to_string(size);
-    
 
     WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(path,
                                                                 buf,
                                                                 size,
                                                                 static_cast<off_t>(start),
                                                                 pread_callback);
-    pread_task->user_data = resp;   /* pass resp pointer to pread task. */
+    pread_task->user_data = resp;  
     **server_task << pread_task;
     return StatusOK;
 }
