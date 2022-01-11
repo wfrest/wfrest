@@ -179,9 +179,6 @@ public:
 
     void File(const std::string &path, size_t start, size_t end);
 
-    // send multiple files in multipart/form-data format
-    void File(const std::vector<std::string> &path_list);
-
     // save file
     void Save(const std::string &file_dst, const std::string &content);
 

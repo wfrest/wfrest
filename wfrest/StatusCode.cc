@@ -13,8 +13,6 @@ std::map<int, const char *> status_code_table = {
     { StatusUncompressNotSupport, "Uncompress Not Support" },
     { StatusNoUncomrpess, "No Uncomrpess" },
     { StatusFileNotFound, "File Not Found" },
-    { StatusNotFile, "Not a File" },
-    { StatusFileStatError, "File Stat Error" },
     { StatusFileRangeInvalid, "File Range Invalid" },
     { StatusFileReadError, "File Read Error" },
 };

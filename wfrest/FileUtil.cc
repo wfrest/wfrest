@@ -16,8 +16,7 @@ int FileUtil::size(const std::string &path, OUT size_t *size)
     if(ret == -1)
     {
         *size = 0;
-        // fprintf(stderr, "stat error, path = %s\n", path.c_str());
-        status = StatusFileStatError;
+        status = StatusFileNotFound;
     } else
     {
         *size = st.st_size;

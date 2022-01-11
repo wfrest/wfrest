@@ -39,11 +39,14 @@ int main()
         resp->File("todo.txt", 5, 10);
     });
 
-    // multiple files
-    svr.GET("/multi_files", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file7", [](const HttpReq *req, HttpResp *resp)
     {
-        std::vector<std::string> file_list = {"test.txt", "todo.txt", "test1.txt"};
-        resp->File(file_list);
+        resp->File("todo.txt", 5, -1);
+    });
+
+    svr.GET("/file8", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->File("todo.txt", -5, -1);
     });
 
     if (svr.start(8888) == 0)

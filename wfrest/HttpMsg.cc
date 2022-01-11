@@ -14,6 +14,7 @@
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
 #include "wfrest/StatusCode.h"
+#include "wfrest/FileUtil.h"
 #include "HttpMsg.h"
 
 using namespace wfrest;
@@ -522,15 +523,6 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
     if(ret != StatusOK)
     {
         this->Error(ret);
-    }
-}
-
-void HttpResp::File(const std::vector<std::string> &path_list)
-{
-    headers["Content-Type"] = "multipart/form-data";
-    for (int i = 0; i < path_list.size(); i++)
-    {
-        HttpFile::send_file_for_multi(path_list, i, this);
     }
 }
 

@@ -96,7 +96,6 @@ public:
         wait_group.wait();
         svr.stop();
     }
-private:
     static WFHttpTask *create_http_task(const std::string &path)
     {
         return WFTaskFactory::create_http_task("http://127.0.0.1:8888/" + path, 4, 2, nullptr);
@@ -205,6 +204,7 @@ TEST(HttpServer, not_file)
 {
     std::string root_dir = "./test_dir";
     std::string dir_path = root_dir + "/tmp/a";
+    FileTest::create_path(dir_path);
     FileTest::process(dir_path, -5, 90, [](WFHttpTask *task) {
         const void *body;
         size_t body_len;
@@ -215,7 +215,8 @@ TEST(HttpServer, not_file)
         EXPECT_EQ(content_type, "application/json");
         std::string body_str(static_cast<const char *>(body), body_len);
         Json js = Json::parse(body_str);
-        EXPECT_EQ(js["errmsg"], "Not a File");
+        EXPECT_EQ(js["errmsg"], "File Not Found");
+        EXPECT_TRUE(strcmp(resp->get_status_code(), "404") == 0);
     });
     FileTest::delete_dir(root_dir);
 }

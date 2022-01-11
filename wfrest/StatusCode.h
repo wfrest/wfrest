@@ -17,8 +17,6 @@ enum StatusCode
 
     // File
     StatusFileNotFound,
-    StatusNotFile,
-    StatusFileStatError,
     StatusFileRangeInvalid,
     StatusFileReadError,
 };

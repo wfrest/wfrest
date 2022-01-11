@@ -19,13 +19,14 @@ TEST(PathUtil, is_dir)
 
 TEST(PathUtil, path_is_dir)
 {
-    std::string dir_path = "./a/b/tmp/test_dir";
+    std::string root_dir = "./a";
+    std::string dir_path = root_dir + "/b/tmp/test_dir";
     int ret = FileTestUtil::mkpath(dir_path.c_str(), 0777);
     EXPECT_EQ(ret, 0);
     EXPECT_TRUE(PathUtil::is_dir(dir_path));
 
     // Delete dir
-    FileTestUtil::recursive_delete(dir_path.c_str());
+    FileTestUtil::recursive_delete(root_dir.c_str());
     EXPECT_FALSE(PathUtil::is_dir(dir_path));
 }
 
@@ -42,7 +43,8 @@ TEST(PathUtil, is_file)
 
 TEST(PathUtil, path_is_file)
 {
-    std::string dir_path = "./a/b/tmp/test_dir";
+    std::string root_dir = "./a";
+    std::string dir_path = root_dir + "/b/tmp/test_dir";
     int ret = FileTestUtil::mkpath(dir_path.c_str(), 0777);
     EXPECT_EQ(ret, 0);
 
@@ -53,7 +55,7 @@ TEST(PathUtil, path_is_file)
 
     std::remove(file_path.c_str());
     EXPECT_FALSE(PathUtil::is_file(file_path));
-    FileTestUtil::recursive_delete(dir_path.c_str());
+    FileTestUtil::recursive_delete(root_dir.c_str());
     EXPECT_FALSE(PathUtil::is_dir(dir_path));
 }
 
