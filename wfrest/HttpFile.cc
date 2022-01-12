@@ -7,7 +7,7 @@
 #include "wfrest/PathUtil.h"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/FileUtil.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 
 using namespace wfrest;
 
@@ -60,7 +60,7 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
 {
     if(!PathUtil::is_file(path))
     {
-        return StatusFileNotFound;
+        return StatusNotFound;
     }
     int start = file_start;
     int end = file_end;

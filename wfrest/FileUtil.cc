@@ -1,7 +1,7 @@
 #include <sys/stat.h>
 #include <cstring>
 #include "wfrest/FileUtil.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 #include "wfrest/PathUtil.h"
 
 using namespace wfrest;
@@ -16,7 +16,7 @@ int FileUtil::size(const std::string &path, OUT size_t *size)
     if(ret == -1)
     {
         *size = 0;
-        status = StatusFileNotFound;
+        status = StatusNotFound;
     } else
     {
         *size = st.st_size;

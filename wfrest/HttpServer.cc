@@ -9,6 +9,7 @@
 #include "wfrest/PathUtil.h"
 #include "wfrest/Macro.h"
 #include "wfrest/Router.h"
+#include "wfrest/ErrorCode.h"
 
 using namespace wfrest;
 
@@ -53,7 +54,16 @@ void HttpServer::process(HttpTask *task)
     }
 
     req->set_parsed_uri(std::move(uri));
-    blue_print_.router().call(req->get_method(), route, server_task);
+    std::string verb = req->get_method();
+    int ret = blue_print_.router().call(verb, route, server_task);
+    if(ret != StatusOK)
+    {
+        resp->Error(ret, verb + " " + route);
+    }
+    if(track_func_)
+    {
+        track_func_(server_task);
+    }
 }
 
 CommSession *HttpServer::new_session(long long seq, CommConnection *conn)
@@ -114,4 +124,36 @@ void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
         // fprintf(stderr, "Get File path : %s\n", path.c_str()); 
         resp->File(path);
     });
+}
+
+HttpServer &HttpServer::track()
+{
+    track_func_ = [](HttpTask *server_task) {
+        HttpResp *resp = server_task->get_resp();
+        HttpReq *req = server_task->get_req();
+        HttpServerTask *task = static_cast<HttpServerTask *>(server_task);
+        Timestamp current_time = Timestamp::now();
+        std::string fmt_time = current_time.to_format_str();
+
+        // time | http status code | peer ip address | verb | route path
+        fprintf(stderr, "[WFREST] %s | %d | %s | %s | %s |\n", 
+                    fmt_time.c_str(),
+                    resp->status_code(),
+                    task->get_peer_addr_str().c_str(), 
+                    req->get_method(),
+                    req->current_path().c_str());
+    };
+    return *this;
+}
+
+HttpServer &HttpServer::track(const TrackFunc &track_func)
+{
+    track_func_ = track_func;
+    return *this;
+}
+
+HttpServer &HttpServer::track(TrackFunc &&track_func)
+{
+    track_func_ = std::move(track_func);
+    return *this;
 }

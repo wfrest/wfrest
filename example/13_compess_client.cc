@@ -2,7 +2,7 @@
 #include "workflow/WFFacilities.h"
 #include <signal.h>
 #include "wfrest/Compress.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 
 using namespace protocol;
 using namespace wfrest;

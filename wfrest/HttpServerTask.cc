@@ -1,6 +1,8 @@
 #include "workflow/HttpUtil.h"
 #include "workflow/HttpMessage.h"
 
+#include <arpa/inet.h>
+
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/StrUtil.h"
 
@@ -184,4 +186,27 @@ CommMessageOut *HttpServerTask::message_out()
     return this->WFServerTask::message_out();
 }
 
+std::string HttpServerTask::get_peer_addr_str()
+{
+    static const int ADDR_STR_LEN = 128;
+    char addrstr[ADDR_STR_LEN];
+    struct sockaddr_storage addr;
+    socklen_t addr_len = sizeof addr;
+    unsigned short port = 0;
 
+    this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (addr.ss_family == AF_INET)
+    {
+        auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
+        inet_ntop(AF_INET, &sin->sin_addr, addrstr, ADDR_STR_LEN);
+        port = ntohs(sin->sin_port);
+    } else if (addr.ss_family == AF_INET6)
+    {
+        auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
+        inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, ADDR_STR_LEN);
+        port = ntohs(sin6->sin6_port);
+    } else
+        strcpy(addrstr, "Unknown");
+
+    return addrstr;
+}

@@ -1,10 +1,10 @@
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 #include <map>
 
 namespace wfrest
 {
 
-std::map<int, const char *> status_code_table = {
+std::map<int, const char *> error_code_table = {
     { StatusOK, "OK" },
     { StatusCompressError, "Compress Error" },
     { StatusCompressNotSupport, "Compress Not Support" },
@@ -12,19 +12,20 @@ std::map<int, const char *> status_code_table = {
     { StatusUncompressError, "Uncompress Error" },
     { StatusUncompressNotSupport, "Uncompress Not Support" },
     { StatusNoUncomrpess, "No Uncomrpess" },
-    { StatusFileNotFound, "File Not Found" },
+    { StatusNotFound, "404 Not Found" },
     { StatusFileRangeInvalid, "File Range Invalid" },
     { StatusFileReadError, "File Read Error" },
     { StatusFileWriteError, "File Write Error" },
     { StatusJsonInvalid, "Invalid Json Syntax" },
     { StatusProxyError, "Http Proxy Error" },
-    
+    { StatusRouteVerbNotImplment, "Route Http Method not implement" },
+    { StatusRouteNotFound, "Route Not Found" },
 };
  
-const char* status_code_to_str(int code)
+const char* error_code_to_str(int code)
 {
-    auto it = status_code_table.find(code);
-    if(it == status_code_table.end())
+    auto it = error_code_table.find(code);
+    if(it == error_code_table.end())
         return "unknown";
     return it->second;
 }

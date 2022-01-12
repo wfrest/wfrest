@@ -37,8 +37,9 @@ int main()
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
-    if (svr.start(8888) == 0)
+    if (svr.track().start(8888) == 0)
     {
+        svr.list_routes();
         wait_group.wait();
         svr.stop();
     } else

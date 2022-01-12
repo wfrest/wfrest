@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include "wfrest/HttpServer.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 #include "wfrest/FileUtil.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/json.hpp"
@@ -216,7 +216,7 @@ TEST(HttpServer, not_file)
         EXPECT_EQ(content_type, "application/json");
         std::string body_str(static_cast<const char *>(body), body_len);
         Json js = Json::parse(body_str);
-        EXPECT_EQ(js["errmsg"], "File Not Found");
+        EXPECT_EQ(js["errmsg"], "404 Not Found");
         EXPECT_TRUE(strcmp(resp->get_status_code(), "404") == 0);
     });
     FileTest::delete_dir(root_dir);

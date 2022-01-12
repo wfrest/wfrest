@@ -13,7 +13,7 @@
 #include "wfrest/json.hpp"
 #include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 #include "wfrest/FileUtil.h"
 #include "HttpMsg.h"
 
@@ -500,26 +500,28 @@ int HttpResp::compress(const std::string * const data, std::string *compress_dat
     return status;
 }
 
-void HttpResp::Error(int status_code)
+void HttpResp::Error(int error_code)
 {
-    this->Error(status_code, "");
+    this->Error(error_code, "");
 }
 
-void HttpResp::Error(int status_code, const std::string &errmsg)
+void HttpResp::Error(int error_code, const std::string &errmsg)
 {
-    int http_status_code = 503;
-    switch (status_code)
+    int status_code = 503;
+    switch (error_code)
     {
-    case StatusFileNotFound:
-        http_status_code = 404;
+    case StatusNotFound:
+    case StatusRouteVerbNotImplment:
+    case StatusRouteNotFound:
+        status_code = 404;
         break;
     default:
         break;
     }
     this->headers["Content-Type"] = "application/json";
-    this->set_status(http_status_code); 
+    this->set_status(status_code); 
     ::Json js;
-    std::string resp_msg = status_code_to_str(status_code);
+    std::string resp_msg = error_code_to_str(error_code);
     if(!errmsg.empty()) resp_msg = resp_msg + " : " + errmsg;
     js["errmsg"] = resp_msg;
 
@@ -546,6 +548,7 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
 
 void HttpResp::set_status(int status_code)
 {
+    status_code_ = status_code; 
     protocol::HttpUtil::set_response_status(this, status_code);
 }
 

@@ -4,9 +4,10 @@
 namespace wfrest
 {
 
-enum StatusCode
+enum ErrorCode
 {
     StatusOK = 0,
+    StatusNotFound,
     // compress 
     StatusCompressError,
     StatusCompressNotSupport,
@@ -16,18 +17,21 @@ enum StatusCode
     StatusNoUncomrpess,
 
     // File
-    StatusFileNotFound,
     StatusFileRangeInvalid,
     StatusFileReadError,
     StatusFileWriteError,
 
     // Json
     StatusJsonInvalid,
-
+    
     StatusProxyError,
+
+    // Route
+    StatusRouteVerbNotImplment,
+    StatusRouteNotFound,
 };
 
-const char* status_code_to_str(int code);
+const char* error_code_to_str(int code);
 
 } // namespace wfrest
 

@@ -119,6 +119,8 @@ public:
     void register_blueprint(const BluePrint &bp, const std::string &url_prefix);
 
 public:
+    using TrackFunc = std::function<void(HttpTask *server_task)>;
+    
     HttpServer() :
             WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
@@ -159,6 +161,12 @@ public:
         return *this;
     }
 
+    HttpServer &track();
+
+    HttpServer &track(const TrackFunc &track_func);
+
+    HttpServer &track(TrackFunc &&track_func);
+
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 
@@ -169,6 +177,7 @@ private:
 
 private:
     BluePrint blue_print_;
+    TrackFunc track_func_;
 };
 
 }  // namespace wfrest

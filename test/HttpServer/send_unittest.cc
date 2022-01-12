@@ -1,7 +1,7 @@
 #include "workflow/WFFacilities.h"
 #include <gtest/gtest.h>
 #include "wfrest/HttpServer.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 
 using namespace wfrest;
 using namespace protocol;

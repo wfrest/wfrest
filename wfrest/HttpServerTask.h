@@ -30,6 +30,8 @@ public:
         return task.resp_offset();
     }
 
+    std::string get_peer_addr_str();
+    
 protected:
     void handle(int state, int error) override;
 

@@ -1,4 +1,4 @@
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 #include <gtest/gtest.h>
 #include "wfrest/Compress.h"
 

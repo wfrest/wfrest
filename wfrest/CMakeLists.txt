@@ -21,7 +21,7 @@ set(SRCS
         FileUtil.cc
         HttpCookie.cc
         MysqlUtil.cc
-        StatusCode.cc
+        ErrorCode.cc
         )
 
 add_library(wfrest ${SRCS})

@@ -191,6 +191,9 @@ public:
 
     void set_status(int status_code);
 
+    int status_code() const 
+    { return status_code_; }
+    
     // Compress
     void set_compress(const Compress &compress);
 
@@ -224,9 +227,9 @@ public:
 
     void MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func);
 
-    void Error(int status_code);
+    void Error(int error_code);
 
-    void Error(int status_code, const std::string &errmsg);
+    void Error(int error_code, const std::string &errmsg);
 
 private:
     int compress(const std::string * const data, std::string *compress_data);
@@ -247,6 +250,8 @@ public:
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers;
     void *user_data;
+    int status_code_ = 200;
+
 private:
     std::vector<HttpCookie> cookies_;
 };

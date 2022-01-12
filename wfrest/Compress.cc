@@ -1,7 +1,7 @@
 
 #include <cassert>
 #include "wfrest/Compress.h"
-#include "wfrest/StatusCode.h"
+#include "wfrest/ErrorCode.h"
 
 namespace wfrest
 {
