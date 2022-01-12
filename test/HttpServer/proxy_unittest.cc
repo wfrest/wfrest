@@ -14,6 +14,7 @@ WFHttpTask *create_http_task(const std::string &path)
 TEST(HttpServer, proxy)
 {
     HttpServer svr;
+    HttpServer proxy_svr;
     WFFacilities::WaitGroup wait_group(1);
 
     svr.GET("/test", [](const HttpReq *req, HttpResp *resp)
@@ -21,13 +22,14 @@ TEST(HttpServer, proxy)
         resp->String("test");
     });
 
-    svr.GET("/proxy", [](const HttpReq *req, HttpResp *resp)
+    proxy_svr.GET("/proxy", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Http("http://127.0.0.1:8888/test");
+        resp->Http("http://127.0.0.1:8887/test");
     });
 
-    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
-
+    EXPECT_TRUE(svr.track().start("127.0.0.1", 8887) == 0) << "http server start failed";
+    EXPECT_TRUE(proxy_svr.track().start("127.0.0.1", 8888) == 0) << "proxy http server start failed";
+    
     WFHttpTask *client_task = create_http_task("proxy");
     client_task->set_callback([&wait_group](WFHttpTask *task)
     {
@@ -46,6 +48,7 @@ TEST(HttpServer, proxy)
     client_task->start();
     wait_group.wait();
     svr.stop();
+    proxy_svr.stop();
 }
 
 int main(int argc, char **argv) {

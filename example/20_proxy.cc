@@ -23,7 +23,7 @@ int main()
         resp->Http("http://www.baidu.com");
     });
 
-    if (svr.start(8888) == 0)
+    if (svr.track().start(8888) == 0)
     {
         wait_group.wait();
         svr.stop();

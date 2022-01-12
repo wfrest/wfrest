@@ -31,7 +31,6 @@ void HttpServer::process(HttpTask *task)
         resp->set_status(HttpStatusBadRequest);
         return;
     }
-    
     std::string request_uri = "http://" + host + req->get_request_uri();  // or can't parse URI
     ParsedURI uri;
     if (URIParser::parse(request_uri, uri) < 0)
@@ -62,7 +61,7 @@ void HttpServer::process(HttpTask *task)
     }
     if(track_func_)
     {
-        track_func_(server_task);
+        server_task->add_callback(track_func_);
     }
 }
 
@@ -134,11 +133,10 @@ HttpServer &HttpServer::track()
         HttpServerTask *task = static_cast<HttpServerTask *>(server_task);
         Timestamp current_time = Timestamp::now();
         std::string fmt_time = current_time.to_format_str();
-
         // time | http status code | peer ip address | verb | route path
-        fprintf(stderr, "[WFREST] %s | %d | %s | %s | %s |\n", 
+        fprintf(stderr, "[WFREST] %s | %s | %s | %s | \"%s\" | -- \n", 
                     fmt_time.c_str(),
-                    resp->status_code(),
+                    resp->get_status_code(),
                     task->get_peer_addr_str().c_str(), 
                     req->get_method(),
                     req->current_path().c_str());

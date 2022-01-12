@@ -43,11 +43,13 @@ void proxy_http_callback(WFHttpTask *http_task)
 {   
     int state = http_task->get_state();
     int error = http_task->get_error();
+
     auto *proxy_ctx = static_cast<ProxyCtx *>(http_task->user_data);
     
     HttpServerTask *server_task = proxy_ctx->server_task;
     HttpResponse *http_resp = http_task->get_resp();
     HttpResp *server_resp = server_task->get_resp();
+
     // Some servers may close the socket as the end of http response. 
     if (state == WFT_STATE_SYS_ERROR && error == ECONNRESET)
         state = WFT_STATE_SUCCESS;
@@ -80,7 +82,7 @@ void proxy_http_callback(WFHttpTask *http_task)
 
         HttpResp resp(std::move(*http_resp));
         *server_resp = std::move(resp);
-        
+
         if (!proxy_ctx->is_keep_alive)
             server_resp->set_header_pair("Connection", "close");
     }
@@ -109,6 +111,9 @@ void proxy_http_callback(WFHttpTask *http_task)
         errmsg.append(err_string);
         server_resp->Error(StatusProxyError, errmsg);
     }
+    // move back Request
+    auto *server_req = static_cast<HttpRequest *>(server_task->get_req()); 
+    *server_req = std::move(*http_task->get_req());
 }
 
 Json mysql_concat_json_res(WFMySQLTask *mysql_task)
@@ -548,7 +553,6 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
 
 void HttpResp::set_status(int status_code)
 {
-    status_code_ = status_code; 
     protocol::HttpUtil::set_response_status(this, status_code);
 }
 
@@ -604,24 +608,45 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 {
     HttpServerTask *server_task = task_of(this);
     HttpReq *server_req = server_task->get_req();
-    WFHttpTask *http_task = WFTaskFactory::create_http_task(url, 
+    std::string http_url = url;
+	if (strncasecmp(url.c_str(), "http://", 7) != 0 &&
+		strncasecmp(url.c_str(), "https://", 8) != 0)
+	{
+		http_url = "http://" + http_url;
+	}
+    WFHttpTask *http_task = WFTaskFactory::create_http_task(http_url, 
                                                             redirect_max, 
                                                             0, 
                                                             proxy_http_callback);
     auto *proxy_ctx = new ProxyCtx;
-    proxy_ctx->url = url;
+    proxy_ctx->url = http_url;
     proxy_ctx->server_task = server_task;
     proxy_ctx->is_keep_alive = server_req->is_keep_alive();
     http_task->user_data = proxy_ctx;
 
     const void *body;
-	size_t len;             
+	size_t len;      
 
-	server_req->set_request_uri(url);
+    ParsedURI uri;
+    fprintf(stderr, "%s\n", http_url.c_str());
+    if (URIParser::parse(http_url, uri) < 0)
+    {
+        server_task->get_resp()->set_status(HttpStatusBadRequest);
+        return;
+    }
+
+    std::string route;
+    if (uri.path && uri.path[0])
+        route = uri.path;
+    else
+        route = "/";
+
+	server_req->set_request_uri(route);
 	server_req->get_parsed_body(&body, &len);
 	server_req->append_output_body_nocopy(body, len);
-	*http_task->get_req() = std::move(*server_req);  
-
+    // Keep parts unique to HttpReq
+    HttpRequest *server_req_cast = static_cast<HttpRequest *>(server_req);
+	*http_task->get_req() = std::move(*server_req_cast);  
     http_task->get_resp()->set_size_limit(size_limit);
 	**server_task << http_task;
 }

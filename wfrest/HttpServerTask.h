@@ -37,7 +37,6 @@ protected:
 
     CommMessageOut *message_out() override;
 
-
 private:
     // for hidning set_callback
     void set_callback()

@@ -107,6 +107,10 @@ public:
 public:
     HttpReq();
 
+    HttpReq(HttpRequest &&base_req) 
+        : HttpRequest(std::move(base_req))
+    {}
+
     ~HttpReq();
 
     HttpReq(HttpReq&& other);
@@ -190,9 +194,6 @@ public:
     void Json(const std::string &str);
 
     void set_status(int status_code);
-
-    int status_code() const 
-    { return status_code_; }
     
     // Compress
     void set_compress(const Compress &compress);
@@ -250,7 +251,6 @@ public:
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers;
     void *user_data;
-    int status_code_ = 200;
 
 private:
     std::vector<HttpCookie> cookies_;
