@@ -89,40 +89,37 @@ void HttpServer::register_blueprint(const BluePrint& bp, const std::string& url_
 void HttpServer::Static(const char *relative_path, const char *root)
 {
     BluePrint bp;
-    serve_dir(root, bp);
+    int ret = serve_static(root, OUT bp);
+    if(ret != StatusOK)
+    {
+        fprintf(stderr, "[WFREST] Error : %s dose not exists\n", root);
+    }
     blue_print_.add_blueprint(bp, relative_path);
 }
 
-void HttpServer::serve_dir(const char* dir_path, OUT BluePrint &bp)
+int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
 {
-    // extract root realpath. 
-    char realpath_out[PATH_MAX]{0};
-    if (nullptr == realpath(dir_path, OUT realpath_out))
+    std::string path_str(path);
+    bool is_file = true;
+    if (PathUtil::is_dir(path_str))
     {
-        fprintf(stderr, "Serve Dir failed. Directory %s dose not exists\n", dir_path);
-        return;
-    }
-    
-    // Check if it is a directory.
-    // todo : copy here
-    if (!PathUtil::is_dir(realpath_out))
+        is_file = false;
+    } else if(!PathUtil::is_file(path_str))
     {
-        fprintf(stderr, "Serve Dir failed. %s is not a directory\n", dir_path);
-        return;
-    }
-        
-    std::string real_root(realpath_out);
-    if(real_root.back() != '/')
-    {
-        real_root.push_back('/');
-    }
+        return StatusNotFound;
+    }    
 
-    bp.GET("/*", [real_root](const HttpReq *req, HttpResp *resp) {
-        std::string path = real_root + req->match_path();
-        // todo : file_exist
-        // fprintf(stderr, "Get File path : %s\n", path.c_str()); 
-        resp->File(path);
+    bp.GET("/*", [path_str, is_file](const HttpReq *req, HttpResp *resp) {
+        std::string match_path = req->match_path();
+        if(is_file && match_path.empty())
+        {
+            resp->File(path_str);
+        } else 
+        {
+            resp->File(path_str + "/" + match_path);
+        }
     });
+    return StatusOK;
 }
 
 HttpServer &HttpServer::track()

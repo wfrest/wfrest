@@ -33,6 +33,7 @@ int main()
         // if /user/chanchan/match1234
         // full_path : /user/{name}/match*
         // current_path : /user/chanchan/match1234
+        // match_path : match1234
         const std::string &full_path = req->full_path();
         const std::string &current_path = req->current_path();
         std::string res;

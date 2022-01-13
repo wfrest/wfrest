@@ -173,7 +173,7 @@ protected:
 private:
     void process(HttpTask *task);
 
-    void serve_dir(const char *dir_path, OUT BluePrint &bp);
+    int serve_static(const char *path, OUT BluePrint &bp);
 
 private:
     BluePrint blue_print_;

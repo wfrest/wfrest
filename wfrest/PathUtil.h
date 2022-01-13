@@ -10,7 +10,7 @@ class PathUtil
 {
 public:
     static bool is_dir(const std::string &path);
-    
+
     static bool is_file(const std::string &path);
     
 public:

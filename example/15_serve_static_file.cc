@@ -20,6 +20,8 @@ int main()
 
     svr.Static("/public", "./www");
 
+    svr.Static("/", "./www/index.html");
+
     // curl -v "http://ip:port/static/filepath"
     // ...
 

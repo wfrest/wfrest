@@ -53,6 +53,16 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     // We found the route
     if ((cursor == route.size() and verb_handler_.handler != nullptr) or (children_.empty()))
         return iterator{this, route, verb_handler_};
+    
+    // /*
+    if(cursor == route.size() and !children_.empty())
+    {
+        auto it = children_.find(StringPiece("*"));
+        if(it != children_.end())
+        {
+            return iterator{it->second, route, it->second->verb_handler_};
+        }
+    }
     // route does not match any.
     if (cursor == route.size() and verb_handler_.handler == nullptr)
         return iterator{nullptr, route, verb_handler_};
@@ -109,7 +119,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
                 StringPiece match_path(route.data() + cursor);
                 route_match_path = mid.as_string() + match_path.as_string();
                 return iterator{kv.second, route, kv.second->verb_handler_};
-            }
+            } 
         }
 
         if (param.size() > 2 and param[0] == '{' and
