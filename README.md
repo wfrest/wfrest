@@ -1,3 +1,5 @@
+[中文版入口](README_cn.md)
+
 # ✨ wfrest: C++ Web Framework REST API
 
 Fast🚀, efficient⌛️, and easiest💥 c++ async micro web framework based on [✨**C++ Workflow**✨](https://github.com/sogou/workflow).
