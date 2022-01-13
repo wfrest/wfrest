@@ -40,6 +40,8 @@ int main()
 // Client
 #include "workflow/WFTaskFactory.h"
 #include "wfrest/Compress.h"
+#include "wfrest/ErrorCode.h"
+
 using namespace protocol;
 using namespace wfrest;
 
@@ -53,13 +55,16 @@ void http_callback(WFHttpTask *task)
     const void *body;
     size_t body_len;
     task->get_resp()->get_parsed_body(&body, &body_len);
-    std::string decompress_data = Compressor::ungzip(static_cast<const char *>(body), body_len);
+    std::string decompress_data;
+    int ret = Compressor::ungzip(static_cast<const char *>(body), body_len, &decompress_data);
     fprintf(stderr, "Decompress Data : %s", decompress_data.c_str());
     delete static_cast<CompessContext *>(task->user_data);
 }
 
 int main()
 {
+    signal(SIGINT, sig_handler);
+
     std::string url = "http://127.0.0.1:8888";
 
     WFHttpTask *task = WFTaskFactory::create_http_task(url + "/gzip",
@@ -68,7 +73,11 @@ int main()
                                                        http_callback);
     std::string content = "Client send for test Gzip";
     auto *ctx = new CompessContext;
-    ctx->data = std::move(Compressor::gzip(content.c_str(), content.size()));
+    int ret = Compressor::gzip(&content, &ctx->data);
+    if(ret != StatusOK)
+    {
+        ctx->data = std::move(content);
+    }
     task->user_data = ctx;
     task->get_req()->set_method("POST");
     task->get_req()->add_header_pair("Content-Encoding", "gzip");

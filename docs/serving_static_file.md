@@ -12,6 +12,8 @@ int main()
 
     svr.Static("/public", "./www");
 
+    svr.Static("/", "./www/index.html");
+    
     if (svr.start(8888) == 0)
     {
         getchar();

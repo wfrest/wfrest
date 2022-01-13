@@ -22,9 +22,6 @@ int main()
 
     svr.Static("/", "./www/index.html");
 
-    // curl -v "http://ip:port/static/filepath"
-    // ...
-
     if (svr.start(8888) == 0)
     {
         svr.list_routes();

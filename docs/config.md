@@ -16,6 +16,7 @@ int main()
     if (svr.max_connections(4000)
             .peer_response_timeout(20 * 1000)
             .keep_alive_timeout(30 * 1000)
+            .track()
             .start(8888) == 0)
     {
         getchar();
@@ -28,6 +29,8 @@ int main()
     return 0;
 }
 ```
+
+## Configuration items
 
 Configuration items are as follows:
 
@@ -57,3 +60,25 @@ static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
 };
 ```
 
+## Track
+
+You can turn on the track logger.
+
+Format :
+
+```
+[WFREST] 2022-01-13 18:00:04 | 200 | 127.0.0.1 | GET | "/data" | -- 
+[WFREST] 2022-01-13 18:00:08 | 200 | 127.0.0.1 | GET | "/hello" | -- 
+[WFREST] 2022-01-13 18:00:17 | 404 | 127.0.0.1 | GET | "/hello1" | -- 
+```
+
+And you can set your own track logger:
+
+```cpp
+svr.track([](HttpTask *server_task){
+    spdlog::info(...);
+    // BOOST_LOG_TRIVIAL(info) << "Status : ";
+    // LOG(ERROR) << "time : " << time;
+  ...
+});
+```

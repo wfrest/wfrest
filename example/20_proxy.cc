@@ -23,6 +23,11 @@ int main()
         resp->Http("http://www.baidu.com");
     });
 
+    svr.GET("/bing", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->Http("www.bing.com");
+    });
+
     if (svr.track().start(8888) == 0)
     {
         wait_group.wait();

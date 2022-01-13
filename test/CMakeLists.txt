@@ -104,6 +104,10 @@ add_executable(server_proxy_unittest ./HttpServer/proxy_unittest.cc)
 target_link_libraries(server_proxy_unittest wfrest GTest::GTest)
 add_test(NAME server_proxy_unittest COMMAND server_proxy_unittest)
 
+add_executable(server_static_unittest ./HttpServer/static_unittest.cc FileTestUtil.cc)
+target_link_libraries(server_static_unittest wfrest GTest::GTest)
+add_test(NAME server_static_unittest COMMAND server_static_unittest)
+
 
 
 

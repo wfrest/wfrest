@@ -25,6 +25,7 @@ int main()
     if (svr.max_connections(4000)
             .peer_response_timeout(20 * 1000)
             .keep_alive_timeout(30 * 1000)
+            .track()
             .start(8888) == 0)
     {
         svr.list_routes();
