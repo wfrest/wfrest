@@ -4,11 +4,13 @@
 #include "wfrest/ErrorCode.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/FileUtil.h"
+#include "wfrest/json.hpp"
 #include "FileTestUtil.h"
 #include "ClientUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
+using Json = nlohmann::json;
 
 class StaticTest : public testing::Test 
 {
@@ -78,6 +80,33 @@ TEST_F(StaticTest, serve_static_file)
 
         task->get_resp()->get_parsed_body(&body, &body_len);
         EXPECT_TRUE(strcmp("123456788890", static_cast<const char *>(body)) == 0);
+        wait_group.done();
+    });
+
+    client_task->start();
+    wait_group.wait();
+    svr.stop();
+}
+
+TEST_F(StaticTest, serve_static_file_error)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
+
+    svr.Static("/public", "./www/test.txt");
+
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+    WFHttpTask *client_task = ClientUtil::create_http_task("public/test.txt");
+    client_task->set_callback([&wait_group](WFHttpTask *task)
+    {
+        const void *body;
+        size_t body_len;
+
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        std::string body_str(static_cast<const char *>(body));
+        Json js = Json::parse(body_str);
+        EXPECT_EQ(js["errmsg"], "404 Not Found");
         wait_group.done();
     });
 
