@@ -57,6 +57,9 @@ target_link_libraries(17_server_config wfrest)
 add_executable(18_aop 18_aop.cc)
 target_link_libraries(18_aop wfrest)
 
+add_executable(18_global_aop 18_global_aop.cc)
+target_link_libraries(18_global_aop wfrest)
+
 add_executable(19_https 19_https.cc)
 target_link_libraries(19_https wfrest)
 

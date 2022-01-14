@@ -117,10 +117,15 @@ public:
     void list_routes();
 
     void register_blueprint(const BluePrint &bp, const std::string &url_prefix);
+    
+    template <typename... AP>
+    void Use(const AP &...ap)
+    {
+        auto *tp = new std::tuple<AP...>(std::move(ap)...);
+        for_each(*tp, GlobalAspectFunc(), this);
+    }
 
 public:
-    using TrackFunc = std::function<void(HttpTask *server_task)>;
-    
     HttpServer() :
             WFServer(std::bind(&HttpServer::process, this, std::placeholders::_1))
     {}
@@ -161,6 +166,8 @@ public:
         return *this;
     }
 
+    using TrackFunc = std::function<void(HttpTask *server_task)>;
+    
     HttpServer &track();
 
     HttpServer &track(const TrackFunc &track_func);
@@ -175,6 +182,15 @@ private:
 
     int serve_static(const char *path, OUT BluePrint &bp);
 
+    struct GlobalAspectFunc 
+    {
+        template <typename T>
+        void operator()(HttpServer *server, T &t) const 
+        {
+            server->blue_print_.Use(std::move(t));
+        }
+    };
+    
 private:
     BluePrint blue_print_;
     TrackFunc track_func_;

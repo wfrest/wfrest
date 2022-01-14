@@ -75,8 +75,18 @@ public:
     void add_blueprint(const BluePrint &bp, const std::string &url_prefix);
 
 private:
-    Router router_;    // ptr for hiding internel class
+    template<typename T>
+    void Use(T&& t)
+    {
+        Aspect *asp = new T(std::move(t));
+        global_aspect_.push_back(asp);
+    }
 
+private:
+    Router router_;    // ptr for hiding internel class
+    std::vector<Aspect *> global_aspect_;
+
+    friend class HttpServer;
 };
 
 

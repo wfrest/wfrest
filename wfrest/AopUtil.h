@@ -21,11 +21,24 @@ for_each(std::tuple<Tp...> &tp, FuncT func)
     for_each<I + 1, FuncT, Tp...>(tp, func);
 }
 
+template<std::size_t I = 0, typename FuncT, typename Server, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type
+for_each(std::tuple<Tp...> &, FuncT, Server *)
+{}
+
+template<std::size_t I = 0, typename FuncT, typename Server, typename... Tp>
+inline typename std::enable_if<I < sizeof...(Tp), void>::type
+for_each(std::tuple<Tp...> &tp, FuncT func, Server *server)
+{
+    func(server, std::get<I>(tp));
+    for_each<I + 1, FuncT, Server, Tp...>(tp, func, server);
+}
+
 class HttpReq;
 class HttpResp;
 
 template<typename Tuple>
-bool aop_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
+inline bool aop_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
 {
     bool ret = true;
     for_each(
@@ -40,7 +53,7 @@ bool aop_before(const HttpReq *req, HttpResp *resp, Tuple &tp)
 }
 
 template<typename Tuple>
-bool aop_after(const HttpReq *req, HttpResp *resp, Tuple &tp)
+inline bool aop_after(const HttpReq *req, HttpResp *resp, Tuple &tp)
 {
     bool ret = true;
     for_each(
