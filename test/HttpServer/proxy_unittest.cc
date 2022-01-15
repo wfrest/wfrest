@@ -38,9 +38,9 @@ TEST(HttpServer, proxy)
 
         const void *body;
         size_t body_len;
-
+        
         resp->get_parsed_body(&body, &body_len);
-        fprintf(stderr, "%s\n", static_cast<const char *>(body));
+        // fprintf(stderr, "%s\n", static_cast<const char *>(body));
         EXPECT_TRUE(strcmp("test", static_cast<const char *>(body)) == 0);
         wait_group.done();
     });

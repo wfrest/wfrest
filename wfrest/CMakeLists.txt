@@ -22,6 +22,7 @@ set(SRCS
         HttpCookie.cc
         MysqlUtil.cc
         ErrorCode.cc
+        Aspect.cc
         )
 
 add_library(wfrest ${SRCS})

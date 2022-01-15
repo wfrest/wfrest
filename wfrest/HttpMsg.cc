@@ -628,7 +628,7 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 	size_t len;      
 
     ParsedURI uri;
-    fprintf(stderr, "%s\n", http_url.c_str());
+    // fprintf(stderr, "%s\n", http_url.c_str());
     if (URIParser::parse(http_url, uri) < 0)
     {
         server_task->get_resp()->set_status(HttpStatusBadRequest);

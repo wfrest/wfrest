@@ -81,9 +81,7 @@ add_executable(HttpDef_unittest HttpDef_unittest.cc)
 target_link_libraries(HttpDef_unittest wfrest GTest::GTest)
 add_test(NAME HttpDef_unittest COMMAND HttpDef_unittest)
 
-
 # server
-
 add_executable(server_send_unittest ./HttpServer/send_unittest.cc)
 target_link_libraries(server_send_unittest wfrest GTest::GTest)
 add_test(NAME server_send_unittest COMMAND server_send_unittest)

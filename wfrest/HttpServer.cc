@@ -80,7 +80,7 @@ void HttpServer::list_routes()
     blue_print_.router().print_routes();
 }
 
-void HttpServer::register_blueprint(const BluePrint& bp, const std::string& url_prefix)
+void HttpServer::register_blueprint(const BluePrint &bp, const std::string& url_prefix)
 {
     blue_print_.add_blueprint(bp, url_prefix);
 }
@@ -93,8 +93,9 @@ void HttpServer::Static(const char *relative_path, const char *root)
     if(ret != StatusOK)
     {
         fprintf(stderr, "[WFREST] Error : %s dose not exists\n", root);
+        return;
     }
-    blue_print_.add_blueprint(bp, relative_path);
+    blue_print_.add_blueprint(std::move(bp), relative_path);
 }
 
 int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
@@ -108,7 +109,6 @@ int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
     {
         return StatusNotFound;
     }    
-
     bp.GET("/*", [path_str, is_file](const HttpReq *req, HttpResp *resp) {
         std::string match_path = req->match_path();
         if(is_file && match_path.empty())

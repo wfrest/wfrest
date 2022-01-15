@@ -60,6 +60,8 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
         auto it = children_.find(StringPiece("*"));
         if(it != children_.end())
         {
+            if(it->second->verb_handler_.handler == nullptr)
+                fprintf(stderr, "handler nullptr");
             return iterator{it->second, route, it->second->verb_handler_};
         }
     }

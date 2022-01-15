@@ -52,7 +52,6 @@ TEST_F(StaticTest, serve_static_dir)
     {
         const void *body;
         size_t body_len;
-
         task->get_resp()->get_parsed_body(&body, &body_len);
         EXPECT_TRUE(strcmp("123456788890", static_cast<const char *>(body)) == 0);
         wait_group.done();

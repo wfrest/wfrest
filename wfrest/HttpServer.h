@@ -119,10 +119,10 @@ public:
     void register_blueprint(const BluePrint &bp, const std::string &url_prefix);
     
     template <typename... AP>
-    void Use(const AP &...ap)
+    void Use(AP &&...ap)
     {
         auto *tp = new std::tuple<AP...>(std::move(ap)...);
-        for_each(*tp, GlobalAspectFunc(), this);
+        for_each(*tp, GlobalAspectFunc());
     }
 
 public:
@@ -181,13 +181,15 @@ private:
     void process(HttpTask *task);
 
     int serve_static(const char *path, OUT BluePrint &bp);
-
+    
     struct GlobalAspectFunc 
     {
         template <typename T>
-        void operator()(HttpServer *server, T &t) const 
+        void operator()(T &t) const 
         {
-            server->blue_print_.Use(std::move(t));
+            Aspect *asp = new T(std::move(t));
+            GlobalAspect *global_aspect = GlobalAspect::get_instance();
+            global_aspect->aspect_list.push_back(asp);
         }
     };
     

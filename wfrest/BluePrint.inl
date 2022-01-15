@@ -11,25 +11,25 @@ template<typename Tuple>
 WFGoTask *aop_process(const Handler &handler,
                       const HttpReq *req,
                       HttpResp *resp,
-                      Tuple *tp,
-                      std::vector<Aspect *> &global_asp_list)
+                      Tuple *tp)
 {
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         return nullptr;
     }
-    for(auto asp : global_asp_list)
+    GlobalAspect *global_aspect = GlobalAspect::get_instance();
+    for(auto asp : global_aspect->aspect_list)
     {
         ret = asp->before(req, resp);
         if(!ret) return nullptr;
     }
     handler(req, resp);
     HttpServerTask *server_task = task_of(resp);
-    server_task->add_callback([req, resp, tp, &global_asp_list](HttpTask *) 
+    server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_asp_list)
+        for(auto asp : global_aspect->aspect_list)
         {
             asp->after(req, resp);
         }
@@ -44,15 +44,15 @@ WFGoTask *aop_process(const SeriesHandler &handler,
                       const HttpReq *req,
                       HttpResp *resp,
                       SeriesWork *series,
-                      Tuple *tp,
-                      std::vector<Aspect *> &global_asp_list)
+                      Tuple *tp)
 {
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         return nullptr;
     }
-    for(auto asp : global_asp_list)
+    GlobalAspect *global_aspect = GlobalAspect::get_instance();
+    for(auto asp : global_aspect->aspect_list)
     {
         ret = asp->before(req, resp);
         if(!ret) return nullptr;
@@ -61,10 +61,10 @@ WFGoTask *aop_process(const SeriesHandler &handler,
 
     HttpServerTask *server_task = task_of(resp);
 
-    server_task->add_callback([req, resp, tp, &global_asp_list](HttpTask *) 
+    server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_asp_list)
+        for(auto asp : global_aspect->aspect_list)
         {
             asp->after(req, resp);
         }
@@ -79,15 +79,15 @@ WFGoTask *aop_compute_process(const Handler &handler,
                               int compute_queue_id,
                               const HttpReq *req,
                               HttpResp *resp,
-                              Tuple *tp,
-                              std::vector<Aspect *> &global_asp_list)
+                              Tuple *tp)
 {
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         return nullptr;
     }
-    for(auto asp : global_asp_list)
+    GlobalAspect *global_aspect = GlobalAspect::get_instance();
+    for(auto asp : global_aspect->aspect_list)
     {
         ret = asp->before(req, resp);
         if(!ret) return nullptr;
@@ -100,10 +100,10 @@ WFGoTask *aop_compute_process(const Handler &handler,
 
     HttpServerTask *server_task = task_of(resp);
 
-    server_task->add_callback([req, resp, tp, &global_asp_list](HttpTask *) 
+    server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_asp_list)
+        for(auto asp : global_aspect->aspect_list)
         {
             asp->after(req, resp);
         }
@@ -120,15 +120,15 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
                               const HttpReq *req,
                               HttpResp *resp,
                               SeriesWork *series,
-                              Tuple *tp,
-                              std::vector<Aspect *> &global_asp_list)
+                              Tuple *tp)
 {
     bool ret = aop_before(req, resp, *tp);
     if (!ret)
     {
         return nullptr;
     }
-    for(auto asp : global_asp_list)
+    GlobalAspect *global_aspect = GlobalAspect::get_instance();
+    for(auto asp : global_aspect->aspect_list)
     {
         ret = asp->before(req, resp);
         if(!ret) return nullptr;
@@ -142,10 +142,10 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
 
     HttpServerTask *server_task = task_of(resp);
 
-    server_task->add_callback([req, resp, tp, &global_asp_list](HttpTask *) 
+    server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_asp_list)
+        for(auto asp : global_aspect->aspect_list)
         {
             asp->after(req, resp);
         }
@@ -170,8 +170,7 @@ void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
-                                                        tp,
-                                                        this->global_aspect_);
+                                                        tp);
                 return go_task;
             };
 
@@ -192,8 +191,7 @@ void BluePrint::GET(const char *route, int compute_queue_id,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
-                                                                tp,
-                                                                this->global_aspect_);
+                                                                tp);
                 return go_task;
             };
 
@@ -212,8 +210,7 @@ void BluePrint::POST(const char *route, const Handler &handler, const AP &... ap
                 WFGoTask *go_task = detail::aop_process(handler,
                                                         req,
                                                         resp,
-                                                        tp,
-                                                        this->global_aspect_);
+                                                        tp);
                 return go_task;
             };
 
@@ -234,8 +231,7 @@ void BluePrint::POST(const char *route, int compute_queue_id,
                                                                 compute_queue_id,
                                                                 req,
                                                                 resp,
-                                                                tp,
-                                                                this->global_aspect_);
+                                                                tp);
                 return go_task;
             };
 
@@ -255,8 +251,7 @@ void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &.
                                                         req,
                                                         resp,
                                                         series,
-                                                        tp,
-                                                        this->global_aspect_);
+                                                        tp);
                 return go_task;
             };
 
@@ -278,8 +273,7 @@ void BluePrint::GET(const char *route, int compute_queue_id,
                                                                 req,
                                                                 resp,
                                                                 series,
-                                                                tp,
-                                                                this->global_aspect_);
+                                                                tp);
                 return go_task;
             };
 
@@ -299,8 +293,7 @@ void BluePrint::POST(const char *route, const SeriesHandler &handler, const AP &
                                                         req,
                                                         resp,
                                                         series,
-                                                        tp,
-                                                        this->global_aspect_);
+                                                        tp);
                 return go_task;
             };
 
@@ -322,8 +315,7 @@ void BluePrint::POST(const char *route, int compute_queue_id,
                                                                 req,
                                                                 resp,
                                                                 series,
-                                                                tp,
-                                                                this->global_aspect_);
+                                                                tp);
                 return go_task;
             };
 
