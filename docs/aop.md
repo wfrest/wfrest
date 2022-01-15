@@ -96,3 +96,12 @@ int main()
     return 0;
 }
 ```
+
+## Global Aspect
+
+Register global Aspect like this:
+
+```cpp
+svr.Use(FirstAop());
+svr.Use(SecondAop(), ThirdAop());
+```

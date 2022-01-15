@@ -21,32 +21,6 @@ for_each(std::tuple<Tp...> &tp, FuncT func)
     for_each<I + 1, FuncT, Tp...>(tp, func);
 }
 
-// template<std::size_t I = 0, typename FuncT, typename BP, typename... Tp>
-// inline typename std::enable_if<I == sizeof...(Tp), void>::type
-// for_each(std::tuple<Tp...> &, FuncT, BP *)
-// {}
-
-// template<std::size_t I = 0, typename FuncT, typename BP, typename... Tp>
-// inline typename std::enable_if<I < sizeof...(Tp), void>::type
-// for_each(std::tuple<Tp...> &tp, FuncT func, BP *bp)
-// {
-//     func(bp, std::get<I>(tp));
-//     for_each<I + 1, FuncT, BP, Tp...>(tp, func, bp);
-// }
-
-// template<std::size_t I = 0, typename FuncT, typename Server, typename... Tp>
-// inline typename std::enable_if<I == sizeof...(Tp), void>::type
-// for_each(std::tuple<Tp...> &, FuncT, Server *)
-// {}
-
-// template<std::size_t I = 0, typename FuncT, typename Server, typename... Tp>
-// inline typename std::enable_if<I < sizeof...(Tp), void>::type
-// for_each(std::tuple<Tp...> &tp, FuncT func, Server *server)
-// {
-//     func(server, std::get<I>(tp));
-//     for_each<I + 1, FuncT, Server, Tp...>(tp, func, server);
-// }
-
 class HttpReq;
 class HttpResp;
 
