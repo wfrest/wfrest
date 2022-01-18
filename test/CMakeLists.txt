@@ -32,6 +32,9 @@ target_link_libraries(StringPiece_feature wfrest)
 add_executable(RouteTableNode_test RouteTableNode_test.cc)
 target_link_libraries(RouteTableNode_test wfrest)
 
+add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
+target_link_libraries(TimeStamp_unittest wfrest)
+
 # unit test
 add_executable(StrUtil_unittest StrUtil_unittest.cc)
 target_link_libraries(StrUtil_unittest wfrest GTest::GTest)
@@ -64,10 +67,6 @@ add_test(NAME FileUtil_unittest COMMAND FileUtil_unittest)
 add_executable(PathUtil_unittest PathUtil_unittest.cc FileTestUtil.cc)
 target_link_libraries(PathUtil_unittest wfrest GTest::GTest)
 add_test(NAME PathUtil_unittest COMMAND PathUtil_unittest)
-
-add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
-target_link_libraries(TimeStamp_unittest wfrest GTest::GTest)
-add_test(NAME TimeStamp_unittest COMMAND TimeStamp_unittest)
 
 add_executable(HttpCookie_unittest HttpCookie_unittest.cc)
 target_link_libraries(HttpCookie_unittest wfrest GTest::GTest)

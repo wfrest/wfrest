@@ -34,6 +34,8 @@ endif()
 
 set(CMAKE_TARGETS_FILE ${PROJECT_NAME}-targets)
 
+# https://github.com/tevador/RandomX/issues/157
+include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME}
         EXPORT  ${CMAKE_TARGETS_FILE}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -41,7 +43,6 @@ install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-include(GNUInstallDirs)
 set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 message(STATUS  ${CMAKE_CONFIG_INSTALL_DIR})
 
