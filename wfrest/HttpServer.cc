@@ -152,3 +152,25 @@ HttpServer &HttpServer::track(TrackFunc &&track_func)
     track_func_ = std::move(track_func);
     return *this;
 }
+
+// void HttpServer::Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods)
+// {
+//     for(auto &method : methods)
+//     {
+//         Verb verb = str_to_verb(method);
+//         switch (verb)
+//         {
+//             case Verb::ANY:
+//                 return;   // not implement yet
+//             case Verb::GET:
+//                 this->GET(route, handler);
+//             case Verb::POST:
+//                 this->POST(route, handler);
+//             case Verb::PUT:
+//                 return;   // not implement yet
+//             case Verb::DELETE:
+//                 return;   // not implement yet
+//         }
+//         return;
+//     }
+// }

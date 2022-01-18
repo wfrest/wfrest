@@ -15,6 +15,9 @@ namespace wfrest
 
 class HttpServer : public WFServer<HttpReq, HttpResp>, public Noncopyable
 {
+// public:
+//     void Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods);
+
 public:
     void GET(const char *route, const Handler &handler)
     {

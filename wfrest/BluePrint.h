@@ -20,6 +20,11 @@ using SeriesHandler = std::function<void(const HttpReq *, HttpResp *, SeriesWork
 class BluePrint : public Noncopyable
 {
 public:
+    // reserve basic interface
+    void Handle(const char *route, const Handler &handler, const char *method);
+
+    void Handle(const char *route, int compute_queue_id, const Handler &handler, const char *method);
+
     void GET(const char *route, const Handler &handler);
 
     void GET(const char *route, int compute_queue_id, const Handler &handler);
@@ -29,6 +34,14 @@ public:
     void POST(const char *route, int compute_queue_id, const Handler &handler);
 
 public:
+    template<typename... AP>
+    void Handle(const char *route, const Handler &handler, 
+                const char *method, const AP &... ap);
+
+    template<typename... AP>
+    void Handle(const char *route, int compute_queue_id, 
+                const Handler &handler, const char *method, const AP &... ap);
+
     template<typename... AP>
     void GET(const char *route, const Handler &handler, const AP &... ap);
 
@@ -44,6 +57,10 @@ public:
               const Handler &handler, const AP &... ap);
 
 public:
+    void Handle(const char *route, const SeriesHandler &handler, const char *method);
+
+    void Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, const char *method);
+
     void GET(const char *route, const SeriesHandler &handler);
 
     void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
@@ -53,6 +70,14 @@ public:
     void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);  
 
 public:
+    template<typename... AP>
+    void Handle(const char *route, const SeriesHandler &handler, 
+                const char *method, const AP &... ap);
+
+    template<typename... AP>
+    void Handle(const char *route, int compute_queue_id, 
+                const SeriesHandler &handler, const char *method, const AP &... ap);
+
     template<typename... AP>
     void GET(const char *route, const SeriesHandler &handler, const AP &... ap);
 

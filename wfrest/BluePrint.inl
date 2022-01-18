@@ -155,11 +155,11 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
     return go_task;
 }
 
-
 }  // namespace detail
 
 template<typename... AP>
-void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::Handle(const char *route, const Handler &handler, 
+            const char *method, const AP &... ap)
 {
     WrapHandler wrap_handler =
             [handler, this, ap...](const HttpReq *req,
@@ -174,72 +174,59 @@ void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
                 return go_task;
             };
 
-    router_.handle(route, -1, wrap_handler, Verb::GET);
+    router_.handle(route, -1, wrap_handler, str_to_verb(method));
+}
+
+template<typename... AP>
+void BluePrint::Handle(const char *route, int compute_queue_id, 
+            const Handler &handler, const char *method, const AP &... ap)
+{
+    WrapHandler wrap_handler =
+            [handler, compute_queue_id, this, ap...](HttpReq *req,
+                                               HttpResp *resp,
+                                               SeriesWork *) -> WFGoTask *
+            {
+                auto *tp = new std::tuple<AP...>(std::move(ap)...);
+                WFGoTask *go_task = detail::aop_compute_process(handler,
+                                                                compute_queue_id,
+                                                                req,
+                                                                resp,
+                                                                tp);
+                return go_task;
+            };
+
+    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));
+}
+
+template<typename... AP>
+void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "GET", ap...);
 }
 
 template<typename... AP>
 void BluePrint::GET(const char *route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
-    WrapHandler wrap_handler =
-            [handler, compute_queue_id, this, ap...](HttpReq *req,
-                                               HttpResp *resp,
-                                               SeriesWork *) -> WFGoTask *
-            {
-                auto *tp = new std::tuple<AP...>(std::move(ap)...);
-                WFGoTask *go_task = detail::aop_compute_process(handler,
-                                                                compute_queue_id,
-                                                                req,
-                                                                resp,
-                                                                tp);
-                return go_task;
-            };
-
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::GET);
+    this->Handle(route, compute_queue_id, handler, "GET", ap...);
 }
 
 template<typename... AP>
 void BluePrint::POST(const char *route, const Handler &handler, const AP &... ap)
 {
-    WrapHandler wrap_handler =
-            [handler, this, ap...](const HttpReq *req,
-                             HttpResp *resp,
-                             SeriesWork *) -> WFGoTask *
-            {
-                auto *tp = new std::tuple<AP...>(std::move(ap)...);
-                WFGoTask *go_task = detail::aop_process(handler,
-                                                        req,
-                                                        resp,
-                                                        tp);
-                return go_task;
-            };
-
-    router_.handle(route, -1, wrap_handler, Verb::POST);
+    this->Handle(route, handler, "POST", ap...);
 }
 
 template<typename... AP>
 void BluePrint::POST(const char *route, int compute_queue_id,
                      const Handler &handler, const AP &... ap)
 {
-    WrapHandler wrap_handler =
-            [handler, compute_queue_id, this, ap...](HttpReq *req,
-                                               HttpResp *resp,
-                                               SeriesWork *) -> WFGoTask *
-            {
-                auto *tp = new std::tuple<AP...>(std::move(ap)...);
-                WFGoTask *go_task = detail::aop_compute_process(handler,
-                                                                compute_queue_id,
-                                                                req,
-                                                                resp,
-                                                                tp);
-                return go_task;
-            };
-
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::POST);
+    this->Handle(route, compute_queue_id, handler, "POST", ap...);
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::Handle(const char *route, const SeriesHandler &handler, 
+            const char *method, const AP &... ap)
 {
     WrapHandler wrap_handler =
             [handler, this, ap...](const HttpReq *req,
@@ -255,12 +242,12 @@ void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &.
                 return go_task;
             };
 
-    router_.handle(route, -1, wrap_handler, Verb::GET);
+    router_.handle(route, -1, wrap_handler, str_to_verb(method));
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, int compute_queue_id,
-                    const SeriesHandler &handler, const AP &... ap)
+void BluePrint::Handle(const char *route, int compute_queue_id, 
+            const SeriesHandler &handler, const char *method, const AP &... ap)
 {
     WrapHandler wrap_handler =
             [handler, compute_queue_id, this, ap...](HttpReq *req,
@@ -277,49 +264,33 @@ void BluePrint::GET(const char *route, int compute_queue_id,
                 return go_task;
             };
 
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::GET);
+    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));  
+}
+
+template<typename... AP>
+void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "GET", ap...);
+}
+
+template<typename... AP>
+void BluePrint::GET(const char *route, int compute_queue_id,
+                    const SeriesHandler &handler, const AP &... ap)
+{   
+    this->Handle(route, compute_queue_id, handler, "GET", ap...);
 }
 
 template<typename... AP>
 void BluePrint::POST(const char *route, const SeriesHandler &handler, const AP &... ap)
 {
-    WrapHandler wrap_handler =
-            [handler, this, ap...](const HttpReq *req,
-                             HttpResp *resp,
-                             SeriesWork *series) -> WFGoTask *
-            {
-                auto *tp = new std::tuple<AP...>(std::move(ap)...);
-                WFGoTask *go_task = detail::aop_process(handler,
-                                                        req,
-                                                        resp,
-                                                        series,
-                                                        tp);
-                return go_task;
-            };
-
-    router_.handle(route, -1, wrap_handler, Verb::POST);
+    this->Handle(route, handler, "POST", ap...);
 }
 
 template<typename... AP>
 void BluePrint::POST(const char *route, int compute_queue_id,
                      const SeriesHandler &handler, const AP &... ap)
 {
-    WrapHandler wrap_handler =
-            [handler, compute_queue_id, this, ap...](HttpReq *req,
-                                               HttpResp *resp,
-                                               SeriesWork *series) -> WFGoTask *
-            {
-                auto *tp = new std::tuple<AP...>(std::move(ap)...);
-                WFGoTask *go_task = detail::aop_compute_process(handler,
-                                                                compute_queue_id,
-                                                                req,
-                                                                resp,
-                                                                series,
-                                                                tp);
-                return go_task;
-            };
-
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::POST);
+    this->Handle(route, compute_queue_id, handler, "POST", ap...);
 }
 
 } // namespace wfrest

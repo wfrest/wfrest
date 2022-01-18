@@ -3,7 +3,7 @@
 
 using namespace wfrest;
 
-void BluePrint::GET(const char *route, const Handler &handler)
+void BluePrint::Handle(const char *route, const Handler &handler, const char *method)
 {
     WrapHandler wrap_handler =
             [handler](const HttpReq *req,
@@ -32,10 +32,10 @@ void BluePrint::GET(const char *route, const Handler &handler)
                 return nullptr;
             };
 
-    router_.handle(route, -1, wrap_handler, Verb::GET);
+    router_.handle(route, -1, wrap_handler, str_to_verb(method));
 }
 
-void BluePrint::GET(const char *route, int compute_queue_id, const Handler &handler)
+void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &handler, const char *method)
 {
     WrapHandler wrap_handler =
             [handler, compute_queue_id](HttpReq *req,
@@ -66,45 +66,65 @@ void BluePrint::GET(const char *route, int compute_queue_id, const Handler &hand
                 return go_task;
             };
 
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::GET);
+    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));
+}
+
+void BluePrint::GET(const char *route, const Handler &handler)
+{
+    this->Handle(route, handler, "GET");
+}
+
+void BluePrint::GET(const char *route, int compute_queue_id, const Handler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "GET");
 }
 
 void BluePrint::POST(const char *route, const Handler &handler)
 {
-    WrapHandler wrap_handler =
-            [handler](const HttpReq *req,
-                            HttpResp *resp,
-                            SeriesWork *) -> WFGoTask *
-            {
-                GlobalAspect *global_aspect = GlobalAspect::get_instance();
-                for(auto asp : global_aspect->aspect_list)
-                {
-                    asp->before(req, resp);
-                }
-                handler(req, resp);
-                if(!global_aspect->aspect_list.empty())
-                {
-                    HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *)
-                    {
-                        for(auto asp : global_aspect->aspect_list)
-                        {
-                            asp->after(req, resp);
-                        }
-                    });
-                }
-                return nullptr;
-            };
-
-    router_.handle(route, -1, wrap_handler, Verb::POST);
+    this->Handle(route, handler, "POST");
 }
 
 void BluePrint::POST(const char *route, int compute_queue_id, const Handler &handler)
 {
+    this->Handle(route, compute_queue_id, handler, "POST");
+}
+
+void BluePrint::Handle(const char *route, const SeriesHandler &handler, const char *method)
+{
+    WrapHandler wrap_handler =
+            [handler, this](const HttpReq *req,
+                            HttpResp *resp,
+                            SeriesWork *series) -> WFGoTask *
+            {
+                GlobalAspect *global_aspect = GlobalAspect::get_instance();
+                for(auto asp : global_aspect->aspect_list)
+                {
+                    asp->before(req, resp);
+                }
+                handler(req, resp, series);
+                if(!global_aspect->aspect_list.empty())
+                {
+                    HttpServerTask *server_task = task_of(resp);
+                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
+                    {
+                        for(auto asp : global_aspect->aspect_list)
+                        {
+                            asp->after(req, resp);
+                        }
+                    });
+                }
+                return nullptr;
+            };
+
+    router_.handle(route, -1, wrap_handler, str_to_verb(method));
+}
+
+void BluePrint::Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, const char *method)
+{
     WrapHandler wrap_handler =
             [handler, compute_queue_id, this](HttpReq *req,
                                         HttpResp *resp,
-                                        SeriesWork *) -> WFGoTask *
+                                        SeriesWork *series) -> WFGoTask *
             {
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
@@ -115,11 +135,12 @@ void BluePrint::POST(const char *route, int compute_queue_id, const Handler &han
                         "wfrest" + std::to_string(compute_queue_id),
                         handler,
                         req,
-                        resp);
+                        resp,
+                        series);
                 if(!global_aspect->aspect_list.empty())
                 {
                     HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *)
+                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
                     {
                         for(auto asp : global_aspect->aspect_list)
                         {
@@ -130,137 +151,27 @@ void BluePrint::POST(const char *route, int compute_queue_id, const Handler &han
                 return go_task;
             };
 
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::POST);
+    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));
 }
 
 void BluePrint::GET(const char *route, const SeriesHandler &handler)
 {
-    WrapHandler wrap_handler =
-            [handler, this](const HttpReq *req,
-                            HttpResp *resp,
-                            SeriesWork *series) -> WFGoTask *
-            {
-                GlobalAspect *global_aspect = GlobalAspect::get_instance();
-                for(auto asp : global_aspect->aspect_list)
-                {
-                    asp->before(req, resp);
-                }
-                handler(req, resp, series);
-                if(!global_aspect->aspect_list.empty())
-                {
-                    HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
-                    {
-                        for(auto asp : global_aspect->aspect_list)
-                        {
-                            asp->after(req, resp);
-                        }
-                    });
-                }
-                return nullptr;
-            };
-
-    router_.handle(route, -1, wrap_handler, Verb::GET);
+    this->Handle(route, -1, handler, "GET");
 }
 
 void BluePrint::GET(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    WrapHandler wrap_handler =
-            [handler, compute_queue_id, this](HttpReq *req,
-                                        HttpResp *resp,
-                                        SeriesWork *series) -> WFGoTask *
-            {
-                GlobalAspect *global_aspect = GlobalAspect::get_instance();
-                for(auto asp : global_aspect->aspect_list)
-                {
-                    asp->before(req, resp);
-                }
-                WFGoTask *go_task = WFTaskFactory::create_go_task(
-                        "wfrest" + std::to_string(compute_queue_id),
-                        handler,
-                        req,
-                        resp,
-                        series);
-                if(!global_aspect->aspect_list.empty())
-                {
-                    HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
-                    {
-                        for(auto asp : global_aspect->aspect_list)
-                        {
-                            asp->after(req, resp);
-                        }
-                    });
-                }
-                return go_task;
-            };
-
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::GET);
+    this->Handle(route, compute_queue_id, handler, "GET");
 }
 
 void BluePrint::POST(const char *route, const SeriesHandler &handler)
 {
-    WrapHandler wrap_handler =
-            [handler, this](const HttpReq *req,
-                            HttpResp *resp,
-                            SeriesWork *series) -> WFGoTask *
-            {
-                GlobalAspect *global_aspect = GlobalAspect::get_instance();
-                for(auto asp : global_aspect->aspect_list)
-                {
-                    asp->before(req, resp);
-                }
-                handler(req, resp, series);
-                if(!global_aspect->aspect_list.empty())
-                {
-                    HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
-                    {
-                        for(auto asp : global_aspect->aspect_list)
-                        {
-                            asp->after(req, resp);
-                        }
-                    });
-                }
-                return nullptr;
-            };
-
-    router_.handle(route, -1, wrap_handler, Verb::POST);
+    this->Handle(route, -1, handler, "POST");
 }
 
 void BluePrint::POST(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    WrapHandler wrap_handler =
-            [handler, compute_queue_id, this](HttpReq *req,
-                                        HttpResp *resp,
-                                        SeriesWork *series) -> WFGoTask *
-            {
-                GlobalAspect *global_aspect = GlobalAspect::get_instance();
-                for(auto asp : global_aspect->aspect_list)
-                {
-                    asp->before(req, resp);
-                }
-                WFGoTask *go_task = WFTaskFactory::create_go_task(
-                        "wfrest" + std::to_string(compute_queue_id),
-                        handler,
-                        req,
-                        resp,
-                        series);
-                if(!global_aspect->aspect_list.empty())
-                {
-                    HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
-                    {
-                        for(auto asp : global_aspect->aspect_list)
-                        {
-                            asp->after(req, resp);
-                        }
-                    });
-                }
-                return go_task;
-            };
-
-    router_.handle(route, compute_queue_id, wrap_handler, Verb::POST);
+    this->Handle(route, compute_queue_id, handler, "POST");
 }
 
 void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix)
