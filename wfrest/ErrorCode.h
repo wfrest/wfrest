@@ -35,7 +35,4 @@ const char* error_code_to_str(int code);
 
 } // namespace wfrest
 
-
-
-
 #endif // WFREST_STATUSCODE_H_

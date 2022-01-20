@@ -170,6 +170,7 @@ public:
 
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
+    using RedisFunc = std::function<void(Json *json)>;
 public:
     // send string
     void String(const std::string &str);
@@ -227,6 +228,13 @@ public:
     void MySQL(const std::string &url, const std::string &sql, const MySQLJsonFunc &func);
 
     void MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func);
+
+    // Redis
+    void Redis(const std::string &url, const std::string &command,
+            const std::vector<std::string>& params);
+
+    void Redis(const std::string &url, const std::string &command,
+            const std::vector<std::string>& params, const RedisFunc &func);
 
     void Error(int error_code);
 

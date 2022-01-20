@@ -21,13 +21,13 @@ int main(int argc, char **argv)
 
     HttpServer svr;
  
-    svr.GET("/mysql00", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/mysql0", [](const HttpReq *req, HttpResp *resp)
     {
         resp->MySQL("mysql://root:111111@localhost", "SHOW DATABASES");
 
     });
 
-    svr.GET("/mysql01", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/mysql1", [](const HttpReq *req, HttpResp *resp)
     {
         std::string url = "mysql://root:111111@localhost";
         resp->MySQL(url, "SHOW DATABASES", [resp](Json *json) 
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
         });
     });
 
-    svr.GET("/mysql02", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/mysql2", [](const HttpReq *req, HttpResp *resp)
     {
         std::string url = "mysql://root:111111@localhost";
 

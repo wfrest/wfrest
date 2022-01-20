@@ -226,6 +226,63 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
     return json;
 }
 
+Json redis_json_res(WFRedisTask *redis_task)
+{
+    RedisRequest *redis_req = redis_task->get_req();
+    RedisResponse *redis_resp = redis_task->get_resp();
+    int state = redis_task->get_state();
+    int error = redis_task->get_error();
+    RedisValue val; 
+    ::Json js;
+    switch (state)
+    {
+    case WFT_STATE_SYS_ERROR:
+        js["errmsg"] = "system error: " + std::string(strerror(error));
+        break;
+    case WFT_STATE_DNS_ERROR:
+        js["errmsg"] = "DNS error: " + std::string(gai_strerror(error));
+        break;
+    case WFT_STATE_SSL_ERROR:
+        js["errmsg"] = "SSL error: " + std::to_string(error);
+        break;
+    case WFT_STATE_TASK_ERROR:
+        js["errmsg"] = "Task error: " + std::to_string(error);
+        break;
+    case WFT_STATE_SUCCESS:
+        redis_resp->get_result(val);
+        if (val.is_error())
+        {
+            js["errmsg"] = "Error reply. Need a password?\n";
+            state = WFT_STATE_TASK_ERROR;
+        }
+        break;
+    }
+    std::string cmd;
+    std::vector<std::string> params;
+    redis_req->get_command(cmd);
+    redis_req->get_params(params);
+    if (state == WFT_STATE_SUCCESS && cmd == "SET")
+    {
+        js["status"] = "sucess";
+        js["cmd"] = "SET";
+        js[params[0]] = params[1];
+    }
+    if(state == WFT_STATE_SUCCESS && cmd == "GET")
+    {
+        js["cmd"] = "GET";
+        if (val.is_string())
+        {
+            js[params[0]] = val.string_value();
+            js["status"] = "sucess";
+        }
+        else
+        {
+            js["errmsg"] = "value is not a string value";
+        }
+    }
+    return js;
+}
+
 void mysql_callback(WFMySQLTask *mysql_task)
 {
     Json json = mysql_concat_json_res(mysql_task);
@@ -695,6 +752,32 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
     mysql_task->user_data = this;
     HttpServerTask *server_task = task_of(this);
     **server_task << mysql_task;
+}
+
+void HttpResp::Redis(const std::string &url, const std::string &command,
+        const std::vector<std::string>& params)
+{
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [this](WFRedisTask *redis_task) 
+    {
+        ::Json js = redis_json_res(redis_task);
+        this->Json(js);
+    });
+	redis_task->get_req()->set_request(command, params);
+    HttpServerTask *server_task = task_of(this);
+    **server_task << redis_task;
+}
+
+void HttpResp::Redis(const std::string &url, const std::string &command,
+        const std::vector<std::string>& params, const RedisFunc &func)
+{
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task) 
+    {
+        ::Json js = redis_json_res(redis_task);
+        func(&js);
+    });
+	redis_task->get_req()->set_request(command, params);
+    HttpServerTask *server_task = task_of(this);
+    **server_task << redis_task;
 }
 
 HttpResp::HttpResp(HttpResp&& other)

@@ -69,6 +69,9 @@ target_link_libraries(20_proxy wfrest)
 add_executable(21_mysql 21_mysql.cc)
 target_link_libraries(21_mysql wfrest)
 
+add_executable(22_redis 22_redis.cc)
+target_link_libraries(22_redis wfrest)
+
 
 
 
