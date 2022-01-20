@@ -89,10 +89,16 @@ sudo make install
 
 ### Docker
 
-Use dockerfile
+Use dockerfile, the Dockerfile locate `/docker` subdirectory of  root source code repository.
 
 ```
-docker build -t wfrest .
+docker build -t wfrest ./docker/ubuntu/
+```
+
+If you are using `podman`, you can also build it. and tested under ubuntu 20.04
+
+```
+podman build -t wfrest ./docker/ubuntu/
 ```
 
 Or you can Pull from DockerHub 
