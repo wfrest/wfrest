@@ -12,14 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-    # - name : Set Timezone
-    #   uses: szenius/set-timezone@v1.0
-    #   with:
-    #     timezoneLinux: "Asia/Shanghai"
-    #     timezoneMacos: "Asia/Shanghai"
-    #     timezoneWindows: "Shanghai Standard Time"
-
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -53,10 +45,3 @@ jobs:
       shell: bash
       run: |
         sudo make -j $(nproc) && sudo make install
-
-    - name: Test
-      working-directory: ./test
-      shell: bash
-      run: |
-        mkdir build && cd build && cmake .. && make -j $(nproc) && make test
-      
