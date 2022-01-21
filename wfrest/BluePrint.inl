@@ -225,6 +225,58 @@ void BluePrint::POST(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
+void BluePrint::DELETE(const char *route, const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "DELETE", ap...);
+}
+
+template<typename... AP>
+void BluePrint::DELETE(const char *route, int compute_queue_id,
+                    const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, compute_queue_id, handler, "DELETE", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PATCH(const char *route, const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "PATCH", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PATCH(const char *route, int compute_queue_id,
+                    const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, compute_queue_id, handler, "PATCH", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PUT(const char *route, const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "PUT", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PUT(const char *route, int compute_queue_id,
+                    const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, compute_queue_id, handler, "PUT", ap...);
+}
+
+template<typename... AP>
+void BluePrint::HEAD(const char *route, const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "HEAD", ap...);
+}
+
+template<typename... AP>
+void BluePrint::HEAD(const char *route, int compute_queue_id,
+                    const Handler &handler, const AP &... ap)
+{
+    this->Handle(route, compute_queue_id, handler, "HEAD", ap...);
+}
+
+template<typename... AP>
 void BluePrint::Handle(const char *route, const SeriesHandler &handler, 
             const char *method, const AP &... ap)
 {
@@ -291,6 +343,58 @@ void BluePrint::POST(const char *route, int compute_queue_id,
                      const SeriesHandler &handler, const AP &... ap)
 {
     this->Handle(route, compute_queue_id, handler, "POST", ap...);
+}
+
+template<typename... AP>
+void BluePrint::DELETE(const char *route, const SeriesHandler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "DELETE", ap...);
+}
+
+template<typename... AP>
+void BluePrint::DELETE(const char *route, int compute_queue_id,
+                    const SeriesHandler &handler, const AP &... ap)
+{   
+    this->Handle(route, compute_queue_id, handler, "DELETE", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PATCH(const char *route, const SeriesHandler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "PATCH", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PATCH(const char *route, int compute_queue_id,
+                    const SeriesHandler &handler, const AP &... ap)
+{   
+    this->Handle(route, compute_queue_id, handler, "PATCH", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PUT(const char *route, const SeriesHandler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "PUT", ap...);
+}
+
+template<typename... AP>
+void BluePrint::PUT(const char *route, int compute_queue_id,
+                    const SeriesHandler &handler, const AP &... ap)
+{   
+    this->Handle(route, compute_queue_id, handler, "PUT", ap...);
+}
+
+template<typename... AP>
+void BluePrint::HEAD(const char *route, const SeriesHandler &handler, const AP &... ap)
+{
+    this->Handle(route, handler, "HEAD", ap...);
+}
+
+template<typename... AP>
+void BluePrint::HEAD(const char *route, int compute_queue_id,
+                    const SeriesHandler &handler, const AP &... ap)
+{   
+    this->Handle(route, compute_queue_id, handler, "HEAD", ap...);
 }
 
 } // namespace wfrest

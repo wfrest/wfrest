@@ -9,7 +9,7 @@ namespace wfrest
 
 enum class Verb
 {
-    ANY, GET, POST, PUT, DELETE
+    ANY, GET, POST, PUT, DELETE, HEAD, PATCH
 };
 
 inline Verb str_to_verb(const std::string &verb)
@@ -22,6 +22,10 @@ inline Verb str_to_verb(const std::string &verb)
         return Verb::POST;
     if (strcasecmp(verb.c_str(), "DELETE") == 0)
         return Verb::DELETE;
+    if (strcasecmp(verb.c_str(), "HEAD") == 0)
+        return Verb::HEAD;
+    if (strcasecmp(verb.c_str(), "PATCH") == 0)
+        return Verb::PATCH;
     return Verb::ANY;
 }
 
@@ -39,6 +43,10 @@ inline const char *verb_to_str(const Verb &verb)
             return "PUT";
         case Verb::DELETE:
             return "DELETE";
+        case Verb::HEAD:
+            return "HEAD";
+        case Verb::PATCH:
+            return "PATCH";
         default:
             return "[UNKNOWN]";
     }

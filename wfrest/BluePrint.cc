@@ -89,6 +89,46 @@ void BluePrint::POST(const char *route, int compute_queue_id, const Handler &han
     this->Handle(route, compute_queue_id, handler, "POST");
 }
 
+void BluePrint::DELETE(const char *route, const Handler &handler)
+{
+    this->Handle(route, handler, "DELETE");
+}
+
+void BluePrint::DELETE(const char *route, int compute_queue_id, const Handler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "DELETE");
+}
+
+void BluePrint::PATCH(const char *route, const Handler &handler)
+{
+    this->Handle(route, handler, "PATCH");
+}
+
+void BluePrint::PATCH(const char *route, int compute_queue_id, const Handler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "PATCH");
+}
+
+void BluePrint::PUT(const char *route, const Handler &handler)
+{
+    this->Handle(route, handler, "PUT");
+}
+
+void BluePrint::PUT(const char *route, int compute_queue_id, const Handler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "PUT");
+}
+
+void BluePrint::HEAD(const char *route, const Handler &handler)
+{
+    this->Handle(route, handler, "HEAD");
+}
+
+void BluePrint::HEAD(const char *route, int compute_queue_id, const Handler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "HEAD");
+}
+
 void BluePrint::Handle(const char *route, const SeriesHandler &handler, const char *method)
 {
     WrapHandler wrap_handler =
@@ -172,6 +212,46 @@ void BluePrint::POST(const char *route, const SeriesHandler &handler)
 void BluePrint::POST(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
     this->Handle(route, compute_queue_id, handler, "POST");
+}
+
+void BluePrint::DELETE(const char *route, const SeriesHandler &handler)
+{
+    this->Handle(route, -1, handler, "DELETE");
+}
+
+void BluePrint::DELETE(const char *route, int compute_queue_id, const SeriesHandler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "DELETE");
+}
+
+void BluePrint::PATCH(const char *route, const SeriesHandler &handler)
+{
+    this->Handle(route, -1, handler, "PATCH");
+}
+
+void BluePrint::PATCH(const char *route, int compute_queue_id, const SeriesHandler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "PATCH");
+}
+
+void BluePrint::PUT(const char *route, const SeriesHandler &handler)
+{
+    this->Handle(route, -1, handler, "PUT");
+}
+
+void BluePrint::PUT(const char *route, int compute_queue_id, const SeriesHandler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "PUT");
+}
+
+void BluePrint::HEAD(const char *route, const SeriesHandler &handler)
+{
+    this->Handle(route, -1, handler, "HEAD");
+}
+
+void BluePrint::HEAD(const char *route, int compute_queue_id, const SeriesHandler &handler)
+{
+    this->Handle(route, compute_queue_id, handler, "HEAD");
 }
 
 void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix)

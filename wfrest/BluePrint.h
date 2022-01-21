@@ -33,6 +33,22 @@ public:
 
     void POST(const char *route, int compute_queue_id, const Handler &handler);
 
+    void DELETE(const char *route, const Handler &handler);
+
+    void DELETE(const char *route, int compute_queue_id, const Handler &handler);
+
+    void PATCH(const char *route, const Handler &handler);
+
+    void PATCH(const char *route, int compute_queue_id, const Handler &handler);
+
+    void PUT(const char *route, const Handler &handler);
+
+    void PUT(const char *route, int compute_queue_id, const Handler &handler);
+    
+    void HEAD(const char *route, const Handler &handler);
+
+    void HEAD(const char *route, int compute_queue_id, const Handler &handler);
+
 public:
     template<typename... AP>
     void Handle(const char *route, const Handler &handler, 
@@ -56,6 +72,34 @@ public:
     void POST(const char *route, int compute_queue_id,
               const Handler &handler, const AP &... ap);
 
+    template<typename... AP>
+    void DELETE(const char *route, const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void DELETE(const char *route, int compute_queue_id,
+             const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PATCH(const char *route, const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PATCH(const char *route, int compute_queue_id,
+             const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PUT(const char *route, const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PUT(const char *route, int compute_queue_id,
+             const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void HEAD(const char *route, const Handler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void HEAD(const char *route, int compute_queue_id,
+             const Handler &handler, const AP &... ap);
+
 public:
     void Handle(const char *route, const SeriesHandler &handler, const char *method);
 
@@ -68,6 +112,22 @@ public:
     void POST(const char *route, const SeriesHandler &handler);
 
     void POST(const char *route, int compute_queue_id, const SeriesHandler &handler);  
+
+    void DELETE(const char *route, const SeriesHandler &handler);
+
+    void DELETE(const char *route, int compute_queue_id, const SeriesHandler &handler);  
+
+    void PATCH(const char *route, const SeriesHandler &handler);
+
+    void PATCH(const char *route, int compute_queue_id, const SeriesHandler &handler);  
+
+    void PUT(const char *route, const SeriesHandler &handler);
+
+    void PUT(const char *route, int compute_queue_id, const SeriesHandler &handler);  
+
+    void HEAD(const char *route, const SeriesHandler &handler);
+
+    void HEAD(const char *route, int compute_queue_id, const SeriesHandler &handler);  
 
 public:
     template<typename... AP>
@@ -92,6 +152,34 @@ public:
     void POST(const char *route, int compute_queue_id,
               const SeriesHandler &handler, const AP &... ap);
 
+    template<typename... AP>
+    void DELETE(const char *route, const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void DELETE(const char *route, int compute_queue_id,
+             const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PATCH(const char *route, const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PATCH(const char *route, int compute_queue_id,
+             const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PUT(const char *route, const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void PUT(const char *route, int compute_queue_id,
+             const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void HEAD(const char *route, const SeriesHandler &handler, const AP &... ap);
+
+    template<typename... AP>
+    void HEAD(const char *route, int compute_queue_id,
+             const SeriesHandler &handler, const AP &... ap);
+             
 public:
     const Router &router() const
     { return router_; }
