@@ -21,9 +21,9 @@ class BluePrint : public Noncopyable
 {
 public:
     // reserve basic interface
-    void Handle(const char *route, const Handler &handler, const char *method);
+    void Handle(const char *route, const Handler &handler, Verb verb);
 
-    void Handle(const char *route, int compute_queue_id, const Handler &handler, const char *method);
+    void Handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb);
 
     void GET(const char *route, const Handler &handler);
 
@@ -52,11 +52,11 @@ public:
 public:
     template<typename... AP>
     void Handle(const char *route, const Handler &handler, 
-                const char *method, const AP &... ap);
+                Verb verb, const AP &... ap);
 
     template<typename... AP>
     void Handle(const char *route, int compute_queue_id, 
-                const Handler &handler, const char *method, const AP &... ap);
+                const Handler &handler, Verb verb, const AP &... ap);
 
     template<typename... AP>
     void GET(const char *route, const Handler &handler, const AP &... ap);
@@ -101,9 +101,9 @@ public:
              const Handler &handler, const AP &... ap);
 
 public:
-    void Handle(const char *route, const SeriesHandler &handler, const char *method);
+    void Handle(const char *route, const SeriesHandler &handler, Verb verb);
 
-    void Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, const char *method);
+    void Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, Verb verb);
 
     void GET(const char *route, const SeriesHandler &handler);
 
@@ -132,11 +132,11 @@ public:
 public:
     template<typename... AP>
     void Handle(const char *route, const SeriesHandler &handler, 
-                const char *method, const AP &... ap);
+                Verb verb, const AP &... ap);
 
     template<typename... AP>
     void Handle(const char *route, int compute_queue_id, 
-                const SeriesHandler &handler, const char *method, const AP &... ap);
+                const SeriesHandler &handler, Verb verb, const AP &... ap);
 
     template<typename... AP>
     void GET(const char *route, const SeriesHandler &handler, const AP &... ap);
@@ -179,7 +179,7 @@ public:
     template<typename... AP>
     void HEAD(const char *route, int compute_queue_id,
              const SeriesHandler &handler, const AP &... ap);
-             
+
 public:
     const Router &router() const
     { return router_; }

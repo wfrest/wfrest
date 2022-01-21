@@ -3,7 +3,7 @@
 
 using namespace wfrest;
 
-void BluePrint::Handle(const char *route, const Handler &handler, const char *method)
+void BluePrint::Handle(const char *route, const Handler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
             [handler](const HttpReq *req,
@@ -32,10 +32,10 @@ void BluePrint::Handle(const char *route, const Handler &handler, const char *me
                 return nullptr;
             };
 
-    router_.handle(route, -1, wrap_handler, str_to_verb(method));
+    router_.handle(route, -1, wrap_handler, verb);
 }
 
-void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &handler, const char *method)
+void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
             [handler, compute_queue_id](HttpReq *req,
@@ -66,70 +66,70 @@ void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &h
                 return go_task;
             };
 
-    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));
+    router_.handle(route, compute_queue_id, wrap_handler, verb);
 }
 
 void BluePrint::GET(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "GET");
+    this->Handle(route, handler, Verb::GET);
 }
 
 void BluePrint::GET(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "GET");
+    this->Handle(route, compute_queue_id, handler, Verb::GET);
 }
 
 void BluePrint::POST(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "POST");
+    this->Handle(route, handler, Verb::POST);
 }
 
 void BluePrint::POST(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "POST");
+    this->Handle(route, compute_queue_id, handler, Verb::POST);
 }
 
 void BluePrint::DELETE(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "DELETE");
+    this->Handle(route, handler, Verb::DELETE);
 }
 
 void BluePrint::DELETE(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "DELETE");
+    this->Handle(route, compute_queue_id, handler, Verb::DELETE);
 }
 
 void BluePrint::PATCH(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "PATCH");
+    this->Handle(route, handler, Verb::PATCH);
 }
 
 void BluePrint::PATCH(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "PATCH");
+    this->Handle(route, compute_queue_id, handler, Verb::PATCH);
 }
 
 void BluePrint::PUT(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "PUT");
+    this->Handle(route, handler, Verb::PUT);
 }
 
 void BluePrint::PUT(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "PUT");
+    this->Handle(route, compute_queue_id, handler, Verb::PUT);
 }
 
 void BluePrint::HEAD(const char *route, const Handler &handler)
 {
-    this->Handle(route, handler, "HEAD");
+    this->Handle(route, handler, Verb::HEAD);
 }
 
 void BluePrint::HEAD(const char *route, int compute_queue_id, const Handler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "HEAD");
+    this->Handle(route, compute_queue_id, handler, Verb::HEAD);
 }
 
-void BluePrint::Handle(const char *route, const SeriesHandler &handler, const char *method)
+void BluePrint::Handle(const char *route, const SeriesHandler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
             [handler, this](const HttpReq *req,
@@ -156,10 +156,10 @@ void BluePrint::Handle(const char *route, const SeriesHandler &handler, const ch
                 return nullptr;
             };
 
-    router_.handle(route, -1, wrap_handler, str_to_verb(method));
+    router_.handle(route, -1, wrap_handler, verb);
 }
 
-void BluePrint::Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, const char *method)
+void BluePrint::Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
             [handler, compute_queue_id, this](HttpReq *req,
@@ -191,67 +191,67 @@ void BluePrint::Handle(const char *route, int compute_queue_id, const SeriesHand
                 return go_task;
             };
 
-    router_.handle(route, compute_queue_id, wrap_handler, str_to_verb(method));
+    router_.handle(route, compute_queue_id, wrap_handler, verb);
 }
 
 void BluePrint::GET(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "GET");
+    this->Handle(route, -1, handler, Verb::GET);
 }
 
 void BluePrint::GET(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "GET");
+    this->Handle(route, compute_queue_id, handler, Verb::GET);
 }
 
 void BluePrint::POST(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "POST");
+    this->Handle(route, -1, handler, Verb::POST);
 }
 
 void BluePrint::POST(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "POST");
+    this->Handle(route, compute_queue_id, handler, Verb::POST);
 }
 
 void BluePrint::DELETE(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "DELETE");
+    this->Handle(route, -1, handler, Verb::DELETE);
 }
 
 void BluePrint::DELETE(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "DELETE");
+    this->Handle(route, compute_queue_id, handler, Verb::DELETE);
 }
 
 void BluePrint::PATCH(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "PATCH");
+    this->Handle(route, -1, handler, Verb::PATCH);
 }
 
 void BluePrint::PATCH(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "PATCH");
+    this->Handle(route, compute_queue_id, handler, Verb::PATCH);
 }
 
 void BluePrint::PUT(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "PUT");
+    this->Handle(route, -1, handler, Verb::PUT);
 }
 
 void BluePrint::PUT(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "PUT");
+    this->Handle(route, compute_queue_id, handler, Verb::PUT);
 }
 
 void BluePrint::HEAD(const char *route, const SeriesHandler &handler)
 {
-    this->Handle(route, -1, handler, "HEAD");
+    this->Handle(route, -1, handler, Verb::HEAD);
 }
 
 void BluePrint::HEAD(const char *route, int compute_queue_id, const SeriesHandler &handler)
 {
-    this->Handle(route, compute_queue_id, handler, "HEAD");
+    this->Handle(route, compute_queue_id, handler, Verb::HEAD);
 }
 
 void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix)
