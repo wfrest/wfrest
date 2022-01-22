@@ -25,6 +25,11 @@ public:
 
     void Handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb);
 
+    void Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods);
+
+    void Handle(const char *route, int compute_queue_id, 
+                const Handler &handler, const std::vector<std::string> &methods);
+
     void GET(const char *route, const Handler &handler);
 
     void GET(const char *route, int compute_queue_id, const Handler &handler);
@@ -57,6 +62,15 @@ public:
     template<typename... AP>
     void Handle(const char *route, int compute_queue_id, 
                 const Handler &handler, Verb verb, const AP &... ap);
+
+    template<typename... AP>
+    void Handle(const char *route, const Handler &handler, 
+                const std::vector<std::string> &methods, const AP &... ap);
+
+    template<typename... AP>
+    void Handle(const char *route, int compute_queue_id, 
+                const Handler &handler, 
+                const std::vector<std::string> &methods, const AP &... ap);
 
     template<typename... AP>
     void GET(const char *route, const Handler &handler, const AP &... ap);
@@ -105,6 +119,11 @@ public:
 
     void Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, Verb verb);
 
+    void Handle(const char *route, const SeriesHandler &handler, const std::vector<std::string> &methods);
+
+    void Handle(const char *route, int compute_queue_id, 
+                const SeriesHandler &handler, const std::vector<std::string> &methods);
+    
     void GET(const char *route, const SeriesHandler &handler);
 
     void GET(const char *route, int compute_queue_id, const SeriesHandler &handler);
@@ -138,6 +157,15 @@ public:
     void Handle(const char *route, int compute_queue_id, 
                 const SeriesHandler &handler, Verb verb, const AP &... ap);
 
+    template<typename... AP>
+    void Handle(const char *route, const SeriesHandler &handler, 
+                const std::vector<std::string> &methods, const AP &... ap);
+
+    template<typename... AP>
+    void Handle(const char *route, int compute_queue_id, 
+                const SeriesHandler &handler, 
+                const std::vector<std::string> &methods, const AP &... ap);
+                
     template<typename... AP>
     void GET(const char *route, const SeriesHandler &handler, const AP &... ap);
 

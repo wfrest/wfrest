@@ -199,6 +199,27 @@ void BluePrint::Handle(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
+void BluePrint::Handle(const char *route, const Handler &handler, 
+            const std::vector<std::string> &methods, const AP &... ap)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, handler, str_to_verb(method), ap...);
+    }
+}
+
+template<typename... AP>
+void BluePrint::Handle(const char *route, int compute_queue_id, 
+            const Handler &handler, 
+            const std::vector<std::string> &methods, const AP &... ap)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, compute_queue_id, handler, str_to_verb(method), ap...);
+    } 
+}
+
+template<typename... AP>
 void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
 {
     this->Handle(route, handler, Verb::GET, ap...);
@@ -317,6 +338,27 @@ void BluePrint::Handle(const char *route, int compute_queue_id,
             };
 
     router_.handle(route, compute_queue_id, wrap_handler, verb);  
+}
+
+template<typename... AP>
+void BluePrint::Handle(const char *route, const SeriesHandler &handler, 
+            const std::vector<std::string> &methods, const AP &... ap)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, handler, str_to_verb(method), ap...);
+    } 
+}
+
+template<typename... AP>
+void BluePrint::Handle(const char *route, int compute_queue_id, 
+            const SeriesHandler &handler, 
+            const std::vector<std::string> &methods, const AP &... ap)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, compute_queue_id, handler, str_to_verb(method), ap...);
+    } 
 }
 
 template<typename... AP>

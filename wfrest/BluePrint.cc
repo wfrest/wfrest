@@ -69,6 +69,22 @@ void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &h
     router_.handle(route, compute_queue_id, wrap_handler, verb);
 }
 
+void BluePrint::Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, handler, str_to_verb(method));
+    }
+}
+
+void BluePrint::Handle(const char *route, int compute_queue_id, const Handler &handler, const std::vector<std::string> &methods)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, compute_queue_id, handler, str_to_verb(method));
+    }
+}
+
 void BluePrint::GET(const char *route, const Handler &handler)
 {
     this->Handle(route, handler, Verb::GET);
@@ -192,6 +208,23 @@ void BluePrint::Handle(const char *route, int compute_queue_id, const SeriesHand
             };
 
     router_.handle(route, compute_queue_id, wrap_handler, verb);
+}
+
+void BluePrint::Handle(const char *route, const SeriesHandler &handler, const std::vector<std::string> &methods)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, handler, str_to_verb(method));
+    }
+}
+
+void BluePrint::Handle(const char *route, int compute_queue_id, 
+            const SeriesHandler &handler, const std::vector<std::string> &methods)
+{
+    for(const auto &method : methods)
+    {
+        this->Handle(route, compute_queue_id, handler, str_to_verb(method));
+    } 
 }
 
 void BluePrint::GET(const char *route, const SeriesHandler &handler)
