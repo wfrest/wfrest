@@ -15,7 +15,7 @@ class Router : public Noncopyable
 public:
     void handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb);
 
-    int call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const;
+    int call(Verb verb, const std::string &route, HttpServerTask *server_task) const;
 
     void print_routes() const;   // for logging
 

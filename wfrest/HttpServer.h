@@ -15,9 +15,12 @@ namespace wfrest
 
 class HttpServer : public WFServer<HttpReq, HttpResp>, public Noncopyable
 {
-// public:
-//     void Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods);
 public:
+    void ROUTE(const char *route, const Handler &handler, const std::vector<std::string> &methods)
+    {
+        blue_print_.ROUTE(route, handler, methods);
+    }
+
     void GET(const char *route, const Handler &handler)
     {
         blue_print_.GET(route, handler);
@@ -39,6 +42,13 @@ public:
     }
 
 public:
+    template <typename... AP>
+    void ROUTE(const char *route, const Handler &handler, 
+                const std::vector<std::string> &methods, const AP &...ap)
+    {
+        blue_print_.ROUTE(route, handler, methods, ap...);
+    }
+
     template <typename... AP>
     void GET(const char *route, const Handler &handler, const AP &...ap)
     {
@@ -66,6 +76,12 @@ public:
     }
 
 public:
+    void ROUTE(const char *route, const SeriesHandler &handler,
+                const std::vector<std::string> &methods)
+    {
+        blue_print_.ROUTE(route, handler, methods);
+    }
+
     void GET(const char *route, const SeriesHandler &handler)
     {
         blue_print_.GET(route, handler);
@@ -87,6 +103,13 @@ public:
     }
 
 public:
+    template <typename... AP>
+    void ROUTE(const char *route, const SeriesHandler &handler, 
+            const std::vector<std::string> &methods, const AP &...ap)
+    {
+        blue_print_.ROUTE(route, handler, methods, ap...);
+    }
+
     template <typename... AP>
     void GET(const char *route, const SeriesHandler &handler, const AP &...ap)
     {

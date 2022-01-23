@@ -50,6 +50,7 @@ public:
     void all_routes(const Func &func, std::string prefix) const;
 
     void bfs_transverse();  // for test
+    
 private:
     VerbHandler verb_handler_;
     std::map<StringPiece, RouteTableNode *> children_;
@@ -76,9 +77,8 @@ class RouteTable : public Noncopyable
 { 
 public:
     // Find a route and return reference to the procedure.
-    VerbHandler &operator[](const char *route);
+    VerbHandler &find_or_create(const char *route);
 
-    // todo : this interface is not very good
     RouteTableNode::iterator find(const StringPiece &route, 
                                 OUT std::map<std::string, std::string> &route_params,
                                 OUT std::string &route_match_path) const
@@ -95,7 +95,8 @@ public:
     
 private:
     RouteTableNode root_;
-    std::vector<std::string *> strings; 
+    std::set<StringPiece> string_pieces_;  // check if exists
+    std::vector<std::string *> strings_;  // for store 
 };
 
 } // namespace wfrest

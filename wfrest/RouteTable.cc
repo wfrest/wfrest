@@ -35,7 +35,7 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor
     auto it = children_.find(mid);
     if (it != children_.end())
     {
-        return children_[mid]->find_or_create(route, cursor);
+        return it->second->find_or_create(route, cursor);
     } else
     {
         auto *new_node = new RouteTableNode();
@@ -173,19 +173,26 @@ void RouteTableNode::bfs_transverse()
     } 
 }
 
-VerbHandler &RouteTable::operator[](const char *route)
+VerbHandler &RouteTable::find_or_create(const char *route)
 {
     // Use pointer to prevent iterator invalidation
     // StringPiece is only a watcher, so we should store the string.
+    StringPiece route_piece(route);
+    auto it = string_pieces_.find(route_piece);
+    if(it != string_pieces_.end())
+    {
+        return root_.find_or_create(*it, 0);
+    }
     std::string *p_route = new std::string(route);
-    strings.push_back(p_route);
+    strings_.push_back(p_route);
     StringPiece route2(*p_route);
+    string_pieces_.insert(route2);
     return root_.find_or_create(route2, 0);
 }
 
 RouteTable::~RouteTable()
 {
-    for(auto str : strings)
+    for(auto str : strings_)
     {
         delete str;
     }

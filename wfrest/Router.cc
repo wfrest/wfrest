@@ -9,14 +9,16 @@ using namespace wfrest;
 
 void Router::handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb)
 {
-    auto &vh = routes_map_[route];
-    vh.verb = verb;
+    VerbHandler &vh = routes_map_.find_or_create(route);
+    if(vh.verb_set.find(verb) != vh.verb_set.end()) 
+        return;
+    vh.verb_set.insert(verb);
     vh.path = route;
     vh.handler = handler;
     vh.compute_queue_id = compute_queue_id;
 }
 
-int Router::call(const std::string &verb, const std::string &route, HttpServerTask *server_task) const
+int Router::call(Verb verb, const std::string &route, HttpServerTask *server_task) const
 {
     HttpReq *req = server_task->get_req();
     HttpResp *resp = server_task->get_resp();
@@ -37,7 +39,9 @@ int Router::call(const std::string &verb, const std::string &route, HttpServerTa
     {
         // match verb
         // it == <StringPiece : path, VerbHandler>
-        if (it->second.verb == Verb::ANY or str_to_verb(verb) == it->second.verb)
+        std::set<Verb> &verb_set = it->second.verb_set;
+        if(verb_set.find(Verb::ANY) != verb_set.end() or
+            verb_set.find(verb) != verb_set.end())
         {
             req->set_full_path(it->second.path);
             req->set_route_params(std::move(route_params));
@@ -62,9 +66,19 @@ void Router::print_routes() const
     routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
                         {
                             if(prefix == "/")
-                                fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+                            {
+                                for(auto& verb : verb_handler.verb_set)
+                                {
+                                    fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb), prefix.c_str());
+                                }
+                            }
                             else 
-                                fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb_handler.verb), prefix.c_str());
+                            {
+                                for(auto& verb : verb_handler.verb_set)
+                                {
+                                    fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(verb), prefix.c_str());
+                                }
+                            }
                         });
 }
 
@@ -72,8 +86,12 @@ std::vector<std::pair<std::string, std::string> > Router::all_routes() const
 {
     std::vector<std::pair<std::string, std::string> > res;
     routes_map_.all_routes([&res](const std::string &prefix, const VerbHandler &verb_handler)
-                           {
-                               res.emplace_back(verb_to_str(verb_handler.verb), prefix.c_str());
-                           });
+                        {
+                            for(auto& verb : verb_handler.verb_set)
+                            {
+                                res.emplace_back(verb_to_str(verb), prefix.c_str());
+                            }
+                            
+                        });
     return res;
 }

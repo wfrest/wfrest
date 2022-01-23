@@ -54,7 +54,7 @@ void HttpServer::process(HttpTask *task)
 
     req->set_parsed_uri(std::move(uri));
     std::string verb = req->get_method();
-    int ret = blue_print_.router().call(verb, route, server_task);
+    int ret = blue_print_.router().call(str_to_verb(verb), route, server_task);
     if(ret != StatusOK)
     {
         resp->Error(ret, verb + " " + route);
@@ -153,24 +153,3 @@ HttpServer &HttpServer::track(TrackFunc &&track_func)
     return *this;
 }
 
-// void HttpServer::Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods)
-// {
-//     for(auto &method : methods)
-//     {
-//         Verb verb = str_to_verb(method);
-//         switch (verb)
-//         {
-//             case Verb::ANY:
-//                 return;   // not implement yet
-//             case Verb::GET:
-//                 this->GET(route, handler);
-//             case Verb::POST:
-//                 this->POST(route, handler);
-//             case Verb::PUT:
-//                 return;   // not implement yet
-//             case Verb::DELETE:
-//                 return;   // not implement yet
-//         }
-//         return;
-//     }
-// }

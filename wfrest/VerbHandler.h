@@ -2,6 +2,7 @@
 #define WFREST_VERBHANDLER_H_
 
 #include <functional>
+#include <set>
 #include "wfrest/HttpMsg.h"
 
 namespace wfrest
@@ -9,7 +10,7 @@ namespace wfrest
 
 enum class Verb
 {
-    ANY, GET, POST, PUT, DELETE, HEAD, PATCH
+    ANY, GET, POST, PUT, DELETE, HEAD, PATCH,
 };
 
 inline Verb str_to_verb(const std::string &verb)
@@ -56,7 +57,8 @@ using WrapHandler = std::function<WFGoTask *(HttpReq * , HttpResp *, SeriesWork 
 
 struct VerbHandler
 {
-    Verb verb = Verb::GET;
+    std::set<Verb> verb_set;
+    // Verb verb = Verb::GET;
     WrapHandler handler;
     std::string path;
     int compute_queue_id;

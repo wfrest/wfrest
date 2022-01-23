@@ -41,6 +41,19 @@ TEST(BluePrint, add_blueprint)
     // bp.router().print_routes();
 }
 
+TEST(BluePrint, ROUTE)
+{
+    BluePrint bp;
+    bp.ROUTE("/v1/v2", [](const HttpReq* req, HttpResp* resp){
+        printf("v1");
+    }, {"GET", "POST"});
+
+    bp.router().print_routes();
+    std::vector<std::pair<std::string, std::string>> route_list = bp.router().all_routes();
+    EXPECT_EQ(route_list[0].first, "GET");
+    EXPECT_EQ(route_list[1].first, "POST");
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

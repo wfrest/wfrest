@@ -29,6 +29,12 @@ int main()
         resp->String(std::move(str));
     });
 
+    svr.ROUTE("/multi", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string method(req->get_method());
+        resp->String(std::move(method));
+    }, {"GET", "POST"});
+
     // curl -v http://ip:port/post -d 'post hello world'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {

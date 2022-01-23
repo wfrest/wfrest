@@ -21,13 +21,13 @@ class BluePrint : public Noncopyable
 {
 public:
     // reserve basic interface
-    void Handle(const char *route, const Handler &handler, Verb verb);
+    void ROUTE(const char *route, const Handler &handler, Verb verb);
 
-    void Handle(const char *route, int compute_queue_id, const Handler &handler, Verb verb);
+    void ROUTE(const char *route, int compute_queue_id, const Handler &handler, Verb verb);
 
-    void Handle(const char *route, const Handler &handler, const std::vector<std::string> &methods);
+    void ROUTE(const char *route, const Handler &handler, const std::vector<std::string> &methods);
 
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const Handler &handler, const std::vector<std::string> &methods);
 
     void GET(const char *route, const Handler &handler);
@@ -56,19 +56,19 @@ public:
 
 public:
     template<typename... AP>
-    void Handle(const char *route, const Handler &handler, 
+    void ROUTE(const char *route, const Handler &handler, 
                 Verb verb, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const Handler &handler, Verb verb, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, const Handler &handler, 
+    void ROUTE(const char *route, const Handler &handler, 
                 const std::vector<std::string> &methods, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const Handler &handler, 
                 const std::vector<std::string> &methods, const AP &... ap);
 
@@ -115,13 +115,13 @@ public:
              const Handler &handler, const AP &... ap);
 
 public:
-    void Handle(const char *route, const SeriesHandler &handler, Verb verb);
+    void ROUTE(const char *route, const SeriesHandler &handler, Verb verb);
 
-    void Handle(const char *route, int compute_queue_id, const SeriesHandler &handler, Verb verb);
+    void ROUTE(const char *route, int compute_queue_id, const SeriesHandler &handler, Verb verb);
 
-    void Handle(const char *route, const SeriesHandler &handler, const std::vector<std::string> &methods);
+    void ROUTE(const char *route, const SeriesHandler &handler, const std::vector<std::string> &methods);
 
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const SeriesHandler &handler, const std::vector<std::string> &methods);
     
     void GET(const char *route, const SeriesHandler &handler);
@@ -150,19 +150,19 @@ public:
 
 public:
     template<typename... AP>
-    void Handle(const char *route, const SeriesHandler &handler, 
+    void ROUTE(const char *route, const SeriesHandler &handler, 
                 Verb verb, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const SeriesHandler &handler, Verb verb, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, const SeriesHandler &handler, 
+    void ROUTE(const char *route, const SeriesHandler &handler, 
                 const std::vector<std::string> &methods, const AP &... ap);
 
     template<typename... AP>
-    void Handle(const char *route, int compute_queue_id, 
+    void ROUTE(const char *route, int compute_queue_id, 
                 const SeriesHandler &handler, 
                 const std::vector<std::string> &methods, const AP &... ap);
                 

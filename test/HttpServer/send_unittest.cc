@@ -1,5 +1,8 @@
 #include "workflow/WFFacilities.h"
+#include "workflow/Workflow.h"
+
 #include <gtest/gtest.h>
+
 #include "wfrest/HttpServer.h"
 #include "wfrest/ErrorCode.h"
 
@@ -133,6 +136,48 @@ TEST(HttpServer, String_long_str)
     });
 
     client_task->start();
+    wait_group.wait();
+    svr.stop();
+}
+
+TEST(HttpServer, multi_verb)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
+
+    svr.ROUTE("/test", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string method(req->get_method());
+        resp->String(std::move(method));
+    }, {"GET", "POST"});
+    
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+    WFHttpTask *client_task_get = create_http_task("test");
+    client_task_get->set_callback([](WFHttpTask *client_task)
+    {
+        const void *body;
+        size_t body_len;
+
+        client_task->get_resp()->get_parsed_body(&body, &body_len);
+        EXPECT_TRUE(strcmp("GET", static_cast<const char *>(body)) == 0);
+    });
+    SeriesWork *series = Workflow::create_series_work(client_task_get, 
+                                [&wait_group](const SeriesWork *series) { wait_group.done(); });
+    
+    WFHttpTask *client_task_post = create_http_task("test");
+    client_task_post->get_req()->set_method("POST");
+    client_task_post->set_callback([](WFHttpTask *client_task)
+    {
+        const void *body;
+        size_t body_len;
+
+        client_task->get_resp()->get_parsed_body(&body, &body_len);
+        EXPECT_TRUE(strcmp("POST", static_cast<const char *>(body)) == 0);
+    });
+    series->push_back(client_task_post);
+    series->start();
+
     wait_group.wait();
     svr.stop();
 }
