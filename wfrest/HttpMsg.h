@@ -236,12 +236,24 @@ public:
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
 
+    template<class FUNC, class... ARGS>
+    void Compute(int compute_queue_id, FUNC&& func, ARGS&&... args)
+    {
+        WFGoTask *go_task = WFTaskFactory::create_go_task(
+                "wfrest" + std::to_string(compute_queue_id),
+                std::forward<FUNC>(func),
+                std::forward<ARGS>(args)...);
+        this->add_task(go_task);
+    }
+
     void Error(int error_code);
 
     void Error(int error_code, const std::string &errmsg);
 
 private:
     int compress(const std::string * const data, std::string *compress_data);
+
+    void add_task(SubTask *task);
 
 public:
     HttpResp() = default;

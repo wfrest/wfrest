@@ -72,6 +72,10 @@ target_link_libraries(21_mysql wfrest)
 add_executable(22_redis 22_redis.cc)
 target_link_libraries(22_redis wfrest)
 
+add_executable(23_compute 23_compute.cc)
+target_link_libraries(23_compute wfrest)
+
+
 
 
 

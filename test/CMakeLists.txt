@@ -105,6 +105,11 @@ add_executable(server_static_unittest ./HttpServer/static_unittest.cc FileTestUt
 target_link_libraries(server_static_unittest wfrest GTest::GTest)
 add_test(NAME server_static_unittest COMMAND server_static_unittest)
 
+add_executable(server_compute_unittest ./HttpServer/compute_unittest.cc)
+target_link_libraries(server_compute_unittest wfrest GTest::GTest)
+add_test(NAME server_compute_unittest COMMAND server_compute_unittest)
+
+
 
 
 

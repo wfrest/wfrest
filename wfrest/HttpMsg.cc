@@ -11,11 +11,10 @@
 #include "wfrest/PathUtil.h"
 #include "wfrest/HttpFile.h"
 #include "wfrest/json.hpp"
-#include "wfrest/HttpServerTask.h"
 #include "wfrest/MysqlUtil.h"
 #include "wfrest/ErrorCode.h"
 #include "wfrest/FileUtil.h"
-#include "HttpMsg.h"
+#include "wfrest/HttpServerTask.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -713,8 +712,7 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql)
     WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, mysql_callback);
     mysql_task->get_req()->set_query(sql);
     mysql_task->user_data = this;
-    HttpServerTask *server_task = task_of(this);
-    **server_task << mysql_task;
+    this->add_task(mysql_task);
 }
 
 void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLJsonFunc &func)
@@ -727,8 +725,7 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
     });
 
     mysql_task->get_req()->set_query(sql);
-    HttpServerTask *server_task = task_of(this);
-    **server_task << mysql_task;
+    this->add_task(mysql_task);
 }
 
 void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func)
@@ -750,8 +747,7 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
     });
     mysql_task->get_req()->set_query(sql);
     mysql_task->user_data = this;
-    HttpServerTask *server_task = task_of(this);
-    **server_task << mysql_task;
+    this->add_task(mysql_task);
 }
 
 void HttpResp::Redis(const std::string &url, const std::string &command,
@@ -763,8 +759,7 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
         this->Json(js);
     });
 	redis_task->get_req()->set_request(command, params);
-    HttpServerTask *server_task = task_of(this);
-    **server_task << redis_task;
+    this->add_task(redis_task);
 }
 
 void HttpResp::Redis(const std::string &url, const std::string &command,
@@ -776,8 +771,13 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
         func(&js);
     });
 	redis_task->get_req()->set_request(command, params);
+    this->add_task(redis_task);
+}
+
+void HttpResp::add_task(SubTask *task)
+{
     HttpServerTask *server_task = task_of(this);
-    **server_task << redis_task;
+    **server_task << task;
 }
 
 HttpResp::HttpResp(HttpResp&& other)
@@ -798,5 +798,7 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     cookies_ = std::move(other.cookies_);
     return *this;
 }
+
+
 
 
