@@ -1,18 +1,17 @@
-## BluePrint
+## 蓝图
 
-wfrest supports flask style blueprints. 
+wfrest支持像flask一样的蓝图。
 
-You can see [What are Flask Blueprints, exactly?](https://stackoverflow.com/questions/24420857/what-are-flask-blueprints-exactly)
+可以看[如何理解Flask中的蓝本/图?](https://www.zhihu.com/question/31748237)
 
-A blueprint is a limited wfrest server. It cannot handle networking. But it can handle routes.
+一个蓝图是有限功能的wfrest服务器，他不提供网络交互的功能，但是他能注册路由。
 
-For bigger projects, all your code shouldn't be in the same file. Instead you can segment or split bigger codes into separate files which makes your project a lot more modular.
+对于一个稍微大型的项目来说，你的所有代码最好不要放到一个文件里，应该考虑模块化。
 
 ```cpp
 #include "wfrest/HttpServer.h"
 using namespace wfrest;
 
-// You can split your different business logic into different files / modules
 void set_admin_bp(BluePrint &bp)
 {
     bp.GET("/page/new/", [](const HttpReq *req, HttpResp *resp)
