@@ -1,6 +1,6 @@
 ## 代理服务器
 
-直接利用`resp->Http`完成转发
+直接利用`resp->Http()`完成转发
 
 ```cpp
 #include "wfrest/HttpServer.h"

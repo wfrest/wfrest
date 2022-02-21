@@ -37,7 +37,7 @@ int main()
 ```
 
 ```cpp
-// Client
+// 客户端
 #include "workflow/WFTaskFactory.h"
 #include "wfrest/Compress.h"
 #include "wfrest/ErrorCode.h"

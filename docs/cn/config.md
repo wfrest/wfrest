@@ -1,6 +1,6 @@
 ## 配置
 
-串式操作设置:
+我们通过串式操作设置配置项:
 
 ```cpp
 #include "wfrest/HttpServer.h"

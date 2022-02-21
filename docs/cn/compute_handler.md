@@ -1,5 +1,7 @@
 ## 计算型Handler
 
+计算型Handler和普通的Handler之间就只差了一个参数(第二个参数)，就是需要输入计算型任务队列的id，其他都一样。
+
 ```cpp
 #include "wfrest/HttpServer.h"
 using namespace wfrest;
@@ -45,8 +47,6 @@ int main()
     return 0;
 }
 ```
-
-计算型Handler和普通的Handler之间就只差了一个参数，就是需要输入计算型任务队列的id，其他都一样。
 
 ## 计算任务的接口
 

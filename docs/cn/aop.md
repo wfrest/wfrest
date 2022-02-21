@@ -1,8 +1,12 @@
 ## 面向切面编程AOP
 
-In computing, aspect-oriented programming (AOP) is a programming paradigm that aims to increase modularity by allowing the separation of cross-cutting concerns.
+AOP为Aspect Oriented Programming的缩写，意为：面向切面编程，通过预编译方式和运行期间动态代理实现程序功能的统一维护的一种技术。对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
 
-For more information, you can see [What is AOP](https://en.wikipedia.org/wiki/Aspect-oriented_programming),
+限于C++语言的特性，wfrest没有提供像Spring那样灵活的AOP方案，而是一种简单的AOP，所有插入点都是内建于框架中的，提供了两个插入点，一个是`handler`之前的`before()`, 一个在server task执行结束后的`after()`中。
+
+## 示例1
+
+日志切面
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -47,6 +51,8 @@ int main()
     return 0;
 }
 ```
+
+## 示例2
 
 从切片传输数据到http handler
 
@@ -97,7 +103,7 @@ int main()
 }
 ```
 
-## Global Aspect
+## 全局切面
 
 注册全局的切片:
 
