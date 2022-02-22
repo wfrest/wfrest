@@ -56,7 +56,70 @@ int main()
     - [Https 服务器](./docs/cn/https.md)
     - [代理服务器](./docs/cn/proxy.md)
 - [MySQL](./docs/cn/mysql.md)
+- [Redis](./docs/cn/redis.md)
 
+
+## 编译 && 安装
+
+### 需求
+
+* workflow, 版本大于等于 v0.9.9 
+* Linux , 比如ubuntu 18.04 或者更新版本
+* Cmake
+* zlib1g-dev
+* libssl-dev
+* libgtest-dev
+* gcc 和 g++ 或者 llvm + clang
+
+如果你在ubuntu 20.04，你可以用以下命令安装
+
+```bash
+apt-get install build-essential cmake zlib1g-dev libssl-dev libgtest-dev -y
+```
+
+安装下载workflow
+
+```
+git clone https://github.com/sogou/workflow
+cd workflow
+make
+sudo make install
+```
+
+### Shell 
+
+```cpp
+sudo ./build.sh
+```
+
+### cmake
+
+```
+git clone https://github.com/wfrest/wfrest
+cd wfrest
+mkdir build && cd build
+cmake .. 
+make -j  
+sudo make install
+```
+
+### Docker
+
+```
+docker build -t wfrest ./docker/ubuntu/
+```
+
+如果你用`podman`
+
+```
+podman build -t wfrest ./docker/ubuntu/
+```
+
+你也可以从dockerhub中拖拉镜像
+
+```
+docker pull wfrest/wfrest
+```
 
 # 使用中有疑问？
 

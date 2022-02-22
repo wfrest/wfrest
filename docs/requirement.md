@@ -1,5 +1,6 @@
 ## Requirement
 
+* workflow, version v0.9.9 or newer
 * Linux , like ubuntu 18.04 or newer
 * Cmake
 * zlib1g-dev
@@ -26,4 +27,13 @@ ln -s /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so
 for ARM64 , you can try 
 ```bash
 ln -s /lib/aarch64-linux-gnu/libpthread.so.0 /lib/aarch64-linux-gnu/libpthread.so
+```
+
+## Intsall workflow
+
+```
+git clone https://github.com/sogou/workflow
+cd workflow
+make
+sudo make install
 ```

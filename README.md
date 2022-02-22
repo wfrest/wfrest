@@ -49,12 +49,13 @@ For more information, you can first see discussions:
 
 ### Requirement
 
+* workflow, version v0.9.9 or newer
 * Linux , like ubuntu 18.04 or newer
 * Cmake
 * zlib1g-dev
 * libssl-dev
 * libgtest-dev
-* gcc  and g++ or llvm + clang, tested with ubuntu 20.04
+* gcc and g++ or llvm + clang, tested with ubuntu 20.04
 
 If you are on ubuntu 20.04, you may install them by command:
 
@@ -70,12 +71,6 @@ For more details, you can see here : [requirement details](./docs/requirement.md
 sudo ./build.sh
 ```
 
-For test
-
-```
-./test.sh
-```
-
 ### Cmake
 
 ```
@@ -83,7 +78,7 @@ git clone https://github.com/wfrest/wfrest
 cd wfrest
 mkdir build && cd build
 cmake .. 
-sudo make -j  
+make -j  
 sudo make install
 ```
 

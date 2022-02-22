@@ -5,7 +5,6 @@
 
 using Json = nlohmann::json;
 using namespace wfrest;
-using namespace protocol;
 
 static WFFacilities::WaitGroup wait_group(1);
 
