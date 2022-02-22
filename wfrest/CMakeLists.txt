@@ -35,7 +35,7 @@ else()
 endif()
 target_link_libraries(wfrest OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
 
-if (BUILD_BROTLI AND Brotli_FOUND)
+if (Brotli_FOUND)
     target_link_libraries(wfrest Brotli_lib)
 endif()
 

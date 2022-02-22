@@ -11,8 +11,8 @@ endif()
 message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
-option(BUILD_BROTLI "Build Brotli" OFF)
-option(DOWNLOAD_BUILD_WORKFLOW "Download and build workflow" FALSE)
+option(WFREST_BUILD_TEST "Build wfrest test" OFF)
+option(DOWNLOAD_BUILD_WORKFLOW "Download and build workflow" OFF)
 
 set(CXX_FLAGS
         -g
@@ -44,17 +44,24 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-find_package(Brotli QUIET)
-if (BUILD_BROTLI)
-    find_package(Brotli QUIET)
-    if (Brotli_FOUND)
-        message(STATUS "Brotli found")
-        add_definitions(-DUSE_BROTLI)
-    else()
-        MESSAGE("Brotli Not Found")  
-    endif (Brotli_FOUND)
-endif (BUILD_BROTLI)
+# find_package(Brotli QUIET)
+# if (BUILD_BROTLI)
+#     find_package(Brotli QUIET)
+#     if (Brotli_FOUND)
+#         message(STATUS "Brotli found")
+#         add_definitions(-DUSE_BROTLI)
+#     else()
+#         MESSAGE("Brotli Not Found")  
+#     endif (Brotli_FOUND)
+# endif (BUILD_BROTLI)
 
+find_package(Brotli QUIET)
+if (Brotli_FOUND)
+    message(STATUS "Brotli found")
+    add_definitions(-DUSE_BROTLI)
+else()
+    MESSAGE("Brotli Not Found")  
+endif (Brotli_FOUND)
 
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 
@@ -65,7 +72,7 @@ find_package(workflow
 if (NOT workflow_FOUND)
     MESSAGE("-- workflow in system not found or version < 0.9.9")
     MESSAGE("-- Building workflow in this project automatically")
-    set(DOWNLOAD_BUILD_WORKFLOW TRUE)
+    set(DOWNLOAD_BUILD_WORKFLOW ON)
 
     include(ExternalProject)
     ExternalProject_Add(
@@ -97,6 +104,7 @@ string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
 include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
 include(GNUInstallDirs)
@@ -127,5 +135,16 @@ install(
 if(WFREST_BUILD_EXAMPLES)
     message(STATUS "Build wfrest examples")
     add_subdirectory(${PROJECT_SOURCE_DIR}/example)
+endif()
+
+if(WFREST_BUILD_TEST)
+    find_package(GTest REQUIRED)
+    if(GTest_FOUND)
+        message(STATUS "Build wfrest tests")
+        enable_testing()
+        add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+    else()
+        message(FATAL_ERROR  "can't find GTest, please install it first")
+    endif()
 endif()
 

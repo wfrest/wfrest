@@ -9,7 +9,8 @@ mkdir -p $BUILD_DIR \
     && cd $BUILD_DIR \
     && cmake \
             -DWFREST_BUILD_EXAMPLES=ON \
+			-DWFREST_BUILD_TEST=ON \
             $SOURCE_DIR \
     && make $* \
-    && make install
+    && make test 
 
