@@ -1,18 +1,12 @@
-#include "workflow/WFFacilities.h"
-#include <csignal>
+## Redis
+
+```cpp
 #include "wfrest/HttpServer.h"
 #include "wfrest/json.hpp"
 
 using Json = nlohmann::json;
 using namespace wfrest;
 using namespace protocol;
-
-static WFFacilities::WaitGroup wait_group(1);
-
-void sig_handler(int signo)
-{
-    wait_group.done();
-}
 
 int main(int argc, char **argv)
 {
@@ -41,4 +35,4 @@ int main(int argc, char **argv)
     }
     return 0;
 }
-
+```

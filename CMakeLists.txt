@@ -11,8 +11,8 @@ endif()
 message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
-
 option(BUILD_BROTLI "Build Brotli" OFF)
+option(DOWNLOAD_BUILD_WORKFLOW "Download and build workflow" FALSE)
 
 set(CXX_FLAGS
         -g
@@ -65,28 +65,30 @@ find_package(workflow
 if (NOT workflow_FOUND)
     MESSAGE("-- workflow in system not found or version < 0.9.9")
     MESSAGE("-- Building workflow in this project automatically")
+    set(DOWNLOAD_BUILD_WORKFLOW TRUE)
+
     include(ExternalProject)
-    
     ExternalProject_Add(
         workflow_repo
         GIT_REPOSITORY https://github.com/sogou/workflow.git
+        GIT_TAG v0.9.10
         BUILD_IN_SOURCE TRUE
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND make -j
-        INSTALL_COMMAND make install
+        CONFIGURE_COMMAND mkdir -p build
+        BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
+        INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
         UPDATE_COMMAND ""
         GIT_SHALLOW TRUE
     )
 
-    add_library(workflow STATIC IMPORTED GLOBAL)                                                                                   
-    add_dependencies(workflow workflow_repo)
+    add_library(workflow_external STATIC IMPORTED GLOBAL)                                                                                   
+    add_dependencies(workflow_external workflow_repo)
     set_target_properties(
-        workflow PROPERTIES
-        IMPORTED_LOCATION ${INSTALL_DIR}/lib/libworkflow.a                                                                    
-        INCLUDE_DIRECTORIES ${INSTALL_DIR}/include
+        workflow_external PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                    
+        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
     )
-    include_directories(${INSTALL_DIR}/include)
-    link_directories(${INSTALL_DIR}/lib)
+    include_directories(${CMAKE_BINARY_DIR}/include)
+    link_directories(${CMAKE_BINARY_DIR}/lib)
 else()
     MESSAGE("-- workflow exists(version >= 0.9.9), not build")
 endif()
@@ -97,14 +99,12 @@ message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_T
 include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
-
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 set(CMAKE_VERSION_FILE       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake)
 set(CMAKE_CONFIG_FILE        ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake)
-
 
 configure_package_config_file(
      ${PROJECT_NAME}-config.cmake.in
