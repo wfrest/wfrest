@@ -38,7 +38,7 @@ If you need performance and good productivity, you will love ✨**wfrest**✨.
       - [Https Server](./docs/https.md)
       - [Proxy](./docs/proxy.md)
     - [MySQL](./docs/mysql.md)
-  
+    - [Redis](./docs/redis.md)
 ## Dicssussion
 
 For more information, you can first see discussions:
