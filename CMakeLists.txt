@@ -12,7 +12,7 @@ message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
 option(WFREST_BUILD_TEST "Build wfrest test" OFF)
-option(DOWNLOAD_BUILD_WORKFLOW "Download and build workflow" OFF)
+option(BUILD_BROTLI "Build Brotli" OFF)
 
 set(CXX_FLAGS
         -g
@@ -44,61 +44,22 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-# find_package(Brotli QUIET)
-# if (BUILD_BROTLI)
-#     find_package(Brotli QUIET)
-#     if (Brotli_FOUND)
-#         message(STATUS "Brotli found")
-#         add_definitions(-DUSE_BROTLI)
-#     else()
-#         MESSAGE("Brotli Not Found")  
-#     endif (Brotli_FOUND)
-# endif (BUILD_BROTLI)
-
 find_package(Brotli QUIET)
-if (Brotli_FOUND)
-    message(STATUS "Brotli found")
-    add_definitions(-DUSE_BROTLI)
-else()
-    MESSAGE("Brotli Not Found")  
-endif (Brotli_FOUND)
+if (BUILD_BROTLI)
+    find_package(Brotli QUIET)
+    if (Brotli_FOUND)
+        message(STATUS "Brotli found")
+        add_definitions(-DUSE_BROTLI)
+    else()
+        MESSAGE("Brotli Not Found")  
+    endif (Brotli_FOUND)
+endif (BUILD_BROTLI)
 
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 
     ${WORKFLOW_MIN_VERSION} 
-    QUIET 
+    REQUIRED
 )
-
-if (NOT workflow_FOUND)
-    MESSAGE("-- workflow in system not found or version < 0.9.9")
-    MESSAGE("-- Building workflow in this project automatically")
-    set(DOWNLOAD_BUILD_WORKFLOW ON)
-
-    include(ExternalProject)
-    ExternalProject_Add(
-        workflow_repo
-        GIT_REPOSITORY https://github.com/sogou/workflow.git
-        GIT_TAG v0.9.10
-        BUILD_IN_SOURCE TRUE
-        CONFIGURE_COMMAND mkdir -p build
-        BUILD_COMMAND cd build && cmake ../ -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR} && make -j
-        INSTALL_COMMAND cd build && make install && cd ../ && rm -rf build
-        UPDATE_COMMAND ""
-        GIT_SHALLOW TRUE
-    )
-
-    add_library(workflow_external STATIC IMPORTED GLOBAL)                                                                                   
-    add_dependencies(workflow_external workflow_repo)
-    set_target_properties(
-        workflow_external PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libworkflow.a                                                                    
-        INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
-    )
-    include_directories(${CMAKE_BINARY_DIR}/include)
-    link_directories(${CMAKE_BINARY_DIR}/lib)
-else()
-    MESSAGE("-- workflow exists(version >= 0.9.9), not build")
-endif()
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})

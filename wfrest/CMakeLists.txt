@@ -26,16 +26,9 @@ set(SRCS
         )
 
 add_library(wfrest ${SRCS})
-if(NOT DOWNLOAD_BUILD_WORKFLOW)
-	message("-- Link to the workflow in the system")
-    target_link_libraries(wfrest workflow)
-else()
-	message("-- Link to the downloaded workflow")
-	target_link_libraries(wfrest workflow_external)
-endif()
-target_link_libraries(wfrest OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
+target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
 
-if (Brotli_FOUND)
+if (BUILD_BROTLI AND Brotli_FOUND)
     target_link_libraries(wfrest Brotli_lib)
 endif()
 
