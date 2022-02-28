@@ -311,10 +311,8 @@ std::string &HttpReq::body() const
         if (header.find("gzip") != std::string::npos)
         {
             status = Compressor::ungzip(&content, &req_data_->body);
-        } else if (header.find("br") != std::string::npos)
-        {
-            status = Compressor::unbrotli(&content, &req_data_->body);
-        } else
+        }
+        else
         {
             status = StatusNoUncomrpess;
         }
@@ -550,9 +548,6 @@ int HttpResp::compress(const std::string * const data, std::string *compress_dat
         if (headers["Content-Encoding"].find("gzip") != std::string::npos)
         {
             status = Compressor::gzip(data, compress_data);
-        } else if (headers["Content-Encoding"].find("br") != std::string::npos)
-        {
-            status = Compressor::brotli(data, compress_data);
         }
     } else 
     {

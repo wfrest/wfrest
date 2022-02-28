@@ -12,7 +12,6 @@ message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
 
 option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
 option(WFREST_BUILD_TEST "Build wfrest test" OFF)
-option(BUILD_BROTLI "Build Brotli" OFF)
 
 set(CXX_FLAGS
         -g
@@ -43,17 +42,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-
-find_package(Brotli QUIET)
-if (BUILD_BROTLI)
-    find_package(Brotli QUIET)
-    if (Brotli_FOUND)
-        message(STATUS "Brotli found")
-        add_definitions(-DUSE_BROTLI)
-    else()
-        MESSAGE("Brotli Not Found")  
-    endif (Brotli_FOUND)
-endif (BUILD_BROTLI)
 
 SET(WORKFLOW_MIN_VERSION "0.9.9")
 find_package(workflow 

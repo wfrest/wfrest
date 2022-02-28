@@ -15,7 +15,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev libbrotli-dev
+        sudo apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev
     
     - name: Checkout workflow
       uses: actions/checkout@master

@@ -27,11 +27,6 @@ set(SRCS
 
 add_library(wfrest ${SRCS})
 target_link_libraries(wfrest workflow OpenSSL::SSL OpenSSL::Crypto pthread rt ZLIB::ZLIB)
-
-if (BUILD_BROTLI AND Brotli_FOUND)
-    target_link_libraries(wfrest Brotli_lib)
-endif()
-
 set(CMAKE_TARGETS_FILE ${PROJECT_NAME}-targets)
 
 # https://github.com/tevador/RandomX/issues/157
@@ -57,8 +52,4 @@ file(GLOB HEADERS_INL "*.inl")
 install(FILES ${HEADERS}     DESTINATION include/wfrest)
 install(FILES ${HEADERS_HPP} DESTINATION include/wfrest)
 install(FILES ${HEADERS_INL} DESTINATION include/wfrest)
-
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBrotli.cmake"
-        DESTINATION "${CMAKE_CONFIG_INSTALL_DIR}"
-        COMPONENT dev)
 
