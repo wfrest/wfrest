@@ -25,11 +25,11 @@ public:
             : ptr_(nullptr), length_(0)
     {}
 
-    explicit StringPiece(const char *str)
+    StringPiece(const char *str)
             : ptr_(str), length_(strlen(ptr_))
     {}
 
-    explicit StringPiece(const std::string &str)
+    StringPiece(const std::string &str)
             : ptr_(str.data()), length_(str.size())
     {}
 
