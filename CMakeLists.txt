@@ -93,7 +93,7 @@ if(WFREST_BUILD_TEST)
         enable_testing()
         add_subdirectory(${PROJECT_SOURCE_DIR}/test)
     else()
-        message(FATAL_ERROR  "can't find GTest, please install it first")
+        message(STATUS  "can't find GTest, not build test")
     endif()
 endif()
 
