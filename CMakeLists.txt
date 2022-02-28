@@ -99,7 +99,7 @@ if(WFREST_BUILD_EXAMPLES)
 endif()
 
 if(WFREST_BUILD_TEST)
-    find_package(GTest REQUIRED)
+    find_package(GTest QUIET)
     if(GTest_FOUND)
         message(STATUS "Build wfrest tests")
         enable_testing()

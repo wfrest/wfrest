@@ -24,7 +24,6 @@ int main(int argc, char **argv)
     svr.GET("/mysql0", [](const HttpReq *req, HttpResp *resp)
     {
         resp->MySQL("mysql://root:111111@localhost", "SHOW DATABASES");
-
     });
 
     svr.GET("/mysql1", [](const HttpReq *req, HttpResp *resp)
