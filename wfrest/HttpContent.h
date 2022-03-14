@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include "wfrest/MultiPartParser.h"
 #include "wfrest/Macro.h"
 #include "wfrest/Noncopyable.h"
@@ -57,6 +58,30 @@ private:
     std::string boundary_;
 
     multipart_parser_settings settings_;
+};
+
+class MultiPartEncoder 
+{
+public:
+    MultiPartEncoder();
+
+    std::string &encode();
+
+    void add_param(const std::string &name, const std::string &value);
+
+    void add_file(const std::string &file_name, const std::string &file_path);
+
+    const std::string &boundary();
+
+    void set_boundary(const std::string &boundary);
+
+    void set_boundary(std::string &&boundary);
+
+private:
+    std::string boundary_;
+    std::string content_;
+    std::vector<std::pair<std::string, std::string>> params_;
+    std::vector<std::pair<std::string, std::string>> files_;
 };
 
 }  // wfrest

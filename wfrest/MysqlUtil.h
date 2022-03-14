@@ -20,6 +20,4 @@ public:
 
 } // namespace wfrest
 
-
-
 #endif // WFREST_MYSQLUTIL_H_

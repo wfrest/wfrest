@@ -50,7 +50,7 @@ For more information, you can first see discussions:
 ### Requirement
 
 * workflow, version v0.9.9 or newer
-* Linux , like ubuntu 18.04 or newer
+* Linux , like ubuntu 16.04 or newer
 * Cmake
 * zlib1g-dev
 * libssl-dev
