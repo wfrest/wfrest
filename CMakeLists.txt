@@ -43,16 +43,38 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-SET(WORKFLOW_MIN_VERSION "0.9.9")
-find_package(workflow 
-    ${WORKFLOW_MIN_VERSION} 
-    REQUIRED
-)
+include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
+check_include_file_cxx("workflow/Workflow.h" WORKFLOW_INSTALLED)
+if (NOT WORKFLOW_INSTALLED)
+	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+		message( FATAL_ERROR "Workflow is neither installed not in third_party!")
+	endif ()
+else ()
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+		message("Workflow third_party FOUND. Use for source code dependencies.")
+		set(WORKFLOW_INSTALLED 0)
+	endif ()
+endif ()
+
+
+if(NOT VCPKG_TOOLCHAIN)
+	# Try to find the package if workflow is not installed, otherwise proceed with find_package()
+	if (NOT WORKFLOW_INSTALLED)
+		find_package(Workflow REQUIRED CONFIG HINTS ./workflow)
+	endif ()
+else()
+	find_package(Workflow REQUIRED CONFIG)
+endif()
+
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
-include_directories(${PROJECT_SOURCE_DIR}/ ${OPENSSL_INCLUDE_DIR})
+include_directories(${PROJECT_SOURCE_DIR} 
+                    ${OPENSSL_INCLUDE_DIR}
+                    ${WORKFLOW_INCLUDE_DIR})
+                    
 include_directories(${PROJECT_SOURCE_DIR}/test)
 add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
 
