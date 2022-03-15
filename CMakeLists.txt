@@ -1,50 +1,15 @@
 cmake_minimum_required(VERSION 3.6)
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "build type")
 
 project(wfrest
-        VERSION 0.1.1
-        LANGUAGES C CXX)
+	VERSION 0.1.0
+	LANGUAGES C CXX)
 
-if(CMAKE_BUILD_TYPE)
-else()
-    set(CMAKE_BUILD_TYPE "Release")
-endif()
-message(STATUS "Build Type: " ${CMAKE_BUILD_TYPE})
-
-option(WFREST_BUILD_EXAMPLES "Build wfrest examples" OFF)
-option(WFREST_BUILD_TEST "Build wfrest test" OFF)
-
-set(CXX_FLAGS
-        -g
-        -std=c++11
-        -rdynamic
-        -pthread
-        -fno-exceptions
-        )
-
-if(CMAKE_BUILD_BITS EQUAL 32)
-    list(APPEND CXX_FLAGS "-m32")
-endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    list(APPEND CXX_FLAGS "-Wno-null-dereference")
-    list(APPEND CXX_FLAGS "-Wno-sign-conversion")
-    list(APPEND CXX_FLAGS "-Wno-unused-local-typedef")
-    list(APPEND CXX_FLAGS "-Wthread-safety")
-    list(REMOVE_ITEM CXX_FLAGS "-rdynamic")
-endif()
-string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-
-set(CMAKE_CXX_FLAGS_DEBUG "-O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-
-find_package(OpenSSL REQUIRED)
-find_package(ZLIB REQUIRED)
+#### CHECK
 
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
+
 check_include_file_cxx("workflow/Workflow.h" WORKFLOW_INSTALLED)
 if (NOT WORKFLOW_INSTALLED)
 	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
@@ -57,65 +22,84 @@ else ()
 	endif ()
 endif ()
 
+#### PREPARE
 
-if(NOT VCPKG_TOOLCHAIN)
-	# Try to find the package if workflow is not installed, otherwise proceed with find_package()
-	if (NOT WORKFLOW_INSTALLED)
-		find_package(Workflow REQUIRED CONFIG HINTS ./workflow)
-	endif ()
-else()
-	find_package(Workflow REQUIRED CONFIG)
-endif()
-
-
-string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
-
-include_directories(${PROJECT_SOURCE_DIR} 
-                    ${OPENSSL_INCLUDE_DIR}
-                    ${WORKFLOW_INCLUDE_DIR})
-                    
-include_directories(${PROJECT_SOURCE_DIR}/test)
-add_subdirectory(${PROJECT_SOURCE_DIR}/wfrest)
+set(INC_DIR ${PROJECT_SOURCE_DIR}/_include CACHE PATH "wfrest inc")
+set(LIB_DIR ${PROJECT_SOURCE_DIR}/_lib CACHE PATH "wfrest lib")
 
 include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
 
+set(CMAKE_CONFIG_INSTALL_FILE ${PROJECT_BINARY_DIR}/config.toinstall.cmake)
 set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-set(CMAKE_VERSION_FILE       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake)
-set(CMAKE_CONFIG_FILE        ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB_DIR})
 
-configure_package_config_file(
-     ${PROJECT_NAME}-config.cmake.in
-     ${CMAKE_CONFIG_FILE}
-     INSTALL_DESTINATION  ${CMAKE_CONFIG_INSTALL_DIR}
+add_custom_target(
+	LINK_HEADERS ALL
+	COMMENT "link headers..."
 )
 
-write_basic_package_version_file(
-     ${CMAKE_VERSION_FILE}
-     VERSION ${PROJECT_VERSION}
-     COMPATIBILITY AnyNewerVersion 
+INCLUDE(CMakeLists_Headers.txt)
+
+macro(makeLink src dest target)
+	add_custom_command(
+		TARGET ${target} PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${src} ${dest}
+		DEPENDS ${dest}
+	)
+endmacro()
+
+add_custom_command(
+	TARGET LINK_HEADERS PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${INC_DIR}/${PROJECT_NAME}
+)
+
+foreach(header_file ${INCLUDE_HEADERS})
+	string(REPLACE "/" ";" arr ${header_file})
+	list(GET arr -1 file_name)
+	makeLink(${PROJECT_SOURCE_DIR}/${header_file} ${INC_DIR}/${PROJECT_NAME}/${file_name} LINK_HEADERS)
+endforeach()
+
+add_subdirectory(src)
+
+#### CONFIG
+
+include(CMakePackageConfigHelpers)
+set(CONFIG_INC_DIR ${INC_DIR})
+set(CONFIG_LIB_DIR ${LIB_DIR})
+
+configure_package_config_file(
+	${PROJECT_NAME}-config.cmake.in
+	${PROJECT_SOURCE_DIR}/${PROJECT_NAME}-config.cmake
+	INSTALL_DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+	PATH_VARS CONFIG_INC_DIR CONFIG_LIB_DIR
+)
+
+set(CONFIG_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR})
+set(CONFIG_LIB_DIR ${CMAKE_INSTALL_LIBDIR})
+configure_package_config_file(
+	${PROJECT_NAME}-config.cmake.in
+	${CMAKE_CONFIG_INSTALL_FILE}
+	INSTALL_DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+	PATH_VARS CONFIG_INC_DIR CONFIG_LIB_DIR
 )
 
 install(
-    FILES       ${CMAKE_VERSION_FILE}   ${CMAKE_CONFIG_FILE}
-    DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
-    COMPONENT devel
+	FILES ${CMAKE_CONFIG_INSTALL_FILE}
+	DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+	COMPONENT devel
+	RENAME ${PROJECT_NAME}-config.cmake
 )
 
-if(WFREST_BUILD_EXAMPLES)
-    message(STATUS "Build wfrest examples")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/example)
-endif()
+install(
+	FILES ${INCLUDE_HEADERS}
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+	COMPONENT devel
+)
 
-if(WFREST_BUILD_TEST)
-    find_package(GTest QUIET)
-    if(GTest_FOUND)
-        message(STATUS "Build wfrest tests")
-        enable_testing()
-        add_subdirectory(${PROJECT_SOURCE_DIR}/test)
-    else()
-        message(STATUS  "can't find GTest, not build test")
-    endif()
-endif()
+install(
+	FILES README.md
+	DESTINATION "${CMAKE_INSTALL_DOCDIR}-${PROJECT_VERSION}"
+	COMPONENT devel
+)
 

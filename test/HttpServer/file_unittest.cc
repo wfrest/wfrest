@@ -6,7 +6,7 @@
 #include "wfrest/FileUtil.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/json.hpp"
-#include "FileTestUtil.h"
+#include "../FileTestUtil.h"
 
 using namespace wfrest;
 using namespace protocol;

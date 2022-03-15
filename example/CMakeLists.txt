@@ -1,80 +1,86 @@
-add_executable(01_basic 01_basic.cc)
-target_link_libraries(01_basic wfrest)
+cmake_minimum_required(VERSION 3.6)
 
-add_executable(02_parameter 02_parameter_path.cc)
-target_link_libraries(02_parameter wfrest)
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "build type")
 
-add_executable(03_query_params 03_query_params.cc)
-target_link_libraries(03_query_params wfrest)
+project(wfrest_example
+		LANGUAGES C CXX
+)
 
-add_executable(04_post_form 04_post_form.cc)
-target_link_libraries(04_post_form wfrest)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(05_header 05_header.cc)
-target_link_libraries(05_header wfrest)
+if (NOT "$ENV{LIBRARY_PATH}" STREQUAL "")
+	string(REPLACE ":" ";" LIBRARY_PATH $ENV{LIBRARY_PATH})
+	set(CMAKE_SYSTEM_LIBRARY_PATH ${LIBRARY_PATH};${CMAKE_SYSTEM_LIBRARY_PATH})
+endif ()
 
-add_executable(06_file_send 06_file_send.cc)
-target_link_libraries(06_file_send wfrest)
+if (NOT "$ENV{CPLUS_INCLUDE_PATH}" STREQUAL "")
+	string(REPLACE ":" ";" INCLUDE_PATH $ENV{CPLUS_INCLUDE_PATH})
+	set(CMAKE_SYSTEM_INCLUDE_PATH ${INCLUDE_PATH};${CMAKE_SYSTEM_INCLUDE_PATH})
+endif ()
 
-add_executable(07_file_save 07_file_save.cc)
-target_link_libraries(07_file_save wfrest)
+find_package(OpenSSL REQUIRED)
 
-add_executable(08_upload_file 08_upload_file.cc)
-target_link_libraries(08_upload_file wfrest)
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+	find_package(Workflow REQUIRED CONFIG HINTS ../workflow)
+endif ()
 
-add_executable(09_json 09_json.cc)
-target_link_libraries(09_json wfrest)
+find_package(ZLIB REQUIRED)
 
-# todo 10
+find_package(wfrest REQUIRED CONFIG HINTS ..)
+include_directories(
+	${OPENSSL_INCLUDE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+	${WORKFLOW_INCLUDE_DIR}
+	${WFREST_INCLUDE_DIR}
+)
 
-add_executable(11_compute_handler 11_compute_handler.cc)
-target_link_libraries(11_compute_handler wfrest)
+link_directories(${WFREST_LIB_DIR} ${WORKFLOW_LIB_DIR})
 
-add_executable(12_series_interface 12_series_interface.cc)
-target_link_libraries(12_series_interface wfrest)
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -fPIC -pipe -std=gnu90")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -pipe -std=c++11 -fno-exceptions")
 
-add_executable(13_compession 13_compession.cc)
-target_link_libraries(13_compession wfrest)
+if (APPLE)
+	set(WFREST_LIB wfrest workflow pthread OpenSSL::SSL OpenSSL::Crypto protobuf z)
+else ()
+	set(WFREST_LIB wfrest)
+endif ()
 
-add_executable(13_compess_client 13_compess_client.cc)
-target_link_libraries(13_compess_client wfrest)
+set(EXAMPLE_LIST
+    01_basic
+    02_parameter_path
+    03_query_params
+    04_post_form
+    05_header
+    06_file_send
+    07_file_save
+    08_upload_file
+    09_json
+    # 10
+    11_compute_handler
+    12_series_interface
+    13_compession
+    13_compess_client
+    #14
+    15_serve_static_file
+    16_cookie_simple
+    16_cookie
+    17_server_config
+    18_aop
+    18_global_aop
+    19_https
+    20_proxy
+    21_mysql
+    22_redis
+    23_compute
+)
 
-add_executable(14_blue_print 14_blue_print/blog.cc)
-target_link_libraries(14_blue_print wfrest)
+foreach(src ${EXAMPLE_LIST})
+	add_executable(${src} ${src}.cc)
+	target_link_libraries(${src} ${WFREST_LIB})
+endforeach()
 
-add_executable(15_serve_static_file 15_serve_static_file.cc)
-target_link_libraries(15_serve_static_file wfrest)
-
-add_executable(16_cookie_simple 16_cookie_simple.cc)
-target_link_libraries(16_cookie_simple wfrest)
-
-add_executable(16_cookie 16_cookie.cc)
-target_link_libraries(16_cookie wfrest)
-
-add_executable(17_server_config 17_server_config.cc)
-target_link_libraries(17_server_config wfrest)
-
-add_executable(18_aop 18_aop.cc)
-target_link_libraries(18_aop wfrest)
-
-add_executable(18_global_aop 18_global_aop.cc)
-target_link_libraries(18_global_aop wfrest)
-
-add_executable(19_https 19_https.cc)
-target_link_libraries(19_https wfrest)
-
-add_executable(20_proxy 20_proxy.cc)
-target_link_libraries(20_proxy wfrest)
-
-add_executable(21_mysql 21_mysql.cc)
-target_link_libraries(21_mysql wfrest)
-
-add_executable(22_redis 22_redis.cc)
-target_link_libraries(22_redis wfrest)
-
-add_executable(23_compute 23_compute.cc)
-target_link_libraries(23_compute wfrest)
-
+# add_executable(14_blue_print 14_blue_print/blog.cc)
+# target_link_libraries(14_blue_print wfrest)
 
 
 

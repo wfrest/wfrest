@@ -1,93 +1,115 @@
-# test
-add_executable(router_test router_test.cc)
-target_link_libraries(router_test wfrest)
+cmake_minimum_required(VERSION 3.6)
 
-add_executable(multi_part_test multi_part_test.cc)
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "build type")
 
-add_executable(StringPiece_feature StringPiece_feature.cc)
-target_link_libraries(StringPiece_feature wfrest)
+project(wfrest_test
+		LANGUAGES C CXX
+)
 
-add_executable(RouteTableNode_test RouteTableNode_test.cc)
-target_link_libraries(RouteTableNode_test wfrest)
+if (NOT "$ENV{LIBRARY_PATH}" STREQUAL "")
+	string(REPLACE ":" ";" LIBRARY_PATH $ENV{LIBRARY_PATH})
+	set(CMAKE_SYSTEM_LIBRARY_PATH ${LIBRARY_PATH};${CMAKE_SYSTEM_LIBRARY_PATH})
+endif ()
 
-add_executable(TimeStamp_unittest TimeStamp_unittest.cc)
-target_link_libraries(TimeStamp_unittest wfrest)
+if (NOT "$ENV{CPLUS_INCLUDE_PATH}" STREQUAL "")
+	string(REPLACE ":" ";" INCLUDE_PATH $ENV{CPLUS_INCLUDE_PATH})
+	set(CMAKE_SYSTEM_INCLUDE_PATH ${INCLUDE_PATH};${CMAKE_SYSTEM_INCLUDE_PATH})
+endif ()
 
-# unit test
-add_executable(StrUtil_unittest StrUtil_unittest.cc)
-target_link_libraries(StrUtil_unittest wfrest GTest::GTest)
-add_test(NAME StrUtil_unittest COMMAND StrUtil_unittest)
+find_package(OpenSSL REQUIRED)
 
-add_executable(StringPiece_unittest StringPiece_unittest.cc)
-target_link_libraries(StringPiece_unittest wfrest GTest::GTest)
-add_test(NAME StringPiece_unittest COMMAND StringPiece_unittest)
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+	find_package(Workflow REQUIRED CONFIG HINTS ../workflow)
+endif ()
 
-add_executable(Compress_unittest Compress_unittest.cc)
-target_link_libraries(Compress_unittest wfrest GTest::GTest)
-add_test(NAME Compress_unittest COMMAND Compress_unittest)
+find_package(wfrest REQUIRED CONFIG HINTS ..)
+include_directories(
+	${OPENSSL_INCLUDE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+	${WFREST_INCLUDE_DIR}
+	${WORKFLOW_INCLUDE_DIR}
+)
 
-add_executable(Router_unittest Router_unittest.cc)
-target_link_libraries(Router_unittest wfrest GTest::GTest)
-add_test(NAME Router_unittest COMMAND Router_unittest)
+link_directories(${WFREST_LIB_DIR} ${WORKFLOW_LIB_DIR})
 
-add_executable(base64_unittest base64_unittest.cc)
-target_link_libraries(base64_unittest wfrest GTest::GTest)
-add_test(NAME base64_unittest COMMAND base64_unittest)
+find_program(CMAKE_MEMORYCHECK_COMMAND valgrind)
+set(memcheck_command ${CMAKE_MEMORYCHECK_COMMAND} ${CMAKE_MEMORYCHECK_COMMAND_OPTIONS} --error-exitcode=1 --leak-check=full --show-leak-kinds=all)
 
-add_executable(BluePrint_unittest BluePrint_unittest.cc)
-target_link_libraries(BluePrint_unittest wfrest GTest::GTest)
-add_test(NAME BluePrint_unittest COMMAND BluePrint_unittest)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 
-add_executable(FileUtil_unittest FileUtil_unittest.cc FileTestUtil.cc)
-target_link_libraries(FileUtil_unittest wfrest GTest::GTest)
-add_test(NAME FileUtil_unittest COMMAND FileUtil_unittest)
+enable_testing()
+find_package(GTest REQUIRED)
 
-add_executable(PathUtil_unittest PathUtil_unittest.cc FileTestUtil.cc)
-target_link_libraries(PathUtil_unittest wfrest GTest::GTest)
-add_test(NAME PathUtil_unittest COMMAND PathUtil_unittest)
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -fPIC -pipe -std=gnu90")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -pipe -std=c++11 -fno-exceptions")
 
-add_executable(HttpCookie_unittest HttpCookie_unittest.cc)
-target_link_libraries(HttpCookie_unittest wfrest GTest::GTest)
-add_test(NAME HttpCookie_unittest COMMAND HttpCookie_unittest)
+set(GTEST_LIB GTest::GTest GTest::Main)
+set(WFREST_LIB wfrest workflow pthread OpenSSL::SSL OpenSSL::Crypto z)
 
-add_executable(RouteTable_unittest RouteTable_unittest.cc)
-target_link_libraries(RouteTable_unittest wfrest GTest::GTest)
-add_test(NAME RouteTable_unittest COMMAND RouteTable_unittest)
+set(UNIT_TEST_LIST
+	TimeStamp_unittest
+	StrUtil_unittest
+	StringPiece_unittest
+	Compress_unittest
+	Router_unittest
+	base64_unittest
+	BluePrint_unittest
+	HttpCookie_unittest
+	RouteTable_unittest
+	HttpDef_unittest
+	FileUtil_unittest
+	PathUtil_unittest
+)
 
-add_executable(HttpDef_unittest HttpDef_unittest.cc)
-target_link_libraries(HttpDef_unittest wfrest GTest::GTest)
-add_test(NAME HttpDef_unittest COMMAND HttpDef_unittest)
+foreach(src ${UNIT_TEST_LIST})
+	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
+	target_link_libraries(${src} ${WFREST_LIB} ${GTEST_LIB})
+	add_test(${src} ${src})
+	add_dependencies(check ${src})
+endforeach()
 
-# server
-add_executable(server_send_unittest ./HttpServer/send_unittest.cc)
-target_link_libraries(server_send_unittest wfrest GTest::GTest)
-add_test(NAME server_send_unittest COMMAND server_send_unittest)
+foreach(src ${UNIT_TEST_LIST})
+    add_test(${src}-memory-check ${memcheck_command} ./${src})
+endforeach()
 
-add_executable(server_param_unittest ./HttpServer/param_unittest.cc)
-target_link_libraries(server_param_unittest wfrest GTest::GTest)
-add_test(NAME server_param_unittest COMMAND server_param_unittest)
+set(SERVER_UNIT_TEST_LIST
+	send_unittest
+	param_unittest
+	# json_unittest
+	file_unittest
+	proxy_unittest
+	static_unittest
+	compute_unittest
+)
 
-add_executable(server_json_unittest ./HttpServer/json_unittest.cc)
-target_link_libraries(server_json_unittest wfrest GTest::GTest)
-add_test(NAME server_json_unittest COMMAND server_json_unittest)
-
-add_executable(server_file_unittest ./HttpServer/file_unittest.cc FileTestUtil.cc)
-target_link_libraries(server_file_unittest wfrest GTest::GTest)
-add_test(NAME server_file_unittest COMMAND server_file_unittest)
-
-add_executable(server_proxy_unittest ./HttpServer/proxy_unittest.cc)
-target_link_libraries(server_proxy_unittest wfrest GTest::GTest)
-add_test(NAME server_proxy_unittest COMMAND server_proxy_unittest)
-
-add_executable(server_static_unittest ./HttpServer/static_unittest.cc FileTestUtil.cc)
-target_link_libraries(server_static_unittest wfrest GTest::GTest)
-add_test(NAME server_static_unittest COMMAND server_static_unittest)
-
-add_executable(server_compute_unittest ./HttpServer/compute_unittest.cc)
-target_link_libraries(server_compute_unittest wfrest GTest::GTest)
-add_test(NAME server_compute_unittest COMMAND server_compute_unittest)
-
+foreach(src ${SERVER_UNIT_TEST_LIST})
+	add_executable(server_${src} EXCLUDE_FROM_ALL ./HttpServer/${src}.cc)
+	target_link_libraries(server_${src} ${WFREST_LIB} ${GTEST_LIB})
+	add_test(server_${src} server_${src})
+	add_dependencies(check server_${src})
+endforeach()
 
 
+foreach(src ${SERVER_UNIT_TEST_LIST})
+    add_test(server_${src}-memory-check ${memcheck_command} ./server_${src})
+endforeach()
+
+
+set(TEST_LIST
+	router_test
+	multi_part_test
+	StringPiece_feature
+	RouteTableNode_test
+)
+
+foreach(src ${TEST_LIST})
+	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
+	target_link_libraries(${src} ${WFREST_LIB})
+	add_dependencies(check ${src})
+endforeach()
+
+foreach(src ${TEST_LIST})
+    add_test(${src}-memory-check ${memcheck_command} ./${src})
+endforeach()
 
 
