@@ -65,21 +65,25 @@ apt-get install build-essential cmake zlib1g-dev libssl-dev libgtest-dev -y
 
 For more details, you can see here : [requirement details](./docs/requirement.md)
 
-### Shell 
-
-```cpp
-sudo ./build.sh
-```
-
 ### Cmake
 
 ```
-git clone https://github.com/wfrest/wfrest
+git clone --recursive https://github.com/wfrest/wfrest
 cd wfrest
-mkdir build && cd build
-cmake .. 
-make -j  
+make
 sudo make install
+```
+
+For test :
+
+```
+make test
+```
+
+For example :
+
+```
+make example
 ```
 
 ### Docker

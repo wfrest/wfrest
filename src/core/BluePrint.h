@@ -222,6 +222,6 @@ private:
 
 } // namespace wfrest
 
-#include "wfrest/BluePrint.inl"
+#include "BluePrint.inl"
 
 #endif // WFREST_BLUEPRINT_H_

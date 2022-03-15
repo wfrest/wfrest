@@ -28,12 +28,3 @@ for ARM64 , you can try
 ```bash
 ln -s /lib/aarch64-linux-gnu/libpthread.so.0 /lib/aarch64-linux-gnu/libpthread.so
 ```
-
-## Intsall workflow
-
-```
-git clone https://github.com/sogou/workflow
-cd workflow
-make
-sudo make install
-```
