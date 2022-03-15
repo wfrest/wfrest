@@ -77,30 +77,25 @@ int main()
 apt-get install build-essential cmake zlib1g-dev libssl-dev libgtest-dev -y
 ```
 
-安装下载workflow
+### cmake
 
 ```
-git clone https://github.com/sogou/workflow
-cd workflow
+git clone --recursive https://github.com/wfrest/wfrest
+cd wfrest
 make
 sudo make install
 ```
 
-### Shell 
-
-```cpp
-sudo ./build.sh
-```
-
-### cmake
+编译例子:
 
 ```
-git clone https://github.com/wfrest/wfrest
-cd wfrest
-mkdir build && cd build
-cmake .. 
-make -j  
-sudo make install
+make example
+```
+
+测试:
+
+```
+make check
 ```
 
 ### Docker

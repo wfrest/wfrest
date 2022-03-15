@@ -77,7 +77,7 @@ sudo make install
 For test :
 
 ```
-make test
+make check
 ```
 
 For example :
