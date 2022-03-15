@@ -17,16 +17,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y vim git g++ cmake make libssl-dev libgtest-dev
     
-    - name: Checkout workflow
-      uses: actions/checkout@master
-      with:
-        repository: sogou/workflow    
-
-    - name: Install workflow
-      shell: bash
-      run: |
-        make -j $(nproc) && sudo make install
-
     - name: Checkout wfrest source code
       uses: actions/checkout@v2
 
@@ -34,14 +24,14 @@ jobs:
       run: |
         mkdir build
 
-    - name: Create Build Environment & Configure Cmake
-      shell: bash
-      working-directory: ./build
-      run: |
-        cmake -DWFREST_BUILD_EXAMPLES=ON ..
+    - name: update submodules
+      run: git submodule update --init --recursive
 
-    - name: Build
-      working-directory: ./build
-      shell: bash
-      run: |
-        sudo make -j $(nproc) && sudo make install
+    - name: make
+      run: make
+
+    - name: make example
+      run: make example
+
+    - name: test
+      run: make check
