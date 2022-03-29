@@ -524,8 +524,8 @@ void HttpResp::String(const std::string &str)
     } else 
     {
         this->append_output_body_nocopy(compress_data->c_str(), compress_data->size());
-        task_of(this)->add_callback([compress_data](HttpTask *) { delete compress_data; });
     }
+    task_of(this)->add_callback([compress_data](HttpTask *) { delete compress_data; });
 }
 
 void HttpResp::String(std::string &&str)

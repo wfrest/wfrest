@@ -60,7 +60,6 @@ set(EXAMPLE_LIST
     12_series_interface
     13_compession
     13_compess_client
-    #14
     15_serve_static_file
     16_cookie_simple
     16_cookie
@@ -79,8 +78,8 @@ foreach(src ${EXAMPLE_LIST})
 	target_link_libraries(${src} ${WFREST_LIB})
 endforeach()
 
-# add_executable(14_blue_print 14_blue_print/blog.cc)
-# target_link_libraries(14_blue_print wfrest)
+add_executable(14_blueprint 14_blue_print/blog.cc)
+target_link_libraries(14_blueprint wfrest)
 
 
 

@@ -75,7 +75,7 @@ endforeach()
 set(SERVER_UNIT_TEST_LIST
 	send_unittest
 	param_unittest
-	# json_unittest
+	json_unittest
 	file_unittest
 	proxy_unittest
 	static_unittest
