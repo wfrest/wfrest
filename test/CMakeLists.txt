@@ -94,22 +94,18 @@ foreach(src ${SERVER_UNIT_TEST_LIST})
     add_test(server_${src}-memory-check ${memcheck_command} ./server_${src})
 endforeach()
 
-
 set(TEST_LIST
 	router_test
 	multi_part_test
 	StringPiece_feature
 	RouteTableNode_test
+	multi_verb_test
 )
 
 foreach(src ${TEST_LIST})
 	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
 	target_link_libraries(${src} ${WFREST_LIB})
 	add_dependencies(check ${src})
-endforeach()
-
-foreach(src ${TEST_LIST})
-    add_test(${src}-memory-check ${memcheck_command} ./${src})
 endforeach()
 
 

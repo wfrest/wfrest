@@ -81,7 +81,7 @@ TEST_F(StaticTest, serve_static_file)
         EXPECT_TRUE(strcmp("123456788890", static_cast<const char *>(body)) == 0);
         wait_group.done();
     });
-
+    svr.list_routes();
     client_task->start();
     wait_group.wait();
     svr.stop();

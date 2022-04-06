@@ -56,6 +56,13 @@ int main()
         resp->String(res);
     });
 
+    svr.GET("/public/*", [](const HttpReq *req, HttpResp *resp)
+    {
+        fprintf(stderr, "full_path : %s\n", req->full_path().c_str());
+        fprintf(stderr, "current_path : %s\n", req->current_path().c_str());
+        fprintf(stderr, "current_path : %s\n", req->match_path().c_str());
+    });
+
     // This handler will add a new router for /user/groups.
     // Exact routes are resolved before param routes, regardless of the order they were defined.
     // Routes starting with /user/groups are never interpreted as /user/{name}/... routes
@@ -65,7 +72,8 @@ int main()
     });
 
     if (svr.start(8888) == 0)
-    {
+    {   
+        svr.list_routes();
         wait_group.wait();
         svr.stop();
     } else

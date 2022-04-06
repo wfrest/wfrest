@@ -296,7 +296,7 @@ void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix
             verb_handler.path = url_prefix + sub_prefix;
         else
             verb_handler.path = url_prefix + "/" + sub_prefix;
-            
+        
         VerbHandler &vh = this->router_.routes_map_.find_or_create(verb_handler.path.c_str());
         vh = verb_handler;
     });
