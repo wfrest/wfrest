@@ -237,7 +237,11 @@ public:
             const std::vector<std::string>& params, const RedisFunc &func);
 
     // MultiPart Form
-    void Form(MultiPartEncoder &&encoder);
+    void add_form_param(const std::string &name, const std::string &value);
+
+    void add_form_file(const std::string &file_name, const std::string &file_path);
+
+    void Form();
 
     template<class FUNC, class... ARGS>
     void Compute(int compute_queue_id, FUNC&& func, ARGS&&... args)
@@ -277,6 +281,7 @@ public:
 
 private:
     std::vector<HttpCookie> cookies_;
+    MultiPartEncoder multi_part_encoder_;
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

@@ -73,10 +73,9 @@ Use MultiPartEncoder to encode the multi/part data format content and send.
 ```cpp
 svr.GET("/form_send", [](const HttpReq *req, HttpResp *resp)
 {
-    MultiPartEncoder form_encoder;
-    form_encoder.add_param("Filename", "1.jpg");
-    form_encoder.add_file("test_1.txt", "./www/test_1.txt");
-    form_encoder.add_file("test_2.txt", "./www/test_2.txt");
-    resp->Form(std::move(form_encoder));
+    resp->add_form_param("Filename", "1.jpg");
+    resp->add_form_file("test_1.txt", "./www/test_1.txt");
+    resp->add_form_file("test_2.txt", "./www/test_2.txt");
+    resp->Form();
 });
 ```

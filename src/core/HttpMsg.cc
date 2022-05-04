@@ -798,17 +798,25 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     return *this;
 }
 
-void HttpResp::Form(MultiPartEncoder &&encoder) 
+void HttpResp::add_form_param(const std::string &name, const std::string &value)
 {
-    MultiPartEncoder *form = new MultiPartEncoder;
-    *form = std::move(encoder);
+    multi_part_encoder_.add_param(name, value);
+}
+
+void HttpResp::add_form_file(const std::string &file_name, const std::string &file_path)
+{
+    multi_part_encoder_.add_file(file_name, file_path);
+}
+
+void HttpResp::Form() 
+{   
+    const std::string &boudary = multi_part_encoder_.boundary();
+    this->headers["Content-Type"] = "multipart/form-data; boundary=" + boudary;
     
     HttpServerTask *server_task = task_of(this);
     SeriesWork *series = series_of(server_task);
     
-    const std::string &boudary = form->boundary();
-    
-    const MultiPartEncoder::FileList &file_list = form->files();
+    const MultiPartEncoder::FileList &file_list = multi_part_encoder_.files();
     size_t file_cnt = file_list.size();
     assert(file_cnt >= 0);
     for(const auto &file : file_list) {
@@ -874,12 +882,11 @@ void HttpResp::Form(MultiPartEncoder &&encoder)
     
     std::string *content = new std::string;
     series->set_context(content);
-    series->set_callback([form](const SeriesWork *series) {
-        delete form;
+    series->set_callback([](const SeriesWork *series) {
         delete static_cast<std::string *>(series->get_context());
     });
 
-    const MultiPartEncoder::ParamList &param_list = form->params();
+    const MultiPartEncoder::ParamList &param_list = multi_part_encoder_.params();
     for(const auto &param : param_list) {
         content->append("\r\n--");
         content->append(boudary);
