@@ -80,6 +80,7 @@ set(SERVER_UNIT_TEST_LIST
 	proxy_unittest
 	static_unittest
 	compute_unittest
+	send_form_unittest
 )
 
 foreach(src ${SERVER_UNIT_TEST_LIST})

@@ -226,11 +226,6 @@ void MultiPartEncoder::add_file(const std::string &file_name, const std::string 
     files_.push_back({file_name, file_path});
 }
 
-const std::string& MultiPartEncoder::boundary() 
-{
-    return boundary_;
-}
-
 void MultiPartEncoder::set_boundary(const std::string &boundary)
 {
     boundary_ = boundary;
@@ -239,63 +234,4 @@ void MultiPartEncoder::set_boundary(const std::string &boundary)
 void MultiPartEncoder::set_boundary(std::string &&boundary) 
 {
     boundary_ = std::move(boundary);
-}
-
-std::string &MultiPartEncoder::encode()
-{
-    content_.clear();
-
-    std::vector<std::pair<void *, WFFuture<ssize_t> *>> buf_fr_list;
-    for(auto &file : files_) 
-    {
-        int fd = open(file.second.c_str(), O_RDONLY);
-        if (fd >= 0)
-        {
-            size_t size = lseek(fd, 0, SEEK_END);
-            void *buf = malloc(size);   
-            WFFuture<ssize_t> fr = WFFacilities::async_pread(fd, buf, size, 0);
-            buf_fr_list.push_back({buf, &fr});        
-        } else 
-        {
-            buf_fr_list.push_back({nullptr, nullptr});
-        }
-    }
-    for(auto &param : params_)
-    {
-        content_ += "\r\n--";
-        content_ += boundary_;
-        content_ += "\r\nContent-Disposition: form-data; name=\"";
-        content_ += param.first;
-        content_ += "\"\r\n\r\n";
-        content_ += param.second;
-    }
-    for(int i = 0; i < files_.size(); i++)
-    {
-        ssize_t len = buf_fr_list[i].second->get();
-        if(!buf_fr_list[i].first || !len) 
-        {
-            continue;
-        }
-        char *file_content = static_cast<char *>(buf_fr_list[i].first);
-        std::string file_suffix = PathUtil::suffix(files_[i].second);
-        std::string file_type = ContentType::to_str_by_suffix(file_suffix);
-        content_ += "\r\n--";
-        content_ += boundary_;
-        content_ += "\r\nContent-Disposition: form-data; name=\"";
-        content_ += files_[i].first;
-        content_ += "\"; filename=\"";
-        content_ += PathUtil::base(files_[i].second);
-        content_ += "\"\r\nContent-Type: ";
-        content_ += file_type;
-        content_ += "\r\n\r\n";
-        content_ += std::string(file_content);
-    }
-    content_ += "\r\n--";
-    content_ += boundary_;
-    content_ += "--\r\n";
-    for(auto &buf_fr : buf_fr_list)
-    {
-        free(buf_fr.first);
-    }
-    return content_;
 }

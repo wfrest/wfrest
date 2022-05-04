@@ -2,6 +2,7 @@
 #include "workflow/MySQLResult.h"
 #include "workflow/WFMySQLConnection.h"
 #include "workflow/Workflow.h"
+#include "workflow/WFTaskFactory.h"
 
 #include <unistd.h>
 #include <algorithm>
@@ -688,9 +689,12 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 
     std::string route;
     if (uri.path && uri.path[0])
+    {
         route = uri.path;
-    else
+    } else 
+    {
         route = "/";
+    }
 
 	server_req->set_request_uri(route);
 	server_req->get_parsed_body(&body, &len);
@@ -794,6 +798,94 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     return *this;
 }
 
+void HttpResp::Form(MultiPartEncoder &&encoder) 
+{
+    MultiPartEncoder *form = new MultiPartEncoder;
+    *form = std::move(encoder);
+    
+    HttpServerTask *server_task = task_of(this);
+    SeriesWork *series = series_of(server_task);
+    
+    const std::string &boudary = form->boundary();
+    
+    const MultiPartEncoder::FileList &file_list = form->files();
+    size_t file_cnt = file_list.size();
+    assert(file_cnt >= 0);
+    for(const auto &file : file_list) {
+        file_cnt--;
+        if(!PathUtil::is_file(file.second))
+        {
+            fprintf(stderr, "[Error] Not a File : %s\n", file.second.c_str());
+            continue;
+        }
+        size_t file_size;
+        int ret = FileUtil::size(file.second, OUT &file_size);
+        if (ret != StatusOK)
+        {
+            fprintf(stderr, "[Error] Invalid File : %s\n", file.second.c_str());
+            continue;
+        }
+        void *buf = malloc(file_size);
+        WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file.second,
+                buf, file_size, 0,
+                [&file, &boudary](WFFileIOTask *pread_task) {
+                    FileIOArgs *args = pread_task->get_args();
+                    long ret = pread_task->get_retval();
+                    
+                    SeriesWork *series = series_of(pread_task);
+                    std::string *content = static_cast<std::string *>(series->get_context());
+                    if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
+                    {
+                        fprintf(stderr, "Read %s Error\n", file.second.c_str());
+                    } else
+                    {
+                        std::string file_suffix = PathUtil::suffix(file.second);
+                        std::string file_type = ContentType::to_str_by_suffix(file_suffix);
+                        content->append("\r\n--");
+                        content->append(boudary);
+                        content->append("\r\nContent-Disposition: form-data; name=\"");
+                        content->append(file.first);
+                        content->append("\"; filename=\"");
+                        content->append(PathUtil::base(file.second));
+                        content->append("\"\r\nContent-Type: ");
+                        content->append(file_type);
+                        content->append("\r\n\r\n");
+                        content->append(static_cast<char *>(args->buf), ret);
+                    } 
+                    // last one, send the content
+                    if(pread_task->user_data) {
+                        content->append("\r\n--");
+                        content->append(boudary);
+                        content->append("--\r\n");
+                        HttpResp *resp = static_cast<HttpResp *>(pread_task->user_data);
+                        resp->append_output_body_nocopy(content->c_str(), content->size());
+                    }
+                });
+        if(file_cnt == 0)
+        {
+            pread_task->user_data = this;
+        }
+        server_task->add_callback([buf](const HttpTask *server_task)
+                                {
+                                    free(buf);
+                                });
+        series->push_back(pread_task);
+    }
+    
+    std::string *content = new std::string;
+    series->set_context(content);
+    series->set_callback([form](const SeriesWork *series) {
+        delete form;
+        delete static_cast<std::string *>(series->get_context());
+    });
 
-
-
+    const MultiPartEncoder::ParamList &param_list = form->params();
+    for(const auto &param : param_list) {
+        content->append("\r\n--");
+        content->append(boudary);
+        content->append("\r\nContent-Disposition: form-data; name=\"");
+        content->append(param.first);
+        content->append("\"\r\n\r\n");
+        content->append(param.second);
+    } 
+}

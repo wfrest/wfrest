@@ -63,15 +63,22 @@ private:
 class MultiPartEncoder 
 {
 public:
+    using ParamList = std::vector<std::pair<std::string, std::string>>;
+    using FileList = std::vector<std::pair<std::string, std::string>>;
+
     MultiPartEncoder();
 
-    std::string &encode();
+    ~MultiPartEncoder() = default;
 
     void add_param(const std::string &name, const std::string &value);
 
     void add_file(const std::string &file_name, const std::string &file_path);
 
-    const std::string &boundary();
+    const ParamList &params() const { return params_; }
+
+    const FileList &files() const { return files_; }
+
+    const std::string &boundary() const { return boundary_; }
 
     void set_boundary(const std::string &boundary);
 

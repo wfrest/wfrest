@@ -236,6 +236,9 @@ public:
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
 
+    // MultiPart Form
+    void Form(MultiPartEncoder &&encoder);
+
     template<class FUNC, class... ARGS>
     void Compute(int compute_queue_id, FUNC&& func, ARGS&&... args)
     {
