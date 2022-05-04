@@ -62,6 +62,17 @@ int main()
         }
     });
 
+    // response multipart/form-data 
+    // curl -v http://ip:port/form_send
+    svr.GET("/form_send", [](const HttpReq *req, HttpResp *resp)
+    {
+        MultiPartEncoder form_encoder;
+        form_encoder.add_param("Filename", "1.jpg");
+        form_encoder.add_file("test_1.txt", "./www/test_1.txt");
+        form_encoder.add_file("test_2.txt", "./www/test_2.txt");
+        resp->Form(std::move(form_encoder));
+    });
+
     if (svr.start(8888) == 0)
     {
         wait_group.wait();
