@@ -9,12 +9,14 @@ using namespace wfrest;
 
 void Router::handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb)
 {
-    VerbHandler &vh = routes_map_.find_or_create(route);
+    std::pair<RouteVerbIter, bool> rv_pair = add_route(verb, route);
+    VerbHandler &vh = routes_map_.find_or_create(rv_pair.first->route.c_str());
     if(vh.verb_handler_map.find(verb) != vh.verb_handler_map.end()) 
     {
-        fprintf(stderr, "duplicate verb\n");
+        fprintf(stderr, "Duplicate Verb\n");
         return;
     }
+
     vh.verb_handler_map.insert({verb, handler});
     vh.path = route;
     vh.compute_queue_id = compute_queue_id;
@@ -45,7 +47,7 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
         bool has_verb = verb_handler_map.find(verb) != verb_handler_map.end() ? true : false;
         if(verb_handler_map.find(Verb::ANY) != verb_handler_map.end() or has_verb)
         {
-            req->set_full_path(it->second.path);
+            req->set_full_path(it->second.path.as_string());
             req->set_route_params(std::move(route_params));
             req->set_route_match_path(std::move(route_match_path));
             WFGoTask * go_task;
@@ -71,23 +73,13 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
 
 void Router::print_routes() const
 {
-    routes_map_.all_routes([](const std::string &prefix, const VerbHandler &verb_handler)
-                        {
-                            if(prefix == "/")
-                            {
-                                for(auto& vh : verb_handler.verb_handler_map)
-                                {
-                                    fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(vh.first), prefix.c_str());
-                                }
-                            }
-                            else 
-                            {
-                                for(auto& vh : verb_handler.verb_handler_map)
-                                {
-                                    fprintf(stderr, "[WFREST] %s\t/%s\n", verb_to_str(vh.first), prefix.c_str());
-                                }
-                            }
-                        });
+    for(auto &rv : routes_) 
+    {   
+        for(auto verb : rv.verbs)
+        {
+            fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb), rv.route.c_str());
+        }   
+    }
 }
 
 std::vector<std::pair<std::string, std::string> > Router::all_routes() const
@@ -101,4 +93,38 @@ std::vector<std::pair<std::string, std::string> > Router::all_routes() const
                             }
                         });
     return res;
+}
+
+std::pair<Router::RouteVerbIter, bool> Router::add_route(Verb verb, const char *route)
+{
+    std::string route_path = std::string(route);
+    RouteVerb rv;
+    rv.route = std::move(route_path);
+    auto it = routes_.find(rv);
+    if(it != routes_.end()) 
+    {
+        it->verbs.insert(verb);
+    } else 
+    {
+        rv.verbs.insert(verb);
+    }
+    return routes_.emplace(std::move(rv));
+}
+
+std::pair<Router::RouteVerbIter, bool> Router::add_route(const std::vector<Verb> &verbs, const char *route) 
+{
+    std::string route_path = std::string(route);
+    RouteVerb rv;
+    rv.route = std::move(route_path);
+    auto it = routes_.find(rv);
+    if(it != routes_.end()) 
+    {
+        for(auto verb : verbs) 
+            it->verbs.insert(verb);
+    } else 
+    {
+        for(auto verb : verbs) 
+            rv.verbs.insert(verb);
+    }
+    return routes_.emplace(std::move(rv));
 }

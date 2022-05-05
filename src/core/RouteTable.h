@@ -91,12 +91,11 @@ public:
     RouteTableNode::iterator end() const
     { return root_.end(); }
 
-    ~RouteTable();
+    ~RouteTable() = default;
     
 private:
     RouteTableNode root_;
     std::set<StringPiece> string_pieces_;  // check if exists
-    std::vector<std::string *> strings_;  // for store 
 };
 
 } // namespace wfrest

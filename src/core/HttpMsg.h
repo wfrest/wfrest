@@ -98,6 +98,9 @@ public:
     void set_full_path(const std::string &route_full_path)
     { route_full_path_ = route_full_path; }
 
+    void set_full_path(std::string &&route_full_path)
+    { route_full_path_ = std::move(route_full_path); }
+
     void set_query_params(std::map<std::string, std::string> &&query_params)
     { query_params_ = std::move(query_params); }
 

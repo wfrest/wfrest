@@ -58,7 +58,7 @@ using WrapHandler = std::function<WFGoTask *(HttpReq * , HttpResp *, SeriesWork 
 struct VerbHandler
 {
     std::map<Verb, WrapHandler> verb_handler_map;
-    std::string path;
+    StringPiece path;
     int compute_queue_id;
 };
 

@@ -292,12 +292,20 @@ void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix
     bp.router_.routes_map_.all_routes([this, &url_prefix]
     (const std::string &sub_prefix, VerbHandler verb_handler)
     {
+        std::string path;
         if (!url_prefix.empty() && url_prefix.back() == '/')
-            verb_handler.path = url_prefix + sub_prefix;
+            path = url_prefix + sub_prefix;
         else
-            verb_handler.path = url_prefix + "/" + sub_prefix;
+            path = url_prefix + "/" + sub_prefix;
         
-        VerbHandler &vh = this->router_.routes_map_.find_or_create(verb_handler.path.c_str());
+        std::vector<Verb> verb_list;
+        for(auto &vh_item : verb_handler.verb_handler_map)
+        {
+            verb_list.push_back(vh_item.first);
+        }
+        std::pair<Router::RouteVerbIter, bool> rv_pair = this->router_.add_route(verb_list, path.c_str());
+        verb_handler.path = rv_pair.first->route;
+        VerbHandler &vh = this->router_.routes_map_.find_or_create(rv_pair.first->route.c_str());
         vh = verb_handler;
     });
 }

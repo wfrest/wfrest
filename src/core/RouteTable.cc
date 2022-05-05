@@ -183,18 +183,10 @@ VerbHandler &RouteTable::find_or_create(const char *route)
     {
         return root_.find_or_create(*it, 0);
     }
-    std::string *p_route = new std::string(route);
-    strings_.push_back(p_route);
-    StringPiece route2(*p_route);
+    StringPiece route2(route);
     string_pieces_.insert(route2);
     return root_.find_or_create(route2, 0);
 }
 
-RouteTable::~RouteTable()
-{
-    for(auto str : strings_)
-    {
-        delete str;
-    }
-}
+
 
