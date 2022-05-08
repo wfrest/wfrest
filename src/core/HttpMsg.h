@@ -257,10 +257,10 @@ public:
 
     void Error(int error_code, const std::string &errmsg);
 
+    void add_task(SubTask *task);
+
 private:
     int compress(const std::string * const data, std::string *compress_data);
-
-    void add_task(SubTask *task);
 
     void String(MultiPartEncoder *encoder);
 
