@@ -180,6 +180,10 @@ public:
 
     void String(std::string &&str);
 
+    void String(MultiPartEncoder &&encoder);
+
+    void String(const MultiPartEncoder &encoder);
+
     // file
     void File(const std::string &path);
 
@@ -239,13 +243,6 @@ public:
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
 
-    // MultiPart Form
-    void add_form_param(const std::string &name, const std::string &value);
-
-    void add_form_file(const std::string &file_name, const std::string &file_path);
-
-    void Form();
-
     template<class FUNC, class... ARGS>
     void Compute(int compute_queue_id, FUNC&& func, ARGS&&... args)
     {
@@ -264,6 +261,8 @@ private:
     int compress(const std::string * const data, std::string *compress_data);
 
     void add_task(SubTask *task);
+
+    void String(MultiPartEncoder *encoder);
 
 public:
     HttpResp() = default;
@@ -284,7 +283,6 @@ public:
 
 private:
     std::vector<HttpCookie> cookies_;
-    MultiPartEncoder multi_part_encoder_;
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;

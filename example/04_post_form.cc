@@ -66,10 +66,11 @@ int main()
     // curl -v http://ip:port/form_send
     svr.GET("/form_send", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->add_form_param("Filename", "1.jpg");
-        resp->add_form_file("test_1.txt", "./www/test_1.txt");
-        resp->add_form_file("test_2.txt", "./www/test_2.txt");
-        resp->Form();
+        MultiPartEncoder encoder;
+        encoder.add_param("Filename", "1.jpg");
+        encoder.add_file("test_1.txt", "./www/test_1.txt");
+        encoder.add_file("test_2.txt", "./www/test_2.txt");
+        resp->String(std::move(encoder));
     });
 
     if (svr.start(8888) == 0)
