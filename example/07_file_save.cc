@@ -31,6 +31,8 @@ int main()
         resp->Save("test1.txt", std::move(content));
     });
 
+    // You can specify the message return to client when saving file successfully
+    // default is "Save File success\n"
     svr.GET("/file_write3", [](const HttpReq *req, HttpResp *resp)
     {
         std::string content = "1234567890987654321";
