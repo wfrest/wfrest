@@ -13,6 +13,13 @@ using namespace wfrest;
 
 namespace
 {
+
+struct SaveFileContext 
+{
+    std::string content;
+    std::string notify_msg;
+};
+
 /*
 We do not occupy any thread to read the file, but generate an asynchronous file reading task
 and reply to the request after the reading is completed.
@@ -42,14 +49,20 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
     long ret = pwrite_task->get_retval();
     HttpServerTask *server_task = task_of(pwrite_task);
     HttpResp *resp = server_task->get_resp();
-    delete static_cast<std::string *>(pwrite_task->user_data);
+    auto *save_context = static_cast<SaveFileContext *>(pwrite_task->user_data);
 
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->Error(StatusFileWriteError);
     } else
     {
-        resp->append_output_body_nocopy("Save File success\n", 18);
+        if(save_context->notify_msg.empty()) 
+        {
+            resp->append_output_body_nocopy("Save File success\n", 18);
+        } else 
+        {
+            resp->append_output_body_nocopy(save_context->notify_msg.c_str(), save_context->notify_msg.size());
+        }
     }
 }
 
@@ -119,36 +132,94 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, HttpResp *resp)
 {
+    HttpFile::save_file(dst_path, content, resp, "");
+}
+
+void HttpFile::save_file(const std::string &dst_path, const std::string &content,
+                                        HttpResp *resp, const std::string &notify_msg) 
+{
     HttpServerTask *server_task = task_of(resp);
 
-    auto *save_content = new std::string;
-    *save_content = content;
+    auto *save_context = new SaveFileContext; 
+    save_context->content = content;    // copy
+    save_context->notify_msg = notify_msg;  // copy
 
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
-                                                                  static_cast<const void *>(save_content->c_str()),
-                                                                  save_content->size(),
+                                                                  static_cast<const void *>(save_context->content.c_str()),
+                                                                  save_context->content.size(),
                                                                   0,
                                                                   pwrite_callback);
     **server_task << pwrite_task;
-    pwrite_task->user_data = save_content;
+    server_task->add_callback([save_context](HttpTask *) {
+        delete save_context;
+    });
+    pwrite_task->user_data = save_context;
+}
+
+void HttpFile::save_file(const std::string &dst_path, const std::string &content,
+                                        HttpResp *resp, std::string &&notify_msg) 
+{
+    HttpServerTask *server_task = task_of(resp);
+
+    auto *save_context = new SaveFileContext; 
+    save_context->content = content;    // copy
+    save_context->notify_msg = std::move(notify_msg);  
+
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
+                                                                  static_cast<const void *>(save_context->content.c_str()),
+                                                                  save_context->content.size(),
+                                                                  0,
+                                                                  pwrite_callback);
+    **server_task << pwrite_task;
+    server_task->add_callback([save_context](HttpTask *) {
+        delete save_context;
+    });
+    pwrite_task->user_data = save_context;
 }
 
 void HttpFile::save_file(const std::string &dst_path, std::string &&content, HttpResp *resp)
 {
+    HttpFile::save_file(dst_path, std::move(content), resp, "");   
+}
+
+void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
+                                        HttpResp *resp, const std::string &notify_msg) 
+{
     HttpServerTask *server_task = task_of(resp);
 
-    auto *save_content = new std::string;
-    *save_content = std::move(content);
+    auto *save_context = new SaveFileContext; 
+    save_context->content = std::move(content);  
+    save_context->notify_msg = notify_msg;  // copy
 
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
-                                                                  static_cast<const void *>(save_content->c_str()),
-                                                                  save_content->size(),
+                                                                  static_cast<const void *>(save_context->content.c_str()),
+                                                                  save_context->content.size(),
                                                                   0,
                                                                   pwrite_callback);
     **server_task << pwrite_task;
-    pwrite_task->user_data = save_content;
+    server_task->add_callback([save_context](HttpTask *) {
+        delete save_context;
+    });
+    pwrite_task->user_data = save_context;
 }
 
+void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
+                                        HttpResp *resp, std::string &&notify_msg) 
+{
+    HttpServerTask *server_task = task_of(resp);
 
+    auto *save_context = new SaveFileContext; 
+    save_context->content = std::move(content);  
+    save_context->notify_msg = std::move(notify_msg); 
 
-
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
+                                                                  static_cast<const void *>(save_context->content.c_str()),
+                                                                  save_context->content.size(),
+                                                                  0,
+                                                                  pwrite_callback);
+    **server_task << pwrite_task;
+    server_task->add_callback([save_context](HttpTask *) {
+        delete save_context;
+    });
+    pwrite_task->user_data = save_context;
+}

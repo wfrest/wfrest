@@ -194,7 +194,15 @@ public:
     // save file
     void Save(const std::string &file_dst, const std::string &content);
 
+    void Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg);
+
+    void Save(const std::string &file_dst, const std::string &content, std::string &&notify_msg);
+
     void Save(const std::string &file_dst, std::string &&content);
+    
+    void Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg);
+
+    void Save(const std::string &file_dst, std::string &&content, std::string &&notify_msg);
 
     // json
     void Json(const Json &json);

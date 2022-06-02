@@ -31,6 +31,13 @@ int main()
         resp->Save("test1.txt", std::move(content));
     });
 
+    svr.GET("/file_write3", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string content = "1234567890987654321";
+
+        resp->Save("test2.txt", std::move(content), "test notify test successfully");
+    });
+
     if (svr.start(8888) == 0)
     {
         wait_group.wait();

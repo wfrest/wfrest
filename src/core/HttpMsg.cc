@@ -721,6 +721,26 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content)
     HttpFile::save_file(file_dst, std::move(content), this);
 }
 
+void HttpResp::Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg)
+{
+    HttpFile::save_file(file_dst, content, this, notify_msg);
+}
+
+void HttpResp::Save(const std::string &file_dst, const std::string &content, std::string &&notify_msg)
+{
+    HttpFile::save_file(file_dst, content, this, std::move(notify_msg));
+}
+
+void HttpResp::Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg)
+{
+    HttpFile::save_file(file_dst, std::move(content), this, notify_msg);
+}
+
+void HttpResp::Save(const std::string &file_dst, std::string &&content, std::string &&notify_msg)
+{
+    HttpFile::save_file(file_dst, std::move(content), this, std::move(notify_msg));
+}
+
 void HttpResp::Json(const ::Json &json)
 {
     // The header value itself does not allow for multiple values, 

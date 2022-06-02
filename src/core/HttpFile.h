@@ -15,7 +15,19 @@ public:
 
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
 
+    static void save_file(const std::string &dst_path, const std::string &content, 
+                                            HttpResp *resp, const std::string &notify_msg);
+
+    static void save_file(const std::string &dst_path, const std::string &content, 
+                                            HttpResp *resp, std::string &&notify_msg);
+
     static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
+
+    static void save_file(const std::string &dst_path, std::string&& content, 
+                                            HttpResp *resp, const std::string &notify_msg);
+
+    static void save_file(const std::string &dst_path, std::string&& content, 
+                                            HttpResp *resp, std::string &&notify_msg);
 };
 
 }  // namespace wfrest
