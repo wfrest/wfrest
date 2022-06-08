@@ -1,4 +1,4 @@
 [submodule "workflow"]
 	path = workflow
 	url = https://github.com/sogou/workflow.git
-	branch = v0.10.1
+	branch = master
