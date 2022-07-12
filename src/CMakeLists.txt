@@ -30,30 +30,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -pipe -std=c++11 -fno-except
 
 add_subdirectory(base)
 add_subdirectory(util)
+add_subdirectory(core)
 
 add_dependencies(base LINK_HEADERS)
 add_dependencies(util LINK_HEADERS)
-
-set(SRC
-        core/BluePrint.cc
-        core/HttpContent.cc
-        core/HttpFile.cc 
-        core/HttpServerTask.cc
-        core/RouteTable.cc
-        core/Aspect.cc  
-        core/HttpDef.cc    
-        core/HttpServer.cc  
-        core/Router.cc          
-        core/HttpCookie.cc   
-        core/HttpMsg.cc   
-        core/MultiPartParser.c  
-)
+add_dependencies(core LINK_HEADERS)
 
 add_library(
 	${PROJECT_NAME} STATIC
-	${SRC}
 	$<TARGET_OBJECTS:base>
 	$<TARGET_OBJECTS:util>
+	$<TARGET_OBJECTS:core>
 )
 add_dependencies(${PROJECT_NAME} LINK_HEADERS)
 
