@@ -23,13 +23,17 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor
         children_.insert({route, new_node});
         return new_node->find_or_create(route, ++cursor);
     }
+    // ignore the last '/'
+    if (cursor == route.size() - 1 && route[cursor] == '/')
+    {
+        return verb_handler_;
+    }
 
     if (route[cursor] == '/')
         cursor++; // skip the /
     int anchor = cursor;
     while (cursor < route.size() and route[cursor] != '/')
         cursor++;
-
     // get the '/ {mid} /' part
     StringPiece mid(route.begin() + anchor, cursor - anchor);
     auto it = children_.find(mid);
@@ -140,7 +144,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
     return end();
 }
 
-void RouteTableNode::bfs_transverse()
+void RouteTableNode::print_node_arch()
 {
     std::queue<std::pair<StringPiece, RouteTableNode *>> node_queue;
     StringPiece root("/");
@@ -178,14 +182,16 @@ VerbHandler &RouteTable::find_or_create(const char *route)
     // Use pointer to prevent iterator invalidation
     // StringPiece is only a watcher, so we should store the string.
     StringPiece route_piece(route);
+    // if(route_piece[route_piece.size() - 1] == '/')
+    //     route_piece.remove_suffix(1);
+
     auto it = string_pieces_.find(route_piece);
     if(it != string_pieces_.end())
     {
         return root_.find_or_create(*it, 0);
     }
-    StringPiece route2(route);
-    string_pieces_.insert(route2);
-    return root_.find_or_create(route2, 0);
+    string_pieces_.insert(route_piece);
+    return root_.find_or_create(route_piece, 0);
 }
 
 

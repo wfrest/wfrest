@@ -33,7 +33,7 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
     StringPiece route2(route);
     if (route2.size() > 1 and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
-
+        
     std::map<std::string, std::string> route_params;
     std::string route_match_path;
     auto it = routes_map_.find(route2, route_params, route_match_path);

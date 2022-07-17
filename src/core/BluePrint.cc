@@ -297,16 +297,17 @@ void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix
             path = url_prefix + sub_prefix;
         else
             path = url_prefix + "/" + sub_prefix;
-        
+    
         std::vector<Verb> verb_list;
         for(auto &vh_item : verb_handler.verb_handler_map)
         {
             verb_list.push_back(vh_item.first);
         }
         std::pair<Router::RouteVerbIter, bool> rv_pair = this->router_.add_route(verb_list, path.c_str());
-        verb_handler.path = rv_pair.first->route;
+        
         VerbHandler &vh = this->router_.routes_map_.find_or_create(rv_pair.first->route.c_str());
         vh = verb_handler;
+        vh.path = rv_pair.first->route;
     });
 }
 

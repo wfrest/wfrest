@@ -31,6 +31,7 @@ protected:
 };
 
 // Becareful : /hello -> hello, we won't store the '/' at the front 
+// /api/v1/v2/ -> /api/v1/v2, we won't store the '/' at the back
 TEST_F(RouterRegisterTest, reg_route) 
 {
     RegRoutes routes_list = {
@@ -49,11 +50,11 @@ TEST_F(RouterRegisterTest, reg_route)
     // Becareful : /hello -> hello, we won't store the '/' at the front 
     RegRoutes reg_list_exp = {
         {"GET", "api/action*"},
-        {"GET", "api/v1/v2/"},
+        {"GET", "api/v1/v2"},
         {"GET", "api/v1/v3/v4"},
         {"POST", "api/{name}"},
         {"GET", "hello"},
-        {"POST", "ping/"},
+        {"POST", "ping"},
     };
     
     RegRoutes reg_list = router_.all_routes();
@@ -78,7 +79,7 @@ TEST_F(RouterRegisterTest, root_route)
     // Becareful : /hello -> hello, we won't store the '/' at the front 
     RegRoutes reg_list_exp = {
         {"GET", "/"},
-        {"POST", "ping/"},
+        {"POST", "ping"},
     };
     
     RegRoutes reg_list = router_.all_routes();

@@ -31,6 +31,7 @@ int main()
     if (svr.start(8888) == 0)
     {
         svr.list_routes();
+        svr.print_node_arch();
         wait_group.wait();
         svr.stop();
     } else

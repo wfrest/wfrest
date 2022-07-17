@@ -9,7 +9,7 @@ inline void set_admin_bp(BluePrint &bp)
         fprintf(stderr, "New page\n");
     });
 
-    bp.GET("/page/edit/", [](const HttpReq *req, HttpResp *resp)
+    bp.GET("/page/edit", [](const HttpReq *req, HttpResp *resp)
     {
         fprintf(stderr, "Edit page\n");
     });

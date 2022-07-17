@@ -37,6 +37,8 @@ public:
 
     std::pair<RouteVerbIter, bool> add_route(const std::vector<Verb> &verbs, const char *route);
     
+    void print_node_arch() { routes_map_.print_node_arch(); }
+
 private:
     RouteTable routes_map_;
     std::set<RouteVerb, RouteVerb> routes_;  // for store 

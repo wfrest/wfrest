@@ -214,6 +214,7 @@ public:
 
     void add_blueprint(const BluePrint &bp, const std::string &url_prefix);
 
+    void print_node_arch() { router_.print_node_arch(); }  // for test
 private:
     Router router_;    // ptr for hiding internel class
     friend class HttpServer;

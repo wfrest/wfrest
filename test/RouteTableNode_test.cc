@@ -13,5 +13,5 @@ int main()
     rtn.find_or_create(route3, 0);
     StringPiece route4("/abi/v2/test/v1");
     rtn.find_or_create(route4, 0);
-    rtn.bfs_transverse();
+    rtn.print_node_arch();
 }

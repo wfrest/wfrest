@@ -49,7 +49,7 @@ public:
     template<typename Func>
     void all_routes(const Func &func, std::string prefix) const;
 
-    void bfs_transverse();  // for test
+    void print_node_arch();  // for test
     
 private:
     VerbHandler verb_handler_;
@@ -92,6 +92,8 @@ public:
     { return root_.end(); }
 
     ~RouteTable() = default;
+
+    void print_node_arch() { root_.print_node_arch(); }  // for test
     
 private:
     RouteTableNode root_;

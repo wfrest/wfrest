@@ -460,6 +460,8 @@ public:
 
     HttpServer &track(TrackFunc &&track_func);
 
+    void print_node_arch() { blue_print_.print_node_arch(); }  // for test
+    
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 
