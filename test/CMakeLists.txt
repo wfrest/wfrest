@@ -73,14 +73,15 @@ foreach(src ${UNIT_TEST_LIST})
 endforeach()
 
 set(SERVER_UNIT_TEST_LIST
-	send_unittest
-	param_unittest
-	json_unittest
-	file_unittest
-	proxy_unittest
-	static_unittest
-	compute_unittest
-	send_form_unittest
+	send_test
+	param_test
+	json_test
+	file_test
+	proxy_test
+	static_test
+	compute_test
+	send_form_test
+	blueprint_test
 )
 
 foreach(src ${SERVER_UNIT_TEST_LIST})

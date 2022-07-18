@@ -182,9 +182,6 @@ VerbHandler &RouteTable::find_or_create(const char *route)
     // Use pointer to prevent iterator invalidation
     // StringPiece is only a watcher, so we should store the string.
     StringPiece route_piece(route);
-    // if(route_piece[route_piece.size() - 1] == '/')
-    //     route_piece.remove_suffix(1);
-
     auto it = string_pieces_.find(route_piece);
     if(it != string_pieces_.end())
     {
