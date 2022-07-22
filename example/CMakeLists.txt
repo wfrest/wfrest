@@ -71,6 +71,7 @@ set(EXAMPLE_LIST
     21_mysql
     22_redis
     23_compute
+    24_peer_ip_address
 )
 
 foreach(src ${EXAMPLE_LIST})
