@@ -54,6 +54,7 @@ void HttpServer::process(HttpTask *task)
 
     req->set_parsed_uri(std::move(uri));
     std::string verb = req->get_method();
+
     int ret = blue_print_.router().call(str_to_verb(verb), route, server_task);
     if(ret != StatusOK)
     {
@@ -131,10 +132,11 @@ HttpServer &HttpServer::track()
         Timestamp current_time = Timestamp::now();
         std::string fmt_time = current_time.to_format_str();
         // time | http status code | peer ip address | verb | route path
-        fprintf(stderr, "[WFREST] %s | %s | %s | %s | \"%s\" | -- \n", 
+        fprintf(stderr, "[WFREST] %s | %s | %s : %d | %s | \"%s\" | -- \n", 
                     fmt_time.c_str(),
                     resp->get_status_code(),
-                    task->get_peer_addr_str().c_str(), 
+                    task->peer_addr().c_str(),
+                    task->peer_port(), 
                     req->get_method(),
                     req->current_path().c_str());
     };

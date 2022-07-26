@@ -21,28 +21,9 @@ int main()
     // curl -v http://ip:port/hello
     svr.GET("/hello", [](const HttpReq *req, HttpResp *resp)
     {        
-        char addrstr[128];
-        struct sockaddr_storage addr;
-        socklen_t l = sizeof addr;
-        unsigned short port = 0;
+        auto *http_task = task_of(resp);
 
-        task_of(resp)->get_peer_addr((struct sockaddr *)&addr, &l);
-        if (addr.ss_family == AF_INET)
-        {
-            struct sockaddr_in *sin = (struct sockaddr_in *)&addr;
-            inet_ntop(AF_INET, &sin->sin_addr, addrstr, 128);
-            port = ntohs(sin->sin_port);
-        }
-        else if (addr.ss_family == AF_INET6)
-        {
-            struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&addr;
-            inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, 128);
-            port = ntohs(sin6->sin6_port);
-        }
-        else
-            strcpy(addrstr, "Unknown");
-
-        fprintf(stderr, "Peer address: %s:%d\n", addrstr, port);
+        fprintf(stderr, "Peer address: %s:%d\n", http_task->peer_addr().c_str(), http_task->peer_port());
         resp->String("world\n");
     });
 

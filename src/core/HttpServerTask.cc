@@ -6,23 +6,34 @@
 #include "HttpServerTask.h"
 #include "StrUtil.h"
 
-using namespace wfrest;
 using namespace protocol;
 
 #define HTTP_KEEPALIVE_DEFAULT    (60 * 1000)
 #define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
+
+namespace wfrest
+{
+
+struct PeerInfo
+{
+    std::string addr;
+    unsigned short port;
+};
+
 HttpServerTask::HttpServerTask(CommService *service,
                                ProcFunc& process) :
         WFServerTask(service, WFGlobal::get_scheduler(), process),
         req_is_alive_(false),
-        req_has_keep_alive_header_(false)
+        req_has_keep_alive_header_(false),
+        peer_info_(nullptr)
 {
     WFServerTask::set_callback([this](HttpTask *task) {
         for(auto &cb : cb_list_)
         {
             cb(task);
         }
+        delete this->peer_info_;  // defer after cb(because of track func)
     });
 }
 
@@ -186,7 +197,25 @@ CommMessageOut *HttpServerTask::message_out()
     return this->WFServerTask::message_out();
 }
 
-std::string HttpServerTask::get_peer_addr_str()
+const std::string &HttpServerTask::peer_addr() const
+{
+    if(!peer_info_) 
+    {
+        this->new_peer_info();
+    }
+    return peer_info_->addr;
+}
+
+unsigned short HttpServerTask::peer_port() const
+{
+    if(!peer_info_)
+    {
+        this->new_peer_info();
+    }
+    return peer_info_->port;
+}
+
+void HttpServerTask::new_peer_info() const
 {
     static const int ADDR_STR_LEN = 128;
     char addrstr[ADDR_STR_LEN];
@@ -207,6 +236,7 @@ std::string HttpServerTask::get_peer_addr_str()
         port = ntohs(sin6->sin6_port);
     } else
         strcpy(addrstr, "Unknown");
-
-    return addrstr;
+    peer_info_ = new PeerInfo{addrstr, port};
 }
+
+} // namespace wfrest
