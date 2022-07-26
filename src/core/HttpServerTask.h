@@ -7,8 +7,6 @@
 namespace wfrest
 {
 
-struct PeerInfo;
-
 class HttpServerTask : public WFServerTask<HttpReq, HttpResp> , public Noncopyable
 {
 public:
@@ -32,7 +30,7 @@ public:
         return task.resp_offset();
     }
 
-    const std::string &peer_addr() const;
+    std::string peer_addr() const;
 
     unsigned short peer_port() const;
     
@@ -51,8 +49,6 @@ private:
         return (const char *) (&this->resp) - (const char *) this;
     }
 
-    void new_peer_info() const;
-
     // Just be convinient for get_resp_offset
     HttpServerTask(std::function<void(HttpTask *)> proc) :
             WFServerTask(nullptr, nullptr, proc)
@@ -63,7 +59,6 @@ private:
     bool req_has_keep_alive_header_;
     std::string req_keep_alive_;
     std::vector<ServerCallBack> cb_list_;
-    mutable PeerInfo *peer_info_;
 };
 
 inline HttpServerTask *task_of(const SubTask *task)

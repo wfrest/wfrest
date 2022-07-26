@@ -18,8 +18,37 @@ int main()
 
     HttpServer svr;
 
-    // curl -v http://ip:port/hello
-    svr.GET("/hello", [](const HttpReq *req, HttpResp *resp)
+    // curl -v http://ip:port/method1
+    svr.GET("/method1", [](const HttpReq *req, HttpResp *resp)
+    {        
+        char addrstr[128];
+        struct sockaddr_storage addr;
+        socklen_t l = sizeof addr;
+        unsigned short port = 0;
+
+        task_of(resp)->get_peer_addr((struct sockaddr *)&addr, &l);
+        if (addr.ss_family == AF_INET)
+        {
+            struct sockaddr_in *sin = (struct sockaddr_in *)&addr;
+            inet_ntop(AF_INET, &sin->sin_addr, addrstr, 128);
+            port = ntohs(sin->sin_port);
+        }
+        else if (addr.ss_family == AF_INET6)
+        {
+            struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&addr;
+            inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, 128);
+            port = ntohs(sin6->sin6_port);
+        }
+        else
+            strcpy(addrstr, "Unknown");
+
+        fprintf(stderr, "Peer address: %s:%d\n", addrstr, port);
+        resp->String("world\n");
+    });
+
+    // An easier way
+    // curl -v http://ip:port/method2
+    svr.GET("/method2", [](const HttpReq *req, HttpResp *resp)
     {        
         auto *http_task = task_of(resp);
 

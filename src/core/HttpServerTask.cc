@@ -15,25 +15,17 @@ using namespace protocol;
 namespace wfrest
 {
 
-struct PeerInfo
-{
-    std::string addr;
-    unsigned short port;
-};
-
 HttpServerTask::HttpServerTask(CommService *service,
                                ProcFunc& process) :
         WFServerTask(service, WFGlobal::get_scheduler(), process),
         req_is_alive_(false),
-        req_has_keep_alive_header_(false),
-        peer_info_(nullptr)
+        req_has_keep_alive_header_(false)
 {
     WFServerTask::set_callback([this](HttpTask *task) {
         for(auto &cb : cb_list_)
         {
             cb(task);
         }
-        delete this->peer_info_;  // defer after cb(because of track func)
     });
 }
 
@@ -197,46 +189,45 @@ CommMessageOut *HttpServerTask::message_out()
     return this->WFServerTask::message_out();
 }
 
-const std::string &HttpServerTask::peer_addr() const
+std::string HttpServerTask::peer_addr() const
 {
-    if(!peer_info_) 
-    {
-        this->new_peer_info();
-    }
-    return peer_info_->addr;
-}
-
-unsigned short HttpServerTask::peer_port() const
-{
-    if(!peer_info_)
-    {
-        this->new_peer_info();
-    }
-    return peer_info_->port;
-}
-
-void HttpServerTask::new_peer_info() const
-{
-    static const int ADDR_STR_LEN = 128;
-    char addrstr[ADDR_STR_LEN];
     struct sockaddr_storage addr;
     socklen_t addr_len = sizeof addr;
-    unsigned short port = 0;
-
     this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+
+    static const int ADDR_STR_LEN = 128;
+    char addrstr[ADDR_STR_LEN];
     if (addr.ss_family == AF_INET)
     {
         auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
         inet_ntop(AF_INET, &sin->sin_addr, addrstr, ADDR_STR_LEN);
-        port = ntohs(sin->sin_port);
     } else if (addr.ss_family == AF_INET6)
     {
         auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
         inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, ADDR_STR_LEN);
-        port = ntohs(sin6->sin6_port);
     } else
         strcpy(addrstr, "Unknown");
-    peer_info_ = new PeerInfo{addrstr, port};
+
+    return addrstr;
+}
+
+unsigned short HttpServerTask::peer_port() const
+{
+    struct sockaddr_storage addr;
+    socklen_t addr_len = sizeof addr;
+    this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+
+    unsigned short port = 0;
+    if (addr.ss_family == AF_INET)
+    {
+        auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
+        port = ntohs(sin->sin_port);
+    } else if (addr.ss_family == AF_INET6)
+    {
+        auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
+        port = ntohs(sin6->sin6_port);
+    }
+    return port;
 }
 
 } // namespace wfrest
