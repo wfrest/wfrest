@@ -2,9 +2,10 @@
 name: Docker Image CI
 
 on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: build_docker_image
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build-and-push:
