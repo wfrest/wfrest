@@ -13,7 +13,7 @@ class HttpServerTask;
 class Router : public Noncopyable
 {
 public:
-    void handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb);
+    void handle(const std::string &route, int compute_queue_id, const WrapHandler &handler, Verb verb);
 
     int call(Verb verb, const std::string &route, HttpServerTask *server_task) const;
 
@@ -33,9 +33,9 @@ public:
 
     using RouteVerbIter = std::set<RouteVerb>::iterator;
 
-    std::pair<RouteVerbIter, bool> add_route(Verb verb, const char *route);
+    std::pair<RouteVerbIter, bool> add_route(Verb verb, const std::string &route);
 
-    std::pair<RouteVerbIter, bool> add_route(const std::vector<Verb> &verbs, const char *route);
+    std::pair<RouteVerbIter, bool> add_route(const std::vector<Verb> &verbs, const std::string &route);
     
     void print_node_arch() { routes_map_.print_node_arch(); }
 

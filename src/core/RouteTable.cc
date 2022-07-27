@@ -11,7 +11,7 @@ RouteTableNode::~RouteTableNode()
     }
 }
 
-VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor)
+VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, size_t cursor)
 {
     if (cursor == route.size())
         return verb_handler_;
@@ -49,7 +49,7 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, int cursor
 }
 
 RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
-                                        int cursor,
+                                        size_t cursor,
                                         OUT std::map<std::string, std::string> &route_params,
                                         OUT std::string &route_match_path) const
 {

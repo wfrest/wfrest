@@ -16,6 +16,7 @@
 #include "ErrorCode.h"
 #include "FileUtil.h"
 #include "HttpServerTask.h"
+#include "CodeUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
@@ -683,6 +684,10 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
     ::Json js;
     std::string resp_msg = error_code_to_str(error_code);
     if(!errmsg.empty()) resp_msg = resp_msg + " : " + errmsg;
+    if(CodeUtil::is_url_encode(errmsg))
+    {
+        resp_msg = CodeUtil::url_decode(resp_msg);
+    }
     js["errmsg"] = resp_msg;
 
     this->Json(js);

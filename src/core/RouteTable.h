@@ -36,13 +36,13 @@ public:
         { return this->ptr != other.ptr; }
     };
 
-    VerbHandler &find_or_create(const StringPiece &route, int cursor);
+    VerbHandler &find_or_create(const StringPiece &route, size_t cursor);
 
     iterator end() const
     { return iterator{nullptr, StringPiece(), VerbHandler()}; }
 
     iterator find(const StringPiece &route,
-                  int cursor,
+                  size_t cursor,
                   OUT std::map<std::string, std::string> &route_params,
                   OUT std::string &route_match_path) const;
 

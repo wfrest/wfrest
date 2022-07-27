@@ -158,7 +158,7 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
 }  // namespace detail
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, const Handler &handler, 
+void BluePrint::ROUTE(const std::string &route, const Handler &handler, 
             Verb verb, const AP &... ap)
 {
     WrapHandler wrap_handler =
@@ -178,7 +178,7 @@ void BluePrint::ROUTE(const char *route, const Handler &handler,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, int compute_queue_id, 
+void BluePrint::ROUTE(const std::string &route, int compute_queue_id, 
             const Handler &handler, Verb verb, const AP &... ap)
 {
     WrapHandler wrap_handler =
@@ -199,7 +199,7 @@ void BluePrint::ROUTE(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, const Handler &handler, 
+void BluePrint::ROUTE(const std::string &route, const Handler &handler, 
             const std::vector<std::string> &methods, const AP &... ap)
 {
     for(const auto &method : methods)
@@ -209,7 +209,7 @@ void BluePrint::ROUTE(const char *route, const Handler &handler,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, int compute_queue_id, 
+void BluePrint::ROUTE(const std::string &route, int compute_queue_id, 
             const Handler &handler, 
             const std::vector<std::string> &methods, const AP &... ap)
 {
@@ -220,85 +220,85 @@ void BluePrint::ROUTE(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::GET(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::GET, ap...);
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, int compute_queue_id,
+void BluePrint::GET(const std::string &route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::GET, ap...);
 }
 
 template<typename... AP>
-void BluePrint::POST(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::POST(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::POST, ap...);
 }
 
 template<typename... AP>
-void BluePrint::POST(const char *route, int compute_queue_id,
+void BluePrint::POST(const std::string &route, int compute_queue_id,
                      const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::POST, ap...);
 }
 
 template<typename... AP>
-void BluePrint::DELETE(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::DELETE(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::DELETE, ap...);
 }
 
 template<typename... AP>
-void BluePrint::DELETE(const char *route, int compute_queue_id,
+void BluePrint::DELETE(const std::string &route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::DELETE, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PATCH(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::PATCH(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::PATCH, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PATCH(const char *route, int compute_queue_id,
+void BluePrint::PATCH(const std::string &route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::PATCH, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PUT(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::PUT(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::PUT, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PUT(const char *route, int compute_queue_id,
+void BluePrint::PUT(const std::string &route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::PUT, ap...);
 }
 
 template<typename... AP>
-void BluePrint::HEAD(const char *route, const Handler &handler, const AP &... ap)
+void BluePrint::HEAD(const std::string &route, const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::HEAD, ap...);
 }
 
 template<typename... AP>
-void BluePrint::HEAD(const char *route, int compute_queue_id,
+void BluePrint::HEAD(const std::string &route, int compute_queue_id,
                     const Handler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::HEAD, ap...);
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, const SeriesHandler &handler, 
+void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, 
             Verb verb, const AP &... ap)
 {
     WrapHandler wrap_handler =
@@ -319,7 +319,7 @@ void BluePrint::ROUTE(const char *route, const SeriesHandler &handler,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, int compute_queue_id, 
+void BluePrint::ROUTE(const std::string &route, int compute_queue_id, 
             const SeriesHandler &handler, Verb verb, const AP &... ap)
 {
     WrapHandler wrap_handler =
@@ -341,7 +341,7 @@ void BluePrint::ROUTE(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, const SeriesHandler &handler, 
+void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, 
             const std::vector<std::string> &methods, const AP &... ap)
 {
     for(const auto &method : methods)
@@ -351,7 +351,7 @@ void BluePrint::ROUTE(const char *route, const SeriesHandler &handler,
 }
 
 template<typename... AP>
-void BluePrint::ROUTE(const char *route, int compute_queue_id, 
+void BluePrint::ROUTE(const std::string &route, int compute_queue_id, 
             const SeriesHandler &handler, 
             const std::vector<std::string> &methods, const AP &... ap)
 {
@@ -362,78 +362,78 @@ void BluePrint::ROUTE(const char *route, int compute_queue_id,
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::GET(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::GET, ap...);
 }
 
 template<typename... AP>
-void BluePrint::GET(const char *route, int compute_queue_id,
+void BluePrint::GET(const std::string &route, int compute_queue_id,
                     const SeriesHandler &handler, const AP &... ap)
 {   
     this->ROUTE(route, compute_queue_id, handler, Verb::GET, ap...);
 }
 
 template<typename... AP>
-void BluePrint::POST(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::POST(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::POST, ap...);
 }
 
 template<typename... AP>
-void BluePrint::POST(const char *route, int compute_queue_id,
+void BluePrint::POST(const std::string &route, int compute_queue_id,
                      const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, compute_queue_id, handler, Verb::POST, ap...);
 }
 
 template<typename... AP>
-void BluePrint::DELETE(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::DELETE(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::DELETE, ap...);
 }
 
 template<typename... AP>
-void BluePrint::DELETE(const char *route, int compute_queue_id,
+void BluePrint::DELETE(const std::string &route, int compute_queue_id,
                     const SeriesHandler &handler, const AP &... ap)
 {   
     this->ROUTE(route, compute_queue_id, handler, Verb::DELETE, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PATCH(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::PATCH(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::PATCH, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PATCH(const char *route, int compute_queue_id,
+void BluePrint::PATCH(const std::string &route, int compute_queue_id,
                     const SeriesHandler &handler, const AP &... ap)
 {   
     this->ROUTE(route, compute_queue_id, handler, Verb::PATCH, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PUT(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::PUT(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::PUT, ap...);
 }
 
 template<typename... AP>
-void BluePrint::PUT(const char *route, int compute_queue_id,
+void BluePrint::PUT(const std::string &route, int compute_queue_id,
                     const SeriesHandler &handler, const AP &... ap)
 {   
     this->ROUTE(route, compute_queue_id, handler, Verb::PUT, ap...);
 }
 
 template<typename... AP>
-void BluePrint::HEAD(const char *route, const SeriesHandler &handler, const AP &... ap)
+void BluePrint::HEAD(const std::string &route, const SeriesHandler &handler, const AP &... ap)
 {
     this->ROUTE(route, handler, Verb::HEAD, ap...);
 }
 
 template<typename... AP>
-void BluePrint::HEAD(const char *route, int compute_queue_id,
+void BluePrint::HEAD(const std::string &route, int compute_queue_id,
                     const SeriesHandler &handler, const AP &... ap)
 {   
     this->ROUTE(route, compute_queue_id, handler, Verb::HEAD, ap...);

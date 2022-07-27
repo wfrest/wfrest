@@ -72,6 +72,8 @@ set(EXAMPLE_LIST
     22_redis
     23_compute
     24_peer_ip_address
+    25_cn_url_server
+    25_cn_url_client
 )
 
 foreach(src ${EXAMPLE_LIST})

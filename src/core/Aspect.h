@@ -13,6 +13,8 @@ class HttpResp;
 class Aspect
 {
 public:
+    virtual ~Aspect() = default;
+
     virtual bool before(const HttpReq *req, HttpResp *resp) = 0;
 
     virtual bool after(const HttpReq *req, HttpResp *resp) = 0;

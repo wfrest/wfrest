@@ -206,7 +206,7 @@ Form MultiPartForm::parse_multipart(const StringPiece &body) const
     userdata.state = MP_START;
     userdata.mp = &form;
     multipart_parser_set_data(parser, &userdata);
-    size_t num_parse = multipart_parser_execute(parser, body.data(), body.size());
+    multipart_parser_execute(parser, body.data(), body.size());
     multipart_parser_free(parser);
     return form;
 }

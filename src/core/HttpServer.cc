@@ -10,6 +10,7 @@
 #include "Macro.h"
 #include "Router.h"
 #include "ErrorCode.h"
+#include "CodeUtil.h"
 
 using namespace wfrest;
 
@@ -54,7 +55,7 @@ void HttpServer::process(HttpTask *task)
 
     req->set_parsed_uri(std::move(uri));
     std::string verb = req->get_method();
-
+    route = CodeUtil::url_encode(route);
     int ret = blue_print_.router().call(str_to_verb(verb), route, server_task);
     if(ret != StatusOK)
     {

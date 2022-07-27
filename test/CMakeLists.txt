@@ -82,6 +82,7 @@ set(SERVER_UNIT_TEST_LIST
 	compute_test
 	send_form_test
 	blueprint_test
+	cn_url_test
 )
 
 foreach(src ${SERVER_UNIT_TEST_LIST})

@@ -34,6 +34,7 @@ set(SRC_HEADERS
     src/util/PathUtil.h  
     src/util/StrUtil.h  
     src/util/UriUtil.h
+    src/util/CodeUtil.h
 )
 
 set(INCLUDE_HEADERS ${SRC_HEADERS})

@@ -9,6 +9,7 @@ set(SRC
     PathUtil.cc 
     StrUtil.cc
     UriUtil.cc
+    CodeUtil.cc
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SRC})

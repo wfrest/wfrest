@@ -4,10 +4,11 @@
 #include "HttpServerTask.h"
 #include "HttpMsg.h"
 #include "ErrorCode.h"
+#include "CodeUtil.h"
 
 using namespace wfrest;
 
-void Router::handle(const char *route, int compute_queue_id, const WrapHandler &handler, Verb verb)
+void Router::handle(const std::string &route, int compute_queue_id, const WrapHandler &handler, Verb verb)
 {
     std::pair<RouteVerbIter, bool> rv_pair = add_route(verb, route);
     VerbHandler &vh = routes_map_.find_or_create(rv_pair.first->route.c_str());
@@ -18,7 +19,7 @@ void Router::handle(const char *route, int compute_queue_id, const WrapHandler &
     }
 
     vh.verb_handler_map.insert({verb, handler});
-    vh.path = route;
+    vh.path = rv_pair.first->route;
     vh.compute_queue_id = compute_queue_id;
 }
 
@@ -77,8 +78,14 @@ void Router::print_routes() const
     {   
         for(auto verb : rv.verbs)
         {
-            fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb), rv.route.c_str());
-        }   
+            if (CodeUtil::is_url_encode(rv.route)) 
+            {
+                fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb), CodeUtil::url_decode(rv.route).c_str());
+            } else 
+            {
+                fprintf(stderr, "[WFREST] %s\t%s\n", verb_to_str(verb), rv.route.c_str());
+            }
+        }
     }
 }
 
@@ -95,11 +102,10 @@ std::vector<std::pair<std::string, std::string> > Router::all_routes() const
     return res;
 }
 
-std::pair<Router::RouteVerbIter, bool> Router::add_route(Verb verb, const char *route)
+std::pair<Router::RouteVerbIter, bool> Router::add_route(Verb verb, const std::string &route)
 {
-    std::string route_path = std::string(route);
     RouteVerb rv;
-    rv.route = std::move(route_path);
+    rv.route = route;
     auto it = routes_.find(rv);
     if(it != routes_.end()) 
     {
@@ -111,11 +117,10 @@ std::pair<Router::RouteVerbIter, bool> Router::add_route(Verb verb, const char *
     return routes_.emplace(std::move(rv));
 }
 
-std::pair<Router::RouteVerbIter, bool> Router::add_route(const std::vector<Verb> &verbs, const char *route) 
+std::pair<Router::RouteVerbIter, bool> Router::add_route(const std::vector<Verb> &verbs, const std::string &route) 
 {
-    std::string route_path = std::string(route);
     RouteVerb rv;
-    rv.route = std::move(route_path);
+    rv.route = route;
     auto it = routes_.find(rv);
     if(it != routes_.end()) 
     {
