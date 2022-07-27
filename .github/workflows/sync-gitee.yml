@@ -15,9 +15,9 @@ jobs:
 
       - name: sync github -> gitee
         uses: Yikun/hub-mirror-action@master
-        with:
+        with:  
           src: 'github/${{ github.repository_owner }}'
-          dst: ${{ secrets.GITEE_USER }}
+          dst: 'gitee/${{ secrets.GITEE_USER }}'
           dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
           dst_token:  ${{ secrets.GITEE_TOKEN }}
           static_list: ${{ github.event.repository.name }}
