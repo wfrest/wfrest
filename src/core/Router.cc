@@ -31,7 +31,13 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
     // skip the last / of the url. Except for /
     // /hello ==  /hello/
     // / not change
-    StringPiece route2(route);
+    std::string route_decode;
+    if (CodeUtil::is_url_encode(route))
+        route_decode = CodeUtil::url_decode(route);
+    else
+        route_decode = route;
+
+    StringPiece route2(route_decode);
     if (route2.size() > 1 and route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
         
