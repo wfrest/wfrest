@@ -15,7 +15,7 @@ std::string CodeUtil::url_encode(const std::string &value)
     {
         if (!((chr >= '0' && chr <= '9') || (chr >= 'A' && chr <= 'Z') ||
             (chr >= 'a' && chr <= 'z') || chr == '-' || chr == '.' ||
-            chr == '_' || chr == '~'))
+            chr == '_' || chr == '~' || chr == '/'))
         {
             result += std::string("%") +
                     hex_chars[static_cast<unsigned char>(chr) >> 4] +

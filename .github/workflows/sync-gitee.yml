@@ -7,6 +7,9 @@ on:
 jobs:
   repo-sync:
     name: sync
+    env:
+      dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+      dst_token: ${{ secrets.GITEE_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,6 +18,7 @@ jobs:
 
       - name: sync github -> gitee
         uses: Yikun/hub-mirror-action@master
+        if: env.dst_key && env.dst_token
         with:  
           src: 'github/${{ github.repository_owner }}'
           dst: gitee/wfrest

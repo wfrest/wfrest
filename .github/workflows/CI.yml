@@ -32,3 +32,6 @@ jobs:
 
     - name: make example
       run: make example
+
+    - name : make test
+      run: make check
