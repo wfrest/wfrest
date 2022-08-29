@@ -13,10 +13,14 @@ endif ()
 find_package(OpenSSL REQUIRED)
 set (HAVE_SYS_UIO_H_01 true)
 
-# Try to find the package if workflow is not installed, otherwise proceed with find_package()
-if (NOT WORKFLOW_INSTALLED)
-        find_package(Workflow REQUIRED CONFIG HINTS ../workflow)
-endif ()
+if (WITH_VCPKG_TOOLCHAIN)
+	find_package(Workflow REQUIRED CONFIG)
+else ()
+	# Try to find the package if workflow is not installed, otherwise proceed with find_package()
+	if (NOT WORKFLOW_INSTALLED)
+		find_package(Workflow REQUIRED CONFIG HINTS ../workflow)
+	endif ()
+endif()
 
 include_directories(
 	${OPENSSL_INCLUDE_DIR}
