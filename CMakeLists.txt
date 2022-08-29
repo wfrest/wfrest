@@ -10,17 +10,17 @@ project(wfrest
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 
-check_include_file_cxx("workflow/Workflow.h" WORKFLOW_INSTALLED)
-if (NOT WORKFLOW_INSTALLED)
-	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
-		message( FATAL_ERROR "Workflow is neither installed not in third_party!")
-	endif ()
-else ()
-	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
-		message("Workflow third_party FOUND. Use for source code dependencies.")
-		set(WORKFLOW_INSTALLED 0)
-	endif ()
-endif ()
+# check_include_file_cxx("workflow/Workflow.h" WORKFLOW_INSTALLED)
+# if (NOT WORKFLOW_INSTALLED)
+# 	if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+# 		message( FATAL_ERROR "Workflow is neither installed not in third_party!")
+# 	endif ()
+# else ()
+# 	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/workflow/workflow-config.cmake.in")
+# 		message("Workflow third_party FOUND. Use for source code dependencies.")
+# 		set(WORKFLOW_INSTALLED 0)
+# 	endif ()
+# endif ()
 
 #### PREPARE
 
