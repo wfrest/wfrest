@@ -731,19 +731,21 @@ void HttpResp::Save(const std::string &file_dst, const std::string &content, con
     HttpFile::save_file(file_dst, content, this, notify_msg);
 }
 
-void HttpResp::Save(const std::string &file_dst, const std::string &content, std::string &&notify_msg)
-{
-    HttpFile::save_file(file_dst, content, this, std::move(notify_msg));
-}
-
 void HttpResp::Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg)
 {
     HttpFile::save_file(file_dst, std::move(content), this, notify_msg);
 }
 
-void HttpResp::Save(const std::string &file_dst, std::string &&content, std::string &&notify_msg)
+void HttpResp::Save(const std::string &file_dst, const std::string &content, 
+        const std::function<void(WFFileIOTask *pwrite_task)> &callback)
 {
-    HttpFile::save_file(file_dst, std::move(content), this, std::move(notify_msg));
+    HttpFile::save_file(file_dst, content, this, callback);
+}
+
+void HttpResp::Save(const std::string &file_dst, std::string &&content, 
+        const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+{
+    HttpFile::save_file(file_dst, std::move(content), this, callback);
 }
 
 void HttpResp::Json(const ::Json &json)

@@ -19,15 +19,25 @@ public:
                                             HttpResp *resp, const std::string &notify_msg);
 
     static void save_file(const std::string &dst_path, const std::string &content, 
-                                            HttpResp *resp, std::string &&notify_msg);
+                          HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback);
 
     static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
 
     static void save_file(const std::string &dst_path, std::string&& content, 
                                             HttpResp *resp, const std::string &notify_msg);
 
-    static void save_file(const std::string &dst_path, std::string&& content, 
-                                            HttpResp *resp, std::string &&notify_msg);
+    static void save_file(const std::string &dst_path, std::string &&content, 
+                          HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+
+private:
+    static void save_file(const std::string &dst_path, const std::string &content, 
+                          HttpResp *resp, const std::string &notify_msg, 
+                          const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+
+    static void save_file(const std::string &dst_path, std::string &&content, 
+                          HttpResp *resp, const std::string &notify_msg, 
+                          const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+    
 };
 
 }  // namespace wfrest

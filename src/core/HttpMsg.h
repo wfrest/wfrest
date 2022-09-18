@@ -196,13 +196,15 @@ public:
 
     void Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg);
 
-    void Save(const std::string &file_dst, const std::string &content, std::string &&notify_msg);
+    void Save(const std::string &file_dst, const std::string &content, 
+              const std::function<void(WFFileIOTask *pwrite_task)> &callback);
 
     void Save(const std::string &file_dst, std::string &&content);
     
     void Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg);
 
-    void Save(const std::string &file_dst, std::string &&content, std::string &&notify_msg);
+    void Save(const std::string &file_dst, std::string &&content, 
+              const std::function<void(WFFileIOTask *pwrite_task)> &callback);
 
     // json
     void Json(const Json &json);
