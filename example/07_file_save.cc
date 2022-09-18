@@ -45,15 +45,11 @@ int main()
     {
         std::string content = "1234567890987654321";
 
-        resp->Save("test2.txt", std::move(content), "test notify test successfully", [](WFFileIOTask *pwrite_task) {
-            long ret = pwrite_task->get_retval();
+        resp->Save("test2.txt", std::move(content), [](WFFileIOTask *pwrite_task) {
             HttpServerTask *server_task = task_of(pwrite_task);
             HttpResp *resp = server_task->get_resp();
 
-            if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
-            {
-                resp->Error(StatusFileWriteError);
-            } else
+            if (pwrite_task->get_state() == WFT_STATE_SUCCESS)
             {
                 resp->append_output_body_nocopy("Save File success\n", 18);
             }
