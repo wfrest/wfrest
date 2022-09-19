@@ -41,18 +41,20 @@ int main()
     });
 
     // You can specify the callback for save file task
-    svr.GET("/file_write3", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/file_write4", [](const HttpReq *req, HttpResp *resp)
     {
         std::string content = "1234567890987654321";
-
-        resp->Save("test2.txt", std::move(content), [](WFFileIOTask *pwrite_task) {
-            HttpServerTask *server_task = task_of(pwrite_task);
-            HttpResp *resp = server_task->get_resp();
-
-            if (pwrite_task->get_state() == WFT_STATE_SUCCESS)
-            {
-                resp->append_output_body_nocopy("Save File success\n", 18);
-            }
+        /*
+        struct FileIOArgs
+        {
+        	int fd;
+        	void *buf;
+        	size_t count;
+        	off_t offset;
+        };
+        */
+        resp->Save("test3.txt", std::move(content), [](const struct FileIOArgs* args) {
+            fprintf(stderr, "%s/n", static_cast<const char *>(args->buf));
         });
     });
 

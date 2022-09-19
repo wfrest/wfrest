@@ -11,6 +11,9 @@ class HttpResp;
 class HttpFile
 {
 public:
+    using FileIOArgsCb = std::function<void(const struct FileIOArgs*)>;
+
+public:
     static int send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
 
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
@@ -19,7 +22,7 @@ public:
                                             HttpResp *resp, const std::string &notify_msg);
 
     static void save_file(const std::string &dst_path, const std::string &content, 
-                          HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+                          HttpResp *resp, const FileIOArgsCb &callback);
 
     static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
 
@@ -27,17 +30,16 @@ public:
                                             HttpResp *resp, const std::string &notify_msg);
 
     static void save_file(const std::string &dst_path, std::string &&content, 
-                          HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+                          HttpResp *resp, const FileIOArgsCb &callback);
 
 private:
     static void save_file(const std::string &dst_path, const std::string &content, 
                           HttpResp *resp, const std::string &notify_msg, 
-                          const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+                          const FileIOArgsCb &callback);
 
     static void save_file(const std::string &dst_path, std::string &&content, 
                           HttpResp *resp, const std::string &notify_msg, 
-                          const std::function<void(WFFileIOTask *pwrite_task)> &callback);
-    
+                          const FileIOArgsCb &callback);
 };
 
 }  // namespace wfrest

@@ -9,7 +9,8 @@
 #include "FileUtil.h"
 #include "ErrorCode.h"
 
-using namespace wfrest;
+namespace wfrest
+{
 
 namespace
 {
@@ -18,6 +19,7 @@ struct SaveFileContext
 {
     std::string content;
     std::string notify_msg;
+    HttpFile::FileIOArgsCb fileio_args_cb;
 };
 
 /*
@@ -50,7 +52,10 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
     HttpServerTask *server_task = task_of(pwrite_task);
     HttpResp *resp = server_task->get_resp();
     auto *save_context = static_cast<SaveFileContext *>(pwrite_task->user_data);
-
+    if(save_context->fileio_args_cb) 
+    {
+        save_context->fileio_args_cb(pwrite_task->get_args());
+    }
     if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
     {
         resp->Error(StatusFileWriteError);
@@ -133,19 +138,22 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
                         HttpResp *resp, const std::string &notify_msg, 
-                        const std::function<void(WFFileIOTask *pwrite_task)> &callback) 
+                        const FileIOArgsCb &callback) 
 {
     HttpServerTask *server_task = task_of(resp);
 
     auto *save_context = new SaveFileContext; 
     save_context->content = content;    // copy
     save_context->notify_msg = notify_msg;  // copy
-
+    if (callback) 
+    {
+        save_context->fileio_args_cb = callback;
+    }
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
                                                                   static_cast<const void *>(save_context->content.c_str()),
                                                                   save_context->content.size(),
                                                                   0,
-                                                                  callback);
+                                                                  pwrite_callback);
     **server_task << pwrite_task;
     server_task->add_callback([save_context](HttpTask *) {
         delete save_context;
@@ -155,19 +163,22 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
 
 void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
                         HttpResp *resp, const std::string &notify_msg, 
-                        const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+                        const FileIOArgsCb &callback)
 {
     HttpServerTask *server_task = task_of(resp);
 
     auto *save_context = new SaveFileContext; 
     save_context->content = std::move(content);  
     save_context->notify_msg = std::move(notify_msg); 
-
+    if (callback) 
+    {
+        save_context->fileio_args_cb = callback;
+    }
     WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
                                                                   static_cast<const void *>(save_context->content.c_str()),
                                                                   save_context->content.size(),
                                                                   0,
-                                                                  callback);
+                                                                  pwrite_callback);
     **server_task << pwrite_task;
     server_task->add_callback([save_context](HttpTask *) {
         delete save_context;
@@ -178,34 +189,36 @@ void HttpFile::save_file(const std::string &dst_path, std::string &&content,
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, HttpResp *resp)
 {
-    return save_file(dst_path, content, resp, "", pwrite_callback);
+    return save_file(dst_path, content, resp, "", nullptr);
 }
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
                                     HttpResp *resp, const std::string &notify_msg)
 {
-    return save_file(dst_path, content, resp, notify_msg, pwrite_callback);
+    return save_file(dst_path, content, resp, notify_msg, nullptr);
 }
 
 void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
-                    HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+                    HttpResp *resp, const FileIOArgsCb &callback)
 {
     return save_file(dst_path, content, resp, "", callback);
 }
 
 void HttpFile::save_file(const std::string &dst_path, std::string&& content, HttpResp *resp)
 {
-    return save_file(dst_path, std::move(content), resp, "", pwrite_callback);
+    return save_file(dst_path, std::move(content), resp, "", nullptr);
 }
 
 void HttpFile::save_file(const std::string &dst_path, std::string&& content, 
                                     HttpResp *resp, const std::string &notify_msg)
 {
-    return save_file(dst_path, std::move(content), resp, notify_msg, pwrite_callback);
+    return save_file(dst_path, std::move(content), resp, notify_msg, nullptr);
 }
 
 void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
-                    HttpResp *resp, const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+                    HttpResp *resp, const FileIOArgsCb &callback)
 {
     return save_file(dst_path, std::move(content), resp, "", callback);
 }
+
+}  // namespace wfrest

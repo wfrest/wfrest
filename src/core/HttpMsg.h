@@ -16,13 +16,13 @@
 #include "StrUtil.h"
 #include "HttpCookie.h"
 #include "Noncopyable.h"
+#include "HttpFile.h"
 
 namespace protocol
 {
 class MySQLResultCursor;
 
 }  // namespace protocol
-
 
 namespace wfrest
 {
@@ -197,14 +197,14 @@ public:
     void Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg);
 
     void Save(const std::string &file_dst, const std::string &content, 
-              const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+              const HttpFile::FileIOArgsCb &callback);
 
     void Save(const std::string &file_dst, std::string &&content);
     
     void Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg);
 
     void Save(const std::string &file_dst, std::string &&content, 
-              const std::function<void(WFFileIOTask *pwrite_task)> &callback);
+              const HttpFile::FileIOArgsCb &callback);
 
     // json
     void Json(const Json &json);

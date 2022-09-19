@@ -10,7 +10,6 @@
 #include "HttpMsg.h"
 #include "UriUtil.h"
 #include "PathUtil.h"
-#include "HttpFile.h"
 #include "json.hpp"
 #include "MysqlUtil.h"
 #include "ErrorCode.h"
@@ -737,13 +736,13 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content, const st
 }
 
 void HttpResp::Save(const std::string &file_dst, const std::string &content, 
-        const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+        const HttpFile::FileIOArgsCb &callback)
 {
     HttpFile::save_file(file_dst, content, this, callback);
 }
 
 void HttpResp::Save(const std::string &file_dst, std::string &&content, 
-        const std::function<void(WFFileIOTask *pwrite_task)> &callback)
+        const HttpFile::FileIOArgsCb &callback)
 {
     HttpFile::save_file(file_dst, std::move(content), this, callback);
 }
