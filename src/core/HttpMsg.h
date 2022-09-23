@@ -267,6 +267,11 @@ public:
 
     void Error(int error_code, const std::string &errmsg);
 
+    // timer(sleep)
+    void Timer(unsigned int microseconds);
+
+    void Timer(time_t seconds, long nanoseconds);
+
     void add_task(SubTask *task);
 
 private:

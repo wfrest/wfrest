@@ -691,6 +691,19 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
 
     this->Json(js);
 }
+
+void HttpResp::Timer(unsigned int microseconds)
+{
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, nullptr);
+    this->add_task(timer_task);
+}
+
+void HttpResp::Timer(time_t seconds, long nanoseconds)
+{
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(1, 0, nullptr);
+    this->add_task(timer_task);
+}
+
 void HttpResp::File(const std::string &path)
 {
     this->File(path, 0, -1);

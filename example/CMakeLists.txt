@@ -46,34 +46,35 @@ else ()
 endif ()
 
 set(EXAMPLE_LIST
-    01_basic
-    02_parameter_path
-    03_query_params
-    04_post_form
-    05_header
-    06_file_send
-    07_file_save
-    08_upload_file
-    09_json
-    # 10
-    11_compute_handler
-    12_series_interface
-    13_compession
-    13_compess_client
-    15_serve_static_file
-    16_cookie_simple
-    16_cookie
-    17_server_config
-    18_aop
-    18_global_aop
-    19_https
-    20_proxy
-    21_mysql
-    22_redis
-    23_compute
-    24_peer_ip_address
-    25_cn_url_server
-    25_cn_url_client
+    # 01_basic
+    # 02_parameter_path
+    # 03_query_params
+    # 04_post_form
+    # 05_header
+    # 06_file_send
+    # 07_file_save
+    # 08_upload_file
+    # 09_json
+    # # 10
+    # 11_compute_handler
+    # 12_series_interface
+    # 13_compession
+    # 13_compess_client
+    # 15_serve_static_file
+    # 16_cookie_simple
+    # 16_cookie
+    # 17_server_config
+    # 18_aop
+    # 18_global_aop
+    # 19_https
+    # 20_proxy
+    # 21_mysql
+    # 22_redis
+    # 23_compute
+    # 24_peer_ip_address
+    # 25_cn_url_server
+    # 25_cn_url_client
+    26_timer
 )
 
 foreach(src ${EXAMPLE_LIST})
