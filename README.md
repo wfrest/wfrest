@@ -39,6 +39,7 @@ If you need performance and good productivity, you will love ✨**wfrest**✨.
       - [Proxy](./docs/proxy.md)
     - [MySQL](./docs/mysql.md)
     - [Redis](./docs/redis.md)
+    - [Timer](./docs/timer.md)
 ## Dicssussion
 
 For more information, you can first see discussions:
