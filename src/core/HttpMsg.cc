@@ -692,15 +692,17 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
     this->Json(js);
 }
 
-void HttpResp::Timer(unsigned int microseconds)
+void HttpResp::Timer(unsigned int microseconds, const TimerFunc &func)
 {
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, nullptr);
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, 
+                                                               [func](WFTimerTask *) { func(); });
     this->add_task(timer_task);
 }
 
-void HttpResp::Timer(time_t seconds, long nanoseconds)
+void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
 {
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(1, 0, nullptr);
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, 
+                                                               [func](WFTimerTask *) { func(); });
     this->add_task(timer_task);
 }
 
@@ -749,15 +751,15 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content, const st
 }
 
 void HttpResp::Save(const std::string &file_dst, const std::string &content, 
-        const HttpFile::FileIOArgsCb &callback)
+        const HttpFile::FileIOArgsFunc &func)
 {
-    HttpFile::save_file(file_dst, content, this, callback);
+    HttpFile::save_file(file_dst, content, this, func);
 }
 
 void HttpResp::Save(const std::string &file_dst, std::string &&content, 
-        const HttpFile::FileIOArgsCb &callback)
+        const HttpFile::FileIOArgsFunc &func)
 {
-    HttpFile::save_file(file_dst, std::move(content), this, callback);
+    HttpFile::save_file(file_dst, std::move(content), this, func);
 }
 
 void HttpResp::Json(const ::Json &json)

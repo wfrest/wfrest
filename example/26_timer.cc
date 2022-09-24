@@ -19,14 +19,12 @@ int main()
 
     svr.GET("/timer1", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Timer(5, 0);  // seconds, nanoseconds
-        resp->String("Test timer");
+        resp->Timer(5, 0, [resp] { resp->String("Test tiemr1"); });  // seconds, nanoseconds=
     });
 
     svr.GET("/timer2", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Timer(5000 * 5000);  // microseconds
-        resp->String("Test timer");
+        resp->Timer(5000 * 1000, [resp] { resp->String("Test tiemr2"); });  // microseconds
     });
 
     svr.GET("/notimer", [](const HttpReq *req, HttpResp *resp)

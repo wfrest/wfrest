@@ -174,6 +174,9 @@ public:
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
     using RedisFunc = std::function<void(Json *json)>;
+
+    using TimerFunc = std::function<void()>;
+
 public:
     // send string
     void String(const std::string &str);
@@ -197,14 +200,14 @@ public:
     void Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg);
 
     void Save(const std::string &file_dst, const std::string &content, 
-              const HttpFile::FileIOArgsCb &callback);
+              const HttpFile::FileIOArgsFunc &func);
 
     void Save(const std::string &file_dst, std::string &&content);
     
     void Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg);
 
     void Save(const std::string &file_dst, std::string &&content, 
-              const HttpFile::FileIOArgsCb &callback);
+              const HttpFile::FileIOArgsFunc &func);
 
     // json
     void Json(const Json &json);
@@ -268,9 +271,9 @@ public:
     void Error(int error_code, const std::string &errmsg);
 
     // timer(sleep)
-    void Timer(unsigned int microseconds);
+    void Timer(unsigned int microseconds, const TimerFunc &cb);
 
-    void Timer(time_t seconds, long nanoseconds);
+    void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
     void add_task(SubTask *task);
 

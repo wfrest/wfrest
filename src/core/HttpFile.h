@@ -11,7 +11,7 @@ class HttpResp;
 class HttpFile
 {
 public:
-    using FileIOArgsCb = std::function<void(const struct FileIOArgs*)>;
+    using FileIOArgsFunc = std::function<void(const struct FileIOArgs*)>;
 
 public:
     static int send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
@@ -22,7 +22,7 @@ public:
                                             HttpResp *resp, const std::string &notify_msg);
 
     static void save_file(const std::string &dst_path, const std::string &content, 
-                          HttpResp *resp, const FileIOArgsCb &callback);
+                          HttpResp *resp, const FileIOArgsFunc &func);
 
     static void save_file(const std::string &dst_path, std::string&& content, HttpResp *resp);
 
@@ -30,16 +30,16 @@ public:
                                             HttpResp *resp, const std::string &notify_msg);
 
     static void save_file(const std::string &dst_path, std::string &&content, 
-                          HttpResp *resp, const FileIOArgsCb &callback);
+                          HttpResp *resp, const FileIOArgsFunc &func);
 
 private:
     static void save_file(const std::string &dst_path, const std::string &content, 
                           HttpResp *resp, const std::string &notify_msg, 
-                          const FileIOArgsCb &callback);
+                          const FileIOArgsFunc &func);
 
     static void save_file(const std::string &dst_path, std::string &&content, 
                           HttpResp *resp, const std::string &notify_msg, 
-                          const FileIOArgsCb &callback);
+                          const FileIOArgsFunc &func);
 };
 
 }  // namespace wfrest
