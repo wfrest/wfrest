@@ -28,6 +28,11 @@ int main()
         resp->Http("www.bing.com");
     });
 
+    svr.GET("/param", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->Http("127.0.0.1:8000/path?a=1");
+    });
+
     if (svr.track().start(8888) == 0)
     {
         wait_group.wait();

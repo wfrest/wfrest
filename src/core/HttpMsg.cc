@@ -821,10 +821,10 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
     http_task->user_data = proxy_ctx;
 
     const void *body;
-	size_t len;      
+	size_t len;
 
     ParsedURI uri;
-    // fprintf(stderr, "%s\n", http_url.c_str());
+    // fprintf(stderr, "http_url : %s\n", http_url.c_str());
     if (URIParser::parse(http_url, uri) < 0)
     {
         server_task->get_resp()->set_status(HttpStatusBadRequest);
@@ -834,10 +834,15 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
     std::string route;
     if (uri.path && uri.path[0])
     {
-        route = uri.path;
-    } else 
+        route.append(uri.path);
+    } else
     {
-        route = "/";
+        route.append("/");
+    }
+
+    if(uri.query && uri.query[0])
+    {
+        route.append(uri.query);
     }
 
 	server_req->set_request_uri(route);
