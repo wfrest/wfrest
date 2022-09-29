@@ -842,6 +842,7 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 
     if(uri.query && uri.query[0])
     {
+        route.append("?");
         route.append(uri.query);
     }
 
