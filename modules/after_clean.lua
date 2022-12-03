@@ -1,5 +1,5 @@
 function main(target)
-  os.rm("$(projectdir)/_include/")
-  os.rm("$(projectdir)/_lib/")
-  os.rm("$(projectdir)/build/")
+  os.rm(get_config("wfrest_inc"))
+  os.rm(get_config("wfrest_lib"))
+  os.rm("$(buildir)")
 end

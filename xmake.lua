@@ -14,26 +14,29 @@ if is_mode("release") then
 end
 
 add_requires("workflow", {system = false})
+add_requires("zlib", {system=false})
 
-add_includedirs("$(projectdir)/src/base")
-add_includedirs("$(projectdir)/src/core")
-add_includedirs("$(projectdir)/src/util")
+option("wfrest_inc")
+    set_default("$(projectdir)/_include")
+    set_showmenu(true)
+    set_description("wfrest inc")
+option_end()
 
-add_files("src/**.c")
-add_files("src/**.cc")
-add_cxflags("-fPIC")
-add_packages("workflow")
-set_targetdir("$(projectdir)/_lib")
+option("wfrest_lib")
+    set_default("$(projectdir)/_lib")
+    set_showmenu(true)
+    set_description("wfrest lib")
+option_end()
+
+option("type")
+    set_default("static")
+    set_showmenu(true)
+    set_description("build lib static/shared")
+option_end()
+
+-- script
 before_build("modules.before_build")
 after_clean("modules.after_clean")
+on_install("modules.on_install")
 
-target("wfrest_static")
-    set_kind("static")
-    set_basename("wfrest")
-
-target("wfrest_shared")
-    set_kind("shared")
-    set_basename("wfrest")
-
--- add_subdirs('test')
--- add_subdirs('example')
+includes("src", "test", "example")
