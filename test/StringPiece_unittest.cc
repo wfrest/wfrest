@@ -77,8 +77,3 @@ TEST(StringPiece, shrink)
     str.shrink(0, 2);
     EXPECT_EQ("12345678", str.as_string());
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

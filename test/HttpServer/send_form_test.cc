@@ -11,11 +11,11 @@
 using namespace wfrest;
 using namespace protocol;
 
-class MultiPartEncoderTest : public testing::Test 
+class MultiPartEncoderTest : public testing::Test
 {
-protected:    
+protected:
     void SetUp() override
-    {      
+    {
         // create dir
         dir_path_ = "./www";
         FileTestUtil::create_dir(dir_path_.c_str(), 0777);
@@ -111,9 +111,4 @@ TEST_F(MultiPartEncoderTest, multi_part_form_test)
     client_task->start();
     wait_group.wait();
     svr.stop();
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

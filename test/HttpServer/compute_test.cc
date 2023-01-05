@@ -50,8 +50,3 @@ TEST(HttpServer, String_short_str)
     wait_group.wait();
     svr.stop();
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

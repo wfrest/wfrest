@@ -41,9 +41,9 @@ public:
         EXPECT_FALSE(PathUtil::is_dir(path));
     }
 
-    static void process(const std::string &path, 
-                        size_t start, 
-                        size_t end, 
+    static void process(const std::string &path,
+                        size_t start,
+                        size_t end,
                         const std::function<void(WFHttpTask *task)> &callback = nullptr)
     {
         HttpServer svr;
@@ -57,14 +57,14 @@ public:
         EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
         WFHttpTask *client_task = create_http_task("file");
-        
+
         if(callback)
         {
             client_task->set_callback([&wait_group, &callback](WFHttpTask *task){
                 callback(task);
                 wait_group.done();
             });
-        } else 
+        } else
         {
             client_task->set_callback([&wait_group, start, end](WFHttpTask *task)
             {
@@ -83,11 +83,11 @@ public:
                 if(exp_end == -1) exp_end = file_body.size();
                 if(exp_start < 0) exp_start = file_body.size() + start;
 
-                EXPECT_EQ(content_range, "bytes " + std::to_string(exp_start) 
-                                        + "-" + std::to_string(exp_end) 
+                EXPECT_EQ(content_range, "bytes " + std::to_string(exp_start)
+                                        + "-" + std::to_string(exp_end)
                                         + "/" + std::to_string(exp_end - exp_start));
-                
-                std::string file_body_range = file_body.substr(exp_start, exp_end - exp_start); 
+
+                std::string file_body_range = file_body.substr(exp_start, exp_end - exp_start);
                 EXPECT_EQ(file_body_range, std::string(static_cast<const char *>(body), body_len));
 
                 wait_group.done();
@@ -110,7 +110,7 @@ public:
             str.append(std::to_string(i % 5));
         }
         return str;
-    }    
+    }
 };
 
 TEST(HttpServer, file_range1)
@@ -242,7 +242,7 @@ TEST(HttpServer, save_file)
             while (std::getline(file, str))
             {
                 file_contents.append(std::move(str));
-            }  
+            }
             EXPECT_EQ(file_body,file_contents);
             FileTest::delete_file(path);
             EXPECT_FALSE(FileUtil::file_exists(path));
@@ -252,7 +252,7 @@ TEST(HttpServer, save_file)
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task = FileTest::create_http_task("file");
-    
+
     client_task->set_callback([&wait_group](WFHttpTask *task)
     {
         wait_group.done();
@@ -261,9 +261,4 @@ TEST(HttpServer, save_file)
     client_task->start();
     wait_group.wait();
     svr.stop();
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

@@ -29,7 +29,7 @@ TEST(HttpServer, proxy)
 
     EXPECT_TRUE(svr.track().start("127.0.0.1", 8887) == 0) << "http server start failed";
     EXPECT_TRUE(proxy_svr.track().start("127.0.0.1", 8888) == 0) << "proxy http server start failed";
-    
+
     WFHttpTask *client_task = create_http_task("proxy");
     client_task->set_callback([&wait_group](WFHttpTask *task)
     {
@@ -38,7 +38,7 @@ TEST(HttpServer, proxy)
 
         const void *body;
         size_t body_len;
-        
+
         resp->get_parsed_body(&body, &body_len);
         // fprintf(stderr, "%s\n", static_cast<const char *>(body));
         EXPECT_TRUE(strcmp("test", static_cast<const char *>(body)) == 0);
@@ -49,9 +49,4 @@ TEST(HttpServer, proxy)
     wait_group.wait();
     svr.stop();
     proxy_svr.stop();
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

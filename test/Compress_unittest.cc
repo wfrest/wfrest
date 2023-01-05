@@ -34,8 +34,3 @@ TEST(gzip, longText)
     delete compress_str;
     delete decompress_str;
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

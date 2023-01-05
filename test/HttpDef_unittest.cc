@@ -25,8 +25,3 @@ TEST(ContentType, to_enum_by_suffix)
 {
     EXPECT_EQ(ContentType::to_enum_by_suffix("mp"), MULTIPART_FORM_DATA);
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
