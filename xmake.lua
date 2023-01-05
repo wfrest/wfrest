@@ -8,6 +8,7 @@ set_exceptions("no-cxx")
 
 option("wfrest_inc",  {description = "wfrest inc", default = "$(projectdir)/_include"})
 option("wfrest_lib",  {description = "wfrest lib", default = "$(projectdir)/_lib"})
+option("memcheck",    {description = "valgrind memcheck", default = false})
 
 add_requires("workflow", {system = false})
 add_requires("zlib", {system=false})

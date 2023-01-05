@@ -25,7 +25,7 @@ TEST(FileUtil, size)
 
 TEST(FileUtil, file_exists)
 {
-    std::string file_path = "./example";
+    std::string file_path = "./example.md";
     bool write_ok = FileTestUtil::write_file(file_path, "Writing this to a file.\n");
     EXPECT_EQ(write_ok, true);
 
