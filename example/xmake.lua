@@ -2,7 +2,7 @@ set_group("example")
 set_default(false)
 
 add_deps("wfrest")
-add_packages("workflow")
+add_packages("workflow", "zlib")
 
 function all_examples()
     local res = {}
