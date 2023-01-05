@@ -49,10 +49,3 @@ TEST(HttpCookie, split_trim)
     EXPECT_EQ("user", it->first);
     EXPECT_EQ("chanchan", it->second);
 }
-
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

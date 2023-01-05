@@ -53,7 +53,7 @@ bin/*
 lib/*
 test/test_runner
 
-## Local 
+## Local
 
 .idea/workspace.xml
 
@@ -79,9 +79,13 @@ bin/lib-bash
 .vscode
 
 # Ignore log
-*.log 
+*.log
 */logs/*
 
 _include/*
 
 wfrest-config.cmake
+
+# xmake configs
+.xmake
+build.xmake

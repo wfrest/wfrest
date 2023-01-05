@@ -53,8 +53,3 @@ TEST(BluePrint, ROUTE)
     EXPECT_EQ(route_list[0].first, "GET");
     EXPECT_EQ(route_list[1].first, "POST");
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

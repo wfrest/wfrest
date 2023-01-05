@@ -26,7 +26,7 @@ TEST(HttpServer, cn_url)
 
         const void *body;
         size_t body_len;
-        
+
         resp->get_parsed_body(&body, &body_len);
         EXPECT_TRUE(strcmp("test", static_cast<const char *>(body)) == 0);
         wait_group.done();
@@ -35,9 +35,4 @@ TEST(HttpServer, cn_url)
     client_task->start();
     wait_group.wait();
     svr.stop();
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

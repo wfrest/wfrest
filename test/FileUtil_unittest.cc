@@ -47,9 +47,5 @@ TEST(FileUtil, file_exists_txt)
     EXPECT_FALSE(FileUtil::file_exists(file_path));
 }
 
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
 
 

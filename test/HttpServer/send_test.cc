@@ -63,7 +63,7 @@ TEST(HttpServer, String_short_str_gzip)
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task = create_http_task("test");
-    
+
     auto *compress_data = new std::string;
     int ret = Compressor::gzip(data, compress_data);
 
@@ -80,7 +80,7 @@ TEST(HttpServer, String_short_str_gzip)
         HttpResponse *resp = task->get_resp();
         resp->get_parsed_body(&body, &body_len);
         EXPECT_FALSE(strcmp(data->c_str(), static_cast<const char *>(body)) == 0);
-        
+
         HttpHeaderMap header_map(resp);
         std::string compress_header = header_map.get("Content-Encoding");
         EXPECT_EQ(compress_header, "gzip");
@@ -150,7 +150,7 @@ TEST(HttpServer, multi_verb)
         std::string method(req->get_method());
         resp->String(std::move(method));
     }, {"GET", "POST"});
-    
+
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
 
     WFHttpTask *client_task_get = create_http_task("test");
@@ -162,9 +162,9 @@ TEST(HttpServer, multi_verb)
         client_task->get_resp()->get_parsed_body(&body, &body_len);
         EXPECT_TRUE(strcmp("GET", static_cast<const char *>(body)) == 0);
     });
-    SeriesWork *series = Workflow::create_series_work(client_task_get, 
+    SeriesWork *series = Workflow::create_series_work(client_task_get,
                                 [&wait_group](const SeriesWork *series) { wait_group.done(); });
-    
+
     WFHttpTask *client_task_post = create_http_task("test");
     client_task_post->get_req()->set_method("POST");
     client_task_post->set_callback([](WFHttpTask *client_task)
@@ -180,9 +180,4 @@ TEST(HttpServer, multi_verb)
 
     wait_group.wait();
     svr.stop();
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

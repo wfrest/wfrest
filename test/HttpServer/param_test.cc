@@ -38,7 +38,7 @@ TEST(HttpServer, param)
 
     WFHttpTask *client_task_1 = create_http_task("/user/{name}/match123");
     SeriesWork *series = Workflow::create_series_work(client_task_1, nullptr);
-    
+
     client_task_1->set_callback([&wait_group](WFHttpTask *task)
     {
         HttpResponse *resp = task->get_resp();
@@ -51,7 +51,7 @@ TEST(HttpServer, param)
         EXPECT_EQ(json["current_path"], "/user/{name}/match123");
         wait_group.done();
     });
-     
+
     WFHttpTask *client_task_2 = create_http_task("/user/{name}/match");
     series->push_back(client_task_2);
     client_task_2->set_callback([&wait_group](WFHttpTask *task)
@@ -69,10 +69,4 @@ TEST(HttpServer, param)
     series->start();
     wait_group.wait();
     svr.stop();
-}
-
-int main(int argc, char **argv) 
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

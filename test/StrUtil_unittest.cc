@@ -85,10 +85,5 @@ TEST(StringCaseLess, map)
     map["Content-Encoding"] = "gzip";
     map["content-encoding"] = "br";
     EXPECT_TRUE(map.size() == 1);
-    EXPECT_TRUE(map.count("conteNt-eNcodIng")); 
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    EXPECT_TRUE(map.count("conteNt-eNcodIng"));
 }

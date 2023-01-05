@@ -87,8 +87,3 @@ TEST(PathUtil, suffix)
     EXPECT_EQ(PathUtil::suffix("/usr/local/demo.xml"), "xml");
     EXPECT_EQ(PathUtil::suffix("/usr/local/demo"), "");
 }
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

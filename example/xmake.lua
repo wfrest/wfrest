@@ -1,10 +1,8 @@
 set_group("example")
 set_default(false)
 
-add_packages("workflow")
 add_deps("wfrest")
-
-add_includedirs(get_config("wfrest_inc"))
+add_packages("workflow")
 
 function all_examples()
     local res = {}

@@ -1,42 +1,29 @@
 set_project("wfrest")
-set_languages("c90", "c++11")
 set_version("0.1.0")
 
-if is_mode("debug") then
-    set_symbols("debug")
-    set_optimize("none")
-end
+add_rules("mode.release", "mode.debug")
+set_languages("c90", "c++11")
+set_warnings("all")
+set_exceptions("no-cxx")
 
-if is_mode("release") then
-    set_symbols("hidden")
-    set_optimize("fastest")
-    set_strip("all")
-end
+option("wfrest_inc",  {description = "wfrest inc", default = "$(projectdir)/_include"})
+option("wfrest_lib",  {description = "wfrest lib", default = "$(projectdir)/_lib"})
 
 add_requires("workflow", {system = false})
 add_requires("zlib", {system=false})
 
-option("wfrest_inc")
-    set_default("$(projectdir)/_include")
-    set_showmenu(true)
-    set_description("wfrest inc")
-option_end()
+add_includedirs(get_config("wfrest_inc"))
+add_includedirs(path.join(get_config("wfrest_inc"), "wfrest"))
 
-option("wfrest_lib")
-    set_default("$(projectdir)/_lib")
-    set_showmenu(true)
-    set_description("wfrest lib")
-option_end()
+set_config("buildir", "build.xmake")
 
-option("type")
-    set_default("static")
-    set_showmenu(true)
-    set_description("build lib static/shared")
-option_end()
+add_cflags("-fPIC", "-pipe")
+add_cxxflags("-fPIC", "-pipe", "-Wno-invalid-offsetof")
 
--- script
-before_build("modules.before_build")
-after_clean("modules.after_clean")
-on_install("modules.on_install")
+after_clean(function (target)
+    os.rm(get_config("wfrest_inc"))
+    os.rm(get_config("wfrest_lib"))
+    os.rm("$(buildir)")
+end)
 
 includes("src", "test", "example")

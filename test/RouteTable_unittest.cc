@@ -14,7 +14,7 @@ TEST(RouteTableNode, create_and_find)
 
     std::map<std::string, std::string> route_params;
     std::string route_match_path;
-    
+
     StringPiece route2("/api/v1/chanchan/123/actiongogogo");
     RouteTableNode::iterator it = rtn.find(route2, 0, route_params, route_match_path);
     EXPECT_TRUE(it != rtn.end());
@@ -74,9 +74,4 @@ TEST(RouteTableNode, root_path_match)
     it = rtn.find(route3, 0, route_params, route_match_path);
     EXPECT_TRUE(it != rtn.end());
     EXPECT_EQ(route_match_path, "111");
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

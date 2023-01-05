@@ -1,0 +1,5 @@
+target("core")
+    set_kind("object")
+    add_files("*.cc")
+    add_files("*.c")
+    add_packages("workflow")

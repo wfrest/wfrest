@@ -3,11 +3,10 @@ set_default(false)
 
 add_requires("gtest")
 
-add_packages("workflow")
 add_deps("wfrest")
-add_packages("gtest") 
-
-add_includedirs(get_config("wfrest_inc"))
+add_packages("workflow")
+add_packages("gtest")
+add_links("gtest_main")
 
 function all_tests()
     local res = {}
