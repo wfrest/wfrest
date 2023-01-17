@@ -7,8 +7,9 @@ set(SRC
     base64.cc
     ErrorCode.cc
     Compress.cc
-    SysInfo.cc     
+    SysInfo.cc
     Timestamp.cc
+    Json.cc
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SRC})
