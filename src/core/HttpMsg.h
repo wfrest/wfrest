@@ -17,6 +17,7 @@
 #include "HttpCookie.h"
 #include "Noncopyable.h"
 #include "HttpFile.h"
+#include "Json.h"
 
 namespace protocol
 {
@@ -209,6 +210,8 @@ public:
 
     // json
     void Json(const nlohmann::json &json);
+
+    void Json(const wfrest::Json &json);
 
     void Json(const std::string &str);
 

@@ -770,6 +770,12 @@ void HttpResp::Json(const nlohmann::json &json)
     this->String(json.dump());
 }
 
+void HttpResp::Json(const wfrest::Json &json)
+{
+    this->headers["Content-Type"] = "application/json";
+    this->String(json.dump());
+}
+
 void HttpResp::Json(const std::string &str)
 {
     if (!nlohmann::json::accept(str))

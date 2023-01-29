@@ -5,12 +5,11 @@
 #include "wfrest/ErrorCode.h"
 #include "wfrest/FileUtil.h"
 #include "wfrest/PathUtil.h"
-#include "wfrest/json.hpp"
+#include "wfrest/Json.h"
 #include "../FileTestUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
-using Json = nlohmann::json;
 
 class FileTest
 {
@@ -196,7 +195,7 @@ TEST(HttpServer, file_range_invalid)
         EXPECT_EQ(content_type, "application/json");
         std::string body_str(static_cast<const char *>(body), body_len);
         Json js = Json::parse(body_str);
-        EXPECT_EQ(js["errmsg"], "File Range Invalid");
+        EXPECT_EQ(js["errmsg"].get<std::string>(), "File Range Invalid");
     });
     FileTest::delete_file(path);
 }
@@ -216,7 +215,7 @@ TEST(HttpServer, not_file)
         EXPECT_EQ(content_type, "application/json");
         std::string body_str(static_cast<const char *>(body), body_len);
         Json js = Json::parse(body_str);
-        EXPECT_EQ(js["errmsg"], "404 Not Found");
+        EXPECT_EQ(js["errmsg"].get<std::string>(), "404 Not Found");
         EXPECT_TRUE(strcmp(resp->get_status_code(), "404") == 0);
     });
     FileTest::delete_dir(root_dir);
@@ -243,7 +242,7 @@ TEST(HttpServer, save_file)
             {
                 file_contents.append(std::move(str));
             }
-            EXPECT_EQ(file_body,file_contents);
+            EXPECT_EQ(file_body, file_contents);
             FileTest::delete_file(path);
             EXPECT_FALSE(FileUtil::file_exists(path));
         });
