@@ -4,13 +4,12 @@
 #include "wfrest/ErrorCode.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/FileUtil.h"
-#include "wfrest/json.hpp"
+#include "wfrest/json.h"
 #include "../ClientUtil.h"
 #include "../FileTestUtil.h"
 
 using namespace wfrest;
 using namespace protocol;
-using Json = nlohmann::json;
 
 class StaticTest : public testing::Test
 {
@@ -105,7 +104,7 @@ TEST_F(StaticTest, serve_static_file_error)
         task->get_resp()->get_parsed_body(&body, &body_len);
         std::string body_str(static_cast<const char *>(body));
         Json js = Json::parse(body_str);
-        EXPECT_EQ(js["errmsg"], "404 Not Found");
+        EXPECT_EQ(js["errmsg"].get<std::string>(), "404 Not Found");
         wait_group.done();
     });
 

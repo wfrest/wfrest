@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
+#include "wfrest/Json.h"
 #include "workflow/WFFacilities.h"
 
 using namespace wfrest;
 using namespace protocol;
-using Json = nlohmann::json;
 
 WFHttpTask *create_http_task(const std::string &path)
 {
@@ -47,8 +46,8 @@ TEST(HttpServer, param)
         resp->get_parsed_body(&body, &body_len);
 
         Json json = Json::parse(static_cast<const char *>(body));
-        EXPECT_EQ(json["full_path"], "/user/{name}/match*");
-        EXPECT_EQ(json["current_path"], "/user/{name}/match123");
+        EXPECT_EQ(json["full_path"].get<std::string>(), "/user/{name}/match*");
+        EXPECT_EQ(json["current_path"].get<std::string>(), "/user/{name}/match123");
         wait_group.done();
     });
 
@@ -62,8 +61,8 @@ TEST(HttpServer, param)
         resp->get_parsed_body(&body, &body_len);
 
         Json json = Json::parse(static_cast<const char *>(body));
-        EXPECT_EQ(json["full_path"], "/user/{name}/match*");
-        EXPECT_EQ(json["current_path"], "/user/{name}/match");
+        EXPECT_EQ(json["full_path"].get<std::string>(), "/user/{name}/match*");
+        EXPECT_EQ(json["current_path"].get<std::string>(), "/user/{name}/match");
         wait_group.done();
     });
     series->start();

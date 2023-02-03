@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "wfrest/HttpServer.h"
-#include "wfrest/Json.h"
+#include "wfrest/json.hpp"
 #include "workflow/WFFacilities.h"
 
 using namespace wfrest;
@@ -11,14 +11,14 @@ WFHttpTask *create_http_task(const std::string &path)
     return WFTaskFactory::create_http_task("http://127.0.0.1:8888/" + path, 4, 2, nullptr);
 }
 
-TEST(JsonTest, json)
+TEST(nlohmannJsonTest, json)
 {
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
 
     svr.GET("/test", [](const HttpReq *req, HttpResp *resp)
     {
-        Json json;
+        nlohmann::json json;
         json["test"] = 123;
         json["json"] = "test json";
         resp->Json(json);
@@ -39,9 +39,9 @@ TEST(JsonTest, json)
         size_t body_len;
         resp->get_parsed_body(&body, &body_len);
         std::string json_str(static_cast<const char *>(body), body_len);
-        Json js = Json::parse(json_str);
-        EXPECT_EQ(js["test"].get<int>(), 123);
-        EXPECT_EQ(js["json"].get<std::string>(), "test json");
+        nlohmann::json js = nlohmann::json::parse(json_str);
+        EXPECT_EQ(js["test"], 123);
+        EXPECT_EQ(js["json"], "test json");
         wait_group.done();
     });
 
@@ -50,7 +50,7 @@ TEST(JsonTest, json)
     svr.stop();
 }
 
-TEST(JsonTest, valid_str)
+TEST(nlohmannJsonTest, valid_str)
 {
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
@@ -80,12 +80,11 @@ TEST(JsonTest, valid_str)
         resp->get_parsed_body(&body, &body_len);
 
         std::string json_str(static_cast<const char *>(body), body_len);
-        Json js = Json::parse(json_str);
-        auto res = js["numbers"].get<Json::Array>();
-        // TODO : NOT return reference, so can't do it like this
-        // EXPECT_EQ(res[0].get<int>, 1);
-        // EXPECT_EQ(res[1].get<int>, 2);
-        // EXPECT_EQ(res[2].get<int>, 3);
+        nlohmann::json js = nlohmann::json::parse(json_str);
+        std::vector<int> res = js["numbers"].get<std::vector<int>>();
+        EXPECT_EQ(res[0], 1);
+        EXPECT_EQ(res[1], 2);
+        EXPECT_EQ(res[2], 3);
         wait_group.done();
     });
 
@@ -94,7 +93,7 @@ TEST(JsonTest, valid_str)
     svr.stop();
 }
 
-TEST(JsonTest, invalid_str)
+TEST(nlohmannJsonTest, invalid_str)
 {
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
@@ -125,8 +124,8 @@ TEST(JsonTest, invalid_str)
         resp->get_parsed_body(&body, &body_len);
 
         std::string json_str(static_cast<const char *>(body), body_len);
-        Json js = Json::parse(json_str);
-        EXPECT_EQ(js["errmsg"].get<std::string>(), "Invalid Json Syntax");
+        nlohmann::json js = nlohmann::json::parse(json_str);
+        EXPECT_EQ(js["errmsg"], "Invalid Json Syntax");
         wait_group.done();
     });
 
@@ -135,7 +134,7 @@ TEST(JsonTest, invalid_str)
     svr.stop();
 }
 
-TEST(JsonTest, recv_json)
+TEST(nlohmannJsonTest, recv_json)
 {
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
@@ -149,10 +148,10 @@ TEST(JsonTest, recv_json)
             return;
         }
         const std::string& body = req->body();
-        Json js = Json::parse(body);
+        nlohmann::json js = nlohmann::json::parse(body);
         EXPECT_EQ(req->header("Content-Type"), "application/json");
-        EXPECT_EQ(js["test"].get<int>(), 123);
-        EXPECT_EQ(js["recv"].get<std::string>(), "json");
+        EXPECT_EQ(js["test"], 123);
+        EXPECT_EQ(js["recv"], "json");
     });
 
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
@@ -163,7 +162,7 @@ TEST(JsonTest, recv_json)
         delete static_cast<std::string *>(task->user_data);
         wait_group.done();
     });
-    Json js;
+    nlohmann::json js;
     js["test"] = 123;
     js["recv"] = "json";
     std::string js_str = js.dump();

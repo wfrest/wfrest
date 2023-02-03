@@ -17,6 +17,7 @@
 #include "HttpCookie.h"
 #include "Noncopyable.h"
 #include "HttpFile.h"
+#include "Json.h"
 
 namespace protocol
 {
@@ -26,8 +27,6 @@ class MySQLResultCursor;
 
 namespace wfrest
 {
-
-using Json = nlohmann::json;
 
 struct ReqData;
 class MySQL;
@@ -42,7 +41,7 @@ public:
 
     Form &form() const;
 
-    Json &json() const;
+    nlohmann::json &json() const;
 
     http_content_type content_type() const
     { return content_type_; }
@@ -90,7 +89,7 @@ public:
     void set_route_params(std::map<std::string, std::string> &&params)
     { route_params_ = std::move(params); }
 
-    // /match*  
+    // /match*
     // /match123 -> match123
     void set_route_match_path(const std::string &match_path)
     { route_match_path_ = match_path; }
@@ -110,7 +109,7 @@ public:
 public:
     HttpReq();
 
-    HttpReq(HttpRequest &&base_req) 
+    HttpReq(HttpRequest &&base_req)
         : HttpRequest(std::move(base_req))
     {}
 
@@ -122,7 +121,7 @@ public:
 
 private:
     using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
-    
+
     http_content_type content_type_;
     ReqData *req_data_;
 
@@ -169,11 +168,11 @@ inline double HttpReq::param<double>(const std::string &key) const
 class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
-    using MySQLJsonFunc = std::function<void(Json *json)>;
+    using MySQLJsonFunc = std::function<void(nlohmann::json *json)>;
 
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
-    using RedisFunc = std::function<void(Json *json)>;
+    using RedisFunc = std::function<void(nlohmann::json *json)>;
 
     using TimerFunc = std::function<void()>;
 
@@ -199,23 +198,25 @@ public:
 
     void Save(const std::string &file_dst, const std::string &content, const std::string &notify_msg);
 
-    void Save(const std::string &file_dst, const std::string &content, 
+    void Save(const std::string &file_dst, const std::string &content,
               const HttpFile::FileIOArgsFunc &func);
 
     void Save(const std::string &file_dst, std::string &&content);
-    
+
     void Save(const std::string &file_dst, std::string &&content, const std::string &notify_msg);
 
-    void Save(const std::string &file_dst, std::string &&content, 
+    void Save(const std::string &file_dst, std::string &&content,
               const HttpFile::FileIOArgsFunc &func);
 
     // json
-    void Json(const Json &json);
+    void Json(const nlohmann::json &json);
+
+    void Json(const wfrest::Json &json);
 
     void Json(const std::string &str);
 
     void set_status(int status_code);
-    
+
     // Compress
     void set_compress(const Compress &compress);
 
@@ -229,7 +230,7 @@ public:
     const std::vector<HttpCookie> &cookies() const
     { return cookies_; }
 
-    int get_state() const; 
+    int get_state() const;
 
     int get_error() const;
 
@@ -238,10 +239,10 @@ public:
 
     void Http(const std::string &url, int redirect_max)
     { this->Http(url, redirect_max, 200 * 1024 * 1024); }
-    
+
     void Http(const std::string &url)
     { this->Http(url, 0, 200 * 1024 * 1024); }
-    
+
     // MySQL
     void MySQL(const std::string &url, const std::string &sql);
 
@@ -285,7 +286,7 @@ private:
 public:
     HttpResp() = default;
 
-    HttpResp(HttpResponse && base_resp) 
+    HttpResp(HttpResponse && base_resp)
         : HttpResponse(std::move(base_resp))
     {}
 
@@ -294,7 +295,7 @@ public:
     HttpResp(HttpResp&& other);
 
     HttpResp &operator=(HttpResp&& other);
-    
+
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers;
     void *user_data;

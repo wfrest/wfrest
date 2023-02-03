@@ -19,7 +19,6 @@
 
 using namespace wfrest;
 using namespace protocol;
-using Json = nlohmann::json;
 
 namespace wfrest
 {
@@ -29,7 +28,7 @@ struct ReqData
     std::string body;
     std::map<std::string, std::string> form_kv;
     Form form;
-    Json json;
+    nlohmann::json json;
 };
 
 struct ProxyCtx
@@ -40,17 +39,17 @@ struct ProxyCtx
 };
 
 void proxy_http_callback(WFHttpTask *http_task)
-{   
+{
     int state = http_task->get_state();
     int error = http_task->get_error();
 
     auto *proxy_ctx = static_cast<ProxyCtx *>(http_task->user_data);
-    
+
     HttpServerTask *server_task = proxy_ctx->server_task;
     HttpResponse *http_resp = http_task->get_resp();
     HttpResp *server_resp = server_task->get_resp();
 
-    // Some servers may close the socket as the end of http response. 
+    // Some servers may close the socket as the end of http response.
     if (state == WFT_STATE_SYS_ERROR && error == ECONNRESET)
         state = WFT_STATE_SUCCESS;
 
@@ -112,13 +111,13 @@ void proxy_http_callback(WFHttpTask *http_task)
         server_resp->Error(StatusProxyError, errmsg);
     }
     // move back Request
-    auto *server_req = static_cast<HttpRequest *>(server_task->get_req()); 
+    auto *server_req = static_cast<HttpRequest *>(server_task->get_req());
     *server_req = std::move(*http_task->get_req());
 }
 
-Json mysql_concat_json_res(WFMySQLTask *mysql_task)
+nlohmann::json mysql_concat_json_res(WFMySQLTask *mysql_task)
 {
-    Json json;
+    nlohmann::json json;
     MySQLResponse *mysql_resp = mysql_task->get_resp();
     MySQLResultCursor cursor(mysql_resp);
     const MySQLField *const *fields;
@@ -127,12 +126,12 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
     if (mysql_task->get_state() != WFT_STATE_SUCCESS)
     {
         json["error"] = WFGlobal::get_error_string(mysql_task->get_state(),
-                                                    mysql_task->get_error());
+                                                   mysql_task->get_error());
         return json;
     }
 
     do {
-        Json result_set;
+        nlohmann::json result_set;
         if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
             cursor.get_cursor_status() != MYSQL_STATUS_OK)
         {
@@ -155,7 +154,7 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
                         result_set["database"] = std::move(database);
                     result_set["table"] = fields[i]->get_table();
                 }
-                
+
                 fields_name.push_back(fields[i]->get_name());
                 fields_type.push_back(datatype2str(fields[i]->get_data_type()));
             }
@@ -164,25 +163,25 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
 
             while (cursor.fetch_row(arr))
             {
-                Json row;                  
+                nlohmann::json row;
                 for (size_t i = 0; i < arr.size(); i++)
                 {
                     if (arr[i].is_string())
                     {
                         row.push_back(arr[i].as_string());
-                    } 
-                    else if (arr[i].is_time() || arr[i].is_datetime()) 
+                    }
+                    else if (arr[i].is_time() || arr[i].is_datetime())
                     {
                         row.push_back(MySQLUtil::to_string(arr[i]));
-                    } 
-                    else if (arr[i].is_null()) 
+                    }
+                    else if (arr[i].is_null())
                     {
                         row.push_back("NULL");
-                    } 
-                    else if(arr[i].is_double()) 
+                    }
+                    else if(arr[i].is_double())
                     {
                         row.push_back(arr[i].as_double());
-                    } 
+                    }
                     else if(arr[i].is_float())
                     {
                         row.push_back(arr[i].as_float());
@@ -215,7 +214,7 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
         json["errcode"] = mysql_task->get_resp()->get_error_code();
         json["errmsg"] = mysql_task->get_resp()->get_error_msg();
     }
-    else if (mysql_resp->get_packet_type() == MYSQL_PACKET_OK) 
+    else if (mysql_resp->get_packet_type() == MYSQL_PACKET_OK)
     {
         json["status"] = "OK";
         json["affected_rows"] = mysql_task->get_resp()->get_affected_rows();
@@ -226,14 +225,14 @@ Json mysql_concat_json_res(WFMySQLTask *mysql_task)
     return json;
 }
 
-Json redis_json_res(WFRedisTask *redis_task)
+nlohmann::json redis_json_res(WFRedisTask *redis_task)
 {
     RedisRequest *redis_req = redis_task->get_req();
     RedisResponse *redis_resp = redis_task->get_resp();
     int state = redis_task->get_state();
     int error = redis_task->get_error();
-    RedisValue val; 
-    ::Json js;
+    RedisValue val;
+    nlohmann::json js;
     switch (state)
     {
     case WFT_STATE_SYS_ERROR:
@@ -285,7 +284,7 @@ Json redis_json_res(WFRedisTask *redis_task)
 
 void mysql_callback(WFMySQLTask *mysql_task)
 {
-    Json json = mysql_concat_json_res(mysql_task);
+    nlohmann::json json = mysql_concat_json_res(mysql_task);
     auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
     server_resp->String(json.dump());
 }
@@ -346,17 +345,17 @@ Form &HttpReq::form() const
     return req_data_->form;
 }
 
-Json &HttpReq::json() const
+nlohmann::json &HttpReq::json() const
 {
     if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
         const std::string &body_content = this->body();
-        if (!Json::accept(body_content))
+        if (!nlohmann::json::accept(body_content))
         {
             return req_data_->json;
             // todo : how to let user know the error ?
         }
-        req_data_->json = Json::parse(body_content);
+        req_data_->json = nlohmann::json::parse(body_content);
     }
     return req_data_->json;
 }
@@ -468,7 +467,7 @@ const std::map<std::string, std::string> &HttpReq::cookies() const
 
 const std::string &HttpReq::cookie(const std::string &key) const
 {
-    if(cookies_.empty()) 
+    if(cookies_.empty())
     {
         this->cookies();
     }
@@ -519,10 +518,10 @@ void HttpResp::String(const std::string &str)
 {
     auto *compress_data = new std::string;
     int ret = this->compress(&str, compress_data);
-    if(ret != StatusOK)   
+    if(ret != StatusOK)
     {
         this->append_output_body(static_cast<const void *>(str.c_str()), str.size());
-    } else 
+    } else
     {
         this->append_output_body_nocopy(compress_data->c_str(), compress_data->size());
     }
@@ -534,9 +533,9 @@ void HttpResp::String(std::string &&str)
     auto *data = new std::string;
     int ret = this->compress(&str, data);
     if(ret != StatusOK)
-    {   
+    {
         *data = std::move(str);
-    } 
+    }
     this->append_output_body_nocopy(data->c_str(), data->size());
     task_of(this)->add_callback([data](HttpTask *) { delete data; });
 }
@@ -545,7 +544,7 @@ void HttpResp::String(const MultiPartEncoder &multi_part_encoder)
 {
     MultiPartEncoder *encoder = new MultiPartEncoder(multi_part_encoder);
     this->String(encoder);
-} 
+}
 
 void HttpResp::String(MultiPartEncoder &&multi_part_encoder)
 {
@@ -553,18 +552,18 @@ void HttpResp::String(MultiPartEncoder &&multi_part_encoder)
     this->String(encoder);
 }
 
-void HttpResp::String(MultiPartEncoder *encoder) 
-{   
+void HttpResp::String(MultiPartEncoder *encoder)
+{
     const std::string &boudary = encoder->boundary();
     this->headers["Content-Type"] = "multipart/form-data; boundary=" + boudary;
-    
+
     HttpServerTask *server_task = task_of(this);
     SeriesWork *series = series_of(server_task);
 
     const MultiPartEncoder::FileList &file_list = encoder->files();
     size_t file_cnt = file_list.size();
     assert(file_cnt >= 0);
-    for(const auto &file : file_list) 
+    for(const auto &file : file_list)
     {
         file_cnt--;
         if(!PathUtil::is_file(file.second))
@@ -585,7 +584,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
                 [&file, &boudary](WFFileIOTask *pread_task) {
                     FileIOArgs *args = pread_task->get_args();
                     long ret = pread_task->get_retval();
-                    
+
                     SeriesWork *series = series_of(pread_task);
                     std::string *content = static_cast<std::string *>(series->get_context());
                     if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
@@ -605,7 +604,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
                         content->append(file_type);
                         content->append("\r\n\r\n");
                         content->append(static_cast<char *>(args->buf), ret);
-                    } 
+                    }
                     // last one, send the content
                     if(pread_task->user_data) {
                         content->append("\r\n--");
@@ -625,7 +624,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
                                 });
         series->push_back(pread_task);
     }
-    
+
     std::string *content = new std::string;
     series->set_context(content);
     series->set_callback([encoder](const SeriesWork *series) {
@@ -641,7 +640,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
         content->append(param.first);
         content->append("\"\r\n\r\n");
         content->append(param.second);
-    } 
+    }
 }
 
 int HttpResp::compress(const std::string * const data, std::string *compress_data)
@@ -653,7 +652,7 @@ int HttpResp::compress(const std::string * const data, std::string *compress_dat
         {
             status = Compressor::gzip(data, compress_data);
         }
-    } else 
+    } else
     {
         status = StatusNoComrpess;
     }
@@ -679,8 +678,8 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
         break;
     }
     this->headers["Content-Type"] = "application/json";
-    this->set_status(status_code); 
-    ::Json js;
+    this->set_status(status_code);
+    nlohmann::json js;
     std::string resp_msg = error_code_to_str(error_code);
     if(!errmsg.empty()) resp_msg = resp_msg + " : " + errmsg;
     if(CodeUtil::is_url_encode(errmsg))
@@ -694,14 +693,14 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
 
 void HttpResp::Timer(unsigned int microseconds, const TimerFunc &func)
 {
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, 
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds,
                                                                [func](WFTimerTask *) { func(); });
     this->add_task(timer_task);
 }
 
 void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
 {
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, 
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds,
                                                                [func](WFTimerTask *) { func(); });
     this->add_task(timer_task);
 }
@@ -750,30 +749,36 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content, const st
     HttpFile::save_file(file_dst, std::move(content), this, notify_msg);
 }
 
-void HttpResp::Save(const std::string &file_dst, const std::string &content, 
+void HttpResp::Save(const std::string &file_dst, const std::string &content,
         const HttpFile::FileIOArgsFunc &func)
 {
     HttpFile::save_file(file_dst, content, this, func);
 }
 
-void HttpResp::Save(const std::string &file_dst, std::string &&content, 
+void HttpResp::Save(const std::string &file_dst, std::string &&content,
         const HttpFile::FileIOArgsFunc &func)
 {
     HttpFile::save_file(file_dst, std::move(content), this, func);
 }
 
-void HttpResp::Json(const ::Json &json)
+void HttpResp::Json(const nlohmann::json &json)
 {
-    // The header value itself does not allow for multiple values, 
+    // The header value itself does not allow for multiple values,
     // and it is also not allowed to send multiple Content-Type headers
     // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
     this->headers["Content-Type"] = "application/json";
     this->String(json.dump());
 }
 
+void HttpResp::Json(const wfrest::Json &json)
+{
+    this->headers["Content-Type"] = "application/json";
+    this->String(json.dump());
+}
+
 void HttpResp::Json(const std::string &str)
 {
-    if (!Json::accept(str))
+    if (!nlohmann::json::accept(str))
     {
         this->Error(StatusJsonInvalid);
         return;
@@ -791,13 +796,13 @@ void HttpResp::set_compress(const enum Compress &compress)
 int HttpResp::get_state() const
 {
     HttpServerTask *server_task = task_of(this);
-    return server_task->get_state();   
+    return server_task->get_state();
 }
 
 int HttpResp::get_error() const
 {
     HttpServerTask *server_task = task_of(this);
-    return server_task->get_error();   
+    return server_task->get_error();
 }
 
 void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
@@ -810,9 +815,9 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 	{
 		http_url = "http://" + http_url;
 	}
-    WFHttpTask *http_task = WFTaskFactory::create_http_task(http_url, 
-                                                            redirect_max, 
-                                                            0, 
+    WFHttpTask *http_task = WFTaskFactory::create_http_task(http_url,
+                                                            redirect_max,
+                                                            0,
                                                             proxy_http_callback);
     auto *proxy_ctx = new ProxyCtx;
     proxy_ctx->url = http_url;
@@ -851,7 +856,7 @@ void HttpResp::Http(const std::string &url, int redirect_max, size_t size_limit)
 	server_req->append_output_body_nocopy(body, len);
     // Keep parts unique to HttpReq
     HttpRequest *server_req_cast = static_cast<HttpRequest *>(server_req);
-	*http_task->get_req() = std::move(*server_req_cast);  
+	*http_task->get_req() = std::move(*server_req_cast);
     http_task->get_resp()->set_size_limit(size_limit);
 	**server_task << http_task;
 }
@@ -866,10 +871,10 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql)
 
 void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLJsonFunc &func)
 {
-    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, 
+    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0,
     [func](WFMySQLTask *mysql_task)
     {
-        ::Json json = mysql_concat_json_res(mysql_task);
+        nlohmann::json json = mysql_concat_json_res(mysql_task);
         func(&json);
     });
 
@@ -879,7 +884,7 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
 
 void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQLFunc &func)
 {
-    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0, 
+    WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0,
     [func](WFMySQLTask *mysql_task)
     {
         if (mysql_task->get_state() != WFT_STATE_SUCCESS)
@@ -902,9 +907,9 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
 void HttpResp::Redis(const std::string &url, const std::string &command,
         const std::vector<std::string>& params)
 {
-    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [this](WFRedisTask *redis_task) 
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [this](WFRedisTask *redis_task)
     {
-        ::Json js = redis_json_res(redis_task);
+        nlohmann::json js = redis_json_res(redis_task);
         this->Json(js);
     });
 	redis_task->get_req()->set_request(command, params);
@@ -914,9 +919,9 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 void HttpResp::Redis(const std::string &url, const std::string &command,
         const std::vector<std::string>& params, const RedisFunc &func)
 {
-    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task) 
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task)
     {
-        ::Json js = redis_json_res(redis_task);
+        nlohmann::json js = redis_json_res(redis_task);
         func(&js);
     });
 	redis_task->get_req()->set_request(command, params);
