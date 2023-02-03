@@ -174,6 +174,11 @@ public:
         return type() == JSON_VALUE_STRING;
     }
 
+    bool is_valid() const
+    {
+        return node_ != nullptr;
+    }
+
     int size() const;
 
     bool empty() const;
@@ -691,11 +696,6 @@ protected:
          const std::string& key);
 
     Json(const Empty&);
-
-    bool is_valid() const
-    {
-        return node_ != nullptr;
-    }
 
     bool is_root() const
     {
