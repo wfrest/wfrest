@@ -4,7 +4,7 @@
 #include "wfrest/ErrorCode.h"
 #include "wfrest/PathUtil.h"
 #include "wfrest/FileUtil.h"
-#include "wfrest/json.h"
+#include "wfrest/Json.h"
 #include "../ClientUtil.h"
 #include "../FileTestUtil.h"
 
