@@ -4,7 +4,6 @@
 #include "wfrest/json.hpp"
 
 using namespace wfrest;
-using Json = nlohmann::json;
 
 static WFFacilities::WaitGroup wait_group(1);
 
@@ -22,7 +21,7 @@ int main()
     // curl -v http://ip:port/json1
     svr.GET("/json1", [](const HttpReq *req, HttpResp *resp)
     {
-        Json json;
+        nlohmann::json json;
         json["test"] = 123;
         json["json"] = "test json";
         resp->Json(json);

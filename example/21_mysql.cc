@@ -4,7 +4,6 @@
 #include "wfrest/HttpServer.h"
 #include "wfrest/json.hpp"
 
-using Json = nlohmann::json;
 using namespace wfrest;
 using namespace protocol;
 
@@ -29,9 +28,9 @@ int main(int argc, char **argv)
     svr.GET("/mysql1", [](const HttpReq *req, HttpResp *resp)
     {
         std::string url = "mysql://root:111111@localhost";
-        resp->MySQL(url, "SHOW DATABASES", [resp](Json *json) 
+        resp->MySQL(url, "SHOW DATABASES", [resp](nlohmann::json *json) 
         {
-            Json js;
+            nlohmann::json js;
             js["rows"] = (*json)["result_set"][0]["rows"];
             resp->String(js.dump());
         });

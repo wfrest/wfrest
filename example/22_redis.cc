@@ -3,7 +3,6 @@
 #include "wfrest/HttpServer.h"
 #include "wfrest/json.hpp"
 
-using Json = nlohmann::json;
 using namespace wfrest;
 
 static WFFacilities::WaitGroup wait_group(1);
