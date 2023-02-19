@@ -41,7 +41,7 @@ If you need performance and good productivity, you will love ✨**wfrest**✨.
       - [MySQL](docs/mysql.md)
       - [Redis](docs/redis.md)
       - [Timer](docs/timer.md)
-    - [built-in json api](docs/json_api.md)
+    - [Built-in Json Api](docs/json_api.md)
 
 ## Dicssussion
 

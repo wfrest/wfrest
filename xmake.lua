@@ -1,5 +1,5 @@
 set_project("wfrest")
-set_version("0.1.0")
+set_version("0.9.2")
 
 add_rules("mode.release", "mode.debug")
 set_languages("c90", "c++11")
