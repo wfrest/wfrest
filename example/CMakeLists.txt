@@ -55,11 +55,12 @@ set(EXAMPLE_LIST
     07_file_save
     08_upload_file
     09_json
-    # 10
+    10_built_in_json
     11_compute_handler
     12_series_interface
     13_compession
     13_compess_client
+    # 14
     15_serve_static_file
     16_cookie_simple
     16_cookie

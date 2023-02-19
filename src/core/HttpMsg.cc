@@ -28,7 +28,9 @@ struct ReqData
     std::string body;
     std::map<std::string, std::string> form_kv;
     Form form;
+    // todo : need optimize by std::variant
     nlohmann::json json;
+    Json builtin_json;
 };
 
 struct ProxyCtx
@@ -345,7 +347,8 @@ Form &HttpReq::form() const
     return req_data_->form;
 }
 
-nlohmann::json &HttpReq::json() const
+template <>
+nlohmann::json &HttpReq::json<nlohmann::json>() const
 {
     if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
@@ -358,6 +361,17 @@ nlohmann::json &HttpReq::json() const
         req_data_->json = nlohmann::json::parse(body_content);
     }
     return req_data_->json;
+}
+
+template <>
+Json &HttpReq::json<Json>() const
+{
+    if (content_type_ == APPLICATION_JSON && req_data_->builtin_json.empty())
+    {
+        const std::string &body_content = this->body();
+        req_data_->builtin_json = Json::parse(body_content);
+    }
+    return req_data_->builtin_json;
 }
 
 const std::string &HttpReq::param(const std::string &key) const

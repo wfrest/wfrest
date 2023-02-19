@@ -41,7 +41,8 @@ public:
 
     Form &form() const;
 
-    nlohmann::json &json() const;
+    template <typename T>
+    T &json() const;
 
     http_content_type content_type() const
     { return content_type_; }
