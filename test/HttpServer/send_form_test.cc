@@ -48,7 +48,116 @@ protected:
     std::vector<std::string> file_list_;
 };
 
-TEST_F(MultiPartEncoderTest, multi_part_form_test)
+TEST_F(MultiPartEncoderTest, multi_part_form_params)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
+
+    svr.GET("/form", [](const HttpReq *req, HttpResp *resp)
+    {
+        MultiPartEncoder encoder;
+        encoder.add_param("Filename1", "1.jpg");
+        encoder.add_param("Filename2", "2.jpg");
+        resp->String(std::move(encoder));
+    });
+
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+    WFHttpTask *client_task = ClientUtil::create_http_task("form");
+    client_task->set_callback([&wait_group](WFHttpTask *task)
+    {
+        const void *body;
+        size_t body_len;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        static const std::string boudary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+        std::string content;
+        content.append("--");
+        content.append(boudary);
+        content.append("\r\nContent-Disposition: form-data; name=\"");
+        content.append("Filename1");
+        content.append("\"\r\n\r\n");
+        content.append("1.jpg");
+
+        content.append("\r\n--");
+        content.append(boudary);
+        content.append("\r\nContent-Disposition: form-data; name=\"");
+        content.append("Filename2");
+        content.append("\"\r\n\r\n");
+        content.append("2.jpg");
+        // end
+        content.append("\r\n--");
+        content.append(boudary);
+        content.append("--\r\n");
+        // fprintf(stderr, "content : %s\n", content.c_str());
+
+        // fprintf(stderr, "body : %s\n", static_cast<const char *>(body));
+        EXPECT_TRUE(strcmp(content.c_str(), static_cast<const char *>(body)) == 0);
+        wait_group.done();
+    });
+
+    client_task->start();
+    wait_group.wait();
+    svr.stop();
+}
+
+TEST_F(MultiPartEncoderTest, multi_part_form_files)
+{
+    HttpServer svr;
+    WFFacilities::WaitGroup wait_group(1);
+
+    svr.GET("/form", [](const HttpReq *req, HttpResp *resp)
+    {
+        MultiPartEncoder encoder;
+        encoder.add_file("test_1.txt", "./www/test_1.txt");
+        encoder.add_file("test_2.txt", "./www/test_2.txt");
+        resp->String(std::move(encoder));
+    });
+
+    EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
+
+    WFHttpTask *client_task = ClientUtil::create_http_task("form");
+    client_task->set_callback([&wait_group](WFHttpTask *task)
+    {
+        const void *body;
+        size_t body_len;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        static const std::string boudary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+        std::string content;
+        content.append("--");
+        content.append(boudary);
+        content.append("\r\nContent-Disposition: form-data; name=\"");
+        content.append("test_1.txt");
+        content.append("\"; filename=\"");
+        content.append("test_1.txt");
+        content.append("\"\r\nContent-Type: ");
+        content.append("text/plain");
+        content.append("\r\n\r\n");
+        content.append("file_body");
+
+        content.append("\r\n--");
+        content.append(boudary);
+        content.append("\r\nContent-Disposition: form-data; name=\"");
+        content.append("test_2.txt");
+        content.append("\"; filename=\"");
+        content.append("test_2.txt");
+        content.append("\"\r\nContent-Type: ");
+        content.append("text/plain");
+        content.append("\r\n\r\n");
+        content.append("file_body0123456789");
+        content.append("\r\n--");
+        content.append(boudary);
+        content.append("--\r\n");
+        EXPECT_TRUE(strcmp(content.c_str(), static_cast<const char *>(body)) == 0);
+        wait_group.done();
+    });
+
+    client_task->start();
+    wait_group.wait();
+    svr.stop();
+}
+
+
+TEST_F(MultiPartEncoderTest, multi_part_form_param_file)
 {
     HttpServer svr;
     WFFacilities::WaitGroup wait_group(1);
@@ -70,15 +179,16 @@ TEST_F(MultiPartEncoderTest, multi_part_form_test)
         const void *body;
         size_t body_len;
         task->get_resp()->get_parsed_body(&body, &body_len);
+        static const std::string boudary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
         std::string content;
-        content.append("\r\n--");
-        content.append("----WebKitFormBoundary7MA4YWxkTrZu0gW");
+        content.append("--");
+        content.append(boudary);
         content.append("\r\nContent-Disposition: form-data; name=\"");
         content.append("Filename");
         content.append("\"\r\n\r\n");
         content.append("1.jpg");
         content.append("\r\n--");
-        content.append("----WebKitFormBoundary7MA4YWxkTrZu0gW");
+        content.append(boudary);
         content.append("\r\nContent-Disposition: form-data; name=\"");
         content.append("test_1.txt");
         content.append("\"; filename=\"");
@@ -89,7 +199,7 @@ TEST_F(MultiPartEncoderTest, multi_part_form_test)
         content.append("file_body");
 
         content.append("\r\n--");
-        content.append("----WebKitFormBoundary7MA4YWxkTrZu0gW");
+        content.append(boudary);
         content.append("\r\nContent-Disposition: form-data; name=\"");
         content.append("test_2.txt");
         content.append("\"; filename=\"");
@@ -99,11 +209,11 @@ TEST_F(MultiPartEncoderTest, multi_part_form_test)
         content.append("\r\n\r\n");
         content.append("file_body0123456789");
         content.append("\r\n--");
-        content.append("----WebKitFormBoundary7MA4YWxkTrZu0gW");
+        content.append(boudary);
         content.append("--\r\n");
-        fprintf(stderr, "content : %s\n", content.c_str());
+        // fprintf(stderr, "content : %s\n", content.c_str());
 
-        fprintf(stderr, "body : %s\n", static_cast<const char *>(body));
+        // fprintf(stderr, "body : %s\n", static_cast<const char *>(body));
         EXPECT_TRUE(strcmp(content.c_str(), static_cast<const char *>(body)) == 0);
         wait_group.done();
     });
