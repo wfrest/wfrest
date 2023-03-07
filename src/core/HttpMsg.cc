@@ -574,12 +574,43 @@ void HttpResp::String(MultiPartEncoder *encoder)
     HttpServerTask *server_task = task_of(this);
     SeriesWork *series = series_of(server_task);
 
+    std::string *content = new std::string;
+    series->set_context(content);
+    series->set_callback([encoder](const SeriesWork *series)
+    {
+        delete encoder;
+        delete static_cast<std::string *>(series->get_context());
+    });
+
+    const MultiPartEncoder::ParamList &param_list = encoder->params();
+    int param_idx = 0;
+    for(const auto &param : param_list)
+    {
+        if (param_idx != 0)
+        {
+            content->append("\r\n");
+        }
+        param_idx++;
+        content->append("--");
+        content->append(boudary);
+        content->append("\r\nContent-Disposition: form-data; name=\"");
+        content->append(param.first);
+        content->append("\"\r\n\r\n");
+        content->append(param.second);
+    }
     const MultiPartEncoder::FileList &file_list = encoder->files();
     size_t file_cnt = file_list.size();
     assert(file_cnt >= 0);
+    if (file_cnt == 0)
+    {
+        content->append("\r\n--");
+        content->append(boudary);
+        content->append("--\r\n");
+        this->append_output_body_nocopy(content->c_str(), content->size());
+    }
+    int file_idx = 0;
     for(const auto &file : file_list)
     {
-        file_cnt--;
         if(!PathUtil::is_file(file.second))
         {
             fprintf(stderr, "[Error] Not a File : %s\n", file.second.c_str());
@@ -593,9 +624,14 @@ void HttpResp::String(MultiPartEncoder *encoder)
             continue;
         }
         void *buf = malloc(file_size);
+        server_task->add_callback([buf](const HttpTask *server_task)
+                                {
+                                    free(buf);
+                                });
         WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file.second,
                 buf, file_size, 0,
-                [&file, &boudary](WFFileIOTask *pread_task) {
+                [&file, &boudary, param_idx, file_idx](WFFileIOTask *pread_task)
+                {
                     FileIOArgs *args = pread_task->get_args();
                     long ret = pread_task->get_retval();
 
@@ -608,7 +644,11 @@ void HttpResp::String(MultiPartEncoder *encoder)
                     {
                         std::string file_suffix = PathUtil::suffix(file.second);
                         std::string file_type = ContentType::to_str_by_suffix(file_suffix);
-                        content->append("\r\n--");
+                        if (param_idx != 0 || file_idx != 0)
+                        {
+                            content->append("\r\n");
+                        }
+                        content->append("--");
                         content->append(boudary);
                         content->append("\r\nContent-Disposition: form-data; name=\"");
                         content->append(file.first);
@@ -628,32 +668,12 @@ void HttpResp::String(MultiPartEncoder *encoder)
                         resp->append_output_body_nocopy(content->c_str(), content->size());
                     }
                 });
-        if(file_cnt == 0)
+        if(file_idx == file_cnt - 1)
         {
             pread_task->user_data = this;
         }
-        server_task->add_callback([buf](const HttpTask *server_task)
-                                {
-                                    free(buf);
-                                });
         series->push_back(pread_task);
-    }
-
-    std::string *content = new std::string;
-    series->set_context(content);
-    series->set_callback([encoder](const SeriesWork *series) {
-        delete encoder;
-        delete static_cast<std::string *>(series->get_context());
-    });
-
-    const MultiPartEncoder::ParamList &param_list = encoder->params();
-    for(const auto &param : param_list) {
-        content->append("\r\n--");
-        content->append(boudary);
-        content->append("\r\nContent-Disposition: form-data; name=\"");
-        content->append(param.first);
-        content->append("\"\r\n\r\n");
-        content->append(param.second);
+        file_idx++;
     }
 }
 
