@@ -580,28 +580,28 @@ public:
         }
     };
 
-    iterator begin()
+    iterator begin() const
     {
         iterator iter(node_);
         iter.set_begin();
         return iter;
     }
 
-    iterator end()
+    iterator end() const
     {
         iterator iter(node_);
         iter.set_end();
         return iter;
     }
 
-    reverse_iterator rbegin()
+    reverse_iterator rbegin() const
     {
         reverse_iterator iter(node_);
         iter.set_rbegin();
         return iter;
     }
 
-    reverse_iterator rend()
+    reverse_iterator rend() const
     {
         reverse_iterator iter(node_);
         iter.set_rend();
