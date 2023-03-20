@@ -208,15 +208,25 @@ Json Json::parse(FILE* fp)
 {
     if (fp == nullptr)
     {
-        return Json();
+        return Json(Empty());
     }
     fseek(fp, 0, SEEK_END);
     long length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     char* buffer = (char*)malloc(length + 1);
     buffer[length] = '\0';
-    fread(buffer, 1, length, fp);
-    return Json(buffer, true);
+    size_t ret = fread(buffer, 1, length, fp);
+    Json js;
+    if (ret != length)
+    {
+        js = Json(Empty());
+    }
+    else
+    {
+        js = Json(buffer, true);
+    }
+    free(buffer);
+    return js;
 }
 
 std::string Json::dump() const
