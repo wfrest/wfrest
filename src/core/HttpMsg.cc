@@ -72,7 +72,6 @@ void proxy_http_callback(WFHttpTask *http_task)
                 errmsg.append(std::to_string(size));
                 server_resp->Error(StatusProxyError, errmsg);
             }
-            delete proxy_ctx;
         });
 
         const void *body;
@@ -112,6 +111,10 @@ void proxy_http_callback(WFHttpTask *http_task)
         errmsg.append(err_string);
         server_resp->Error(StatusProxyError, errmsg);
     }
+    server_task->add_callback([proxy_ctx](HttpTask *server_task)
+    {
+        delete proxy_ctx;
+    });
     // move back Request
     auto *server_req = static_cast<HttpRequest *>(server_task->get_req());
     *server_req = std::move(*http_task->get_req());
