@@ -166,6 +166,33 @@ inline double HttpReq::param<double>(const std::string &key) const
         return 0.0;
 }
 
+struct SseContext
+{
+public:
+    void clear()
+    {
+        data = "";
+        event = "";
+        id = "";
+        comment = "";
+        retry = "";
+        close = false;
+    }
+
+    bool check() const
+    {
+        // Any required field?
+        return true;
+    }
+    // TODO : Use Json
+    std::string data;
+    std::string event;
+    std::string id;
+    std::string comment;
+    std::string retry;
+    bool close = false;
+};
+
 class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
@@ -176,6 +203,8 @@ public:
     using RedisFunc = std::function<void(nlohmann::json *json)>;
 
     using TimerFunc = std::function<void()>;
+
+    using PushFunc = std::function<void(std::vector<SseContext>* ctx)>;
 
 public:
     // send string
@@ -276,6 +305,8 @@ public:
     void Timer(unsigned int microseconds, const TimerFunc &cb);
 
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
+
+    void Push(unsigned int interval, const PushFunc& cb);
 
     void add_task(SubTask *task);
 
