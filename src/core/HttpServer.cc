@@ -17,7 +17,7 @@ using namespace wfrest;
 void HttpServer::process(HttpTask *task)
 {
     auto *server_task = static_cast<HttpServerTask *>(task);
-
+    server_task->server = this;
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
     

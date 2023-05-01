@@ -745,21 +745,38 @@ void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
 struct SseTimerCtx
 {
     HttpServerTask *server_task = nullptr;
-    unsigned int interval = 0;
-    std::vector<SseContext> sse_ctx_list;
+    // interval
+    unsigned int microseconds = 0;
+    bool use_microseconds = true;
+    time_t seconds = 0;
+    long nanoseconds = 0;
+
     HttpResp::PushFunc sse_cb;
+    HttpResp::PushJsonFunc sse_json_cb;
+
     std::string construct()
+    {
+        if (sse_cb)
+        {
+            return construct_sse();
+        }
+        if (sse_json_cb)
+        {
+            return construct_sse_json();
+        }
+        return "";
+    }
+    std::string construct_sse()
     {
         std::string body;
         body.reserve(128);
-        sse_ctx_list.clear();
-        sse_cb(&sse_ctx_list);
+        std::vector<SseContext> sse_ctx_list;
+        sse_cb(sse_ctx_list);
         for (int i = 0; i < sse_ctx_list.size(); i++)
         {
             const auto& sse_ctx = sse_ctx_list[i];
             if (!sse_ctx.check())
             {
-                // TODO : More specific
                 return "Error : Invalid Content";
             }
             if (!sse_ctx.comment.empty())
@@ -799,43 +816,208 @@ struct SseTimerCtx
         }
         return body;
     }
+    std::string construct_sse_json()
+    {
+        std::string body;
+        body.reserve(128);
+        Json sse_json;
+        sse_json_cb(sse_json);
+        if (sse_json.is_object())
+        {
+            if (sse_json.has("comment"))
+            {
+                body.append(": ");
+                body.append(sse_json["comment"].get<std::string>());
+                body.append("\n");
+            }
+            if (sse_json.has("data"))
+            {
+                body.append("data: ");
+                body.append(sse_json["data"].get<std::string>());
+                body.append("\n\n");
+            }
+            if (sse_json.has("event"))
+            {
+                body.append("event: ");
+                body.append(sse_json["event"].get<std::string>());
+                body.append("\n");
+            }
+            if (sse_json.has("id"))
+            {
+                body.append("id: ");
+                body.append(sse_json["id"].get<std::string>());
+                body.append("\n");
+            }
+            if (sse_json.has("retry"))
+            {
+                body.append("retry: ");
+                body.append(sse_json["retry"].get<std::string>());
+                body.append("\n");
+            }
+        }
+        if (sse_json.is_array())
+        {
+            for (int i = 0; i < sse_json.size(); i++) 
+            {
+                Json js = sse_json[i];
+                if (js.has("comment"))
+                {
+                    body.append(": ");
+                    body.append(js["comment"].get<std::string>());
+                    body.append("\n");
+                }
+                if (js.has("data"))
+                {
+                    body.append("data: ");
+                    body.append(js["data"].get<std::string>());
+                    body.append("\n");
+                    if (i == sse_json.size() -1)
+                    {
+                        body.append("\n");
+                    }
+                }
+                if (js.has("event"))
+                {
+                    body.append("event: ");
+                    body.append(js["event"].get<std::string>());
+                    body.append("\n");
+                }
+                if (js.has("id"))
+                {
+                    body.append("id: ");
+                    body.append(js["id"].get<std::string>());
+                    body.append("\n");
+                }
+                if (js.has("retry"))
+                {
+                    body.append("retry: ");
+                    body.append(js["retry"].get<std::string>());
+                    body.append("\n");
+                }
+            }
+        }
+        return body;
+    }
 };
 
 void timer_callback(WFTimerTask *timer_task)
 {
     auto* sse_timer_ctx = static_cast<SseTimerCtx *>(timer_task->user_data);
     auto* server_task = sse_timer_ctx->server_task;
+    auto* req = server_task->get_req();
+    bool close_header = strcmp(req->get_method(), "GET") == 0 && req->header("Connection") == "close";
+    if (close_header || server_task->close_flag())
+    {
+        fprintf(stderr, "Close the connection\n");
+        return;
+    }
     // construct response
+    // TODO : construct chunked body
     std::string resp_body = sse_timer_ctx->construct();
-    std::cout << "11111111111";
+    // TODO : Handle EAGAIN, retry (We need a application buffer here)
     server_task->push(resp_body.c_str(), resp_body.size());
-    timer_task = WFTaskFactory::create_timer_task(sse_timer_ctx->interval, timer_callback);
+    if (sse_timer_ctx->use_microseconds)
+    {
+        timer_task = WFTaskFactory::create_timer_task(sse_timer_ctx->microseconds, timer_callback);
+    } else 
+    {
+        timer_task = WFTaskFactory::create_timer_task(sse_timer_ctx->seconds, sse_timer_ctx->nanoseconds, timer_callback);
+    } 
     timer_task->user_data = sse_timer_ctx;
     **server_task << timer_task;
 }
 
-void HttpResp::Push(unsigned int interval, const PushFunc& sse_cb)
+static std::string construct_sse_header()
 {
-    HttpServerTask *server_task = task_of(this);
     std::string http_header;
     http_header.reserve(128);
     http_header.append("HTTP/1.1 200 OK\r\n");
     http_header.append("Content-Type: text/event-stream\r\n");
     http_header.append("Cache-Control: no-cache\r\n");
     http_header.append("Connection: keep-alive\r\n");
+    // http_header.append("Transfer-Encoding: chunked\r\n");
     http_header.append("\r\n");
+    return http_header;
+}
+
+void HttpResp::Push(unsigned int microseconds, const PushFunc& sse_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_sse_header();
     server_task->push(http_header.c_str(), http_header.size());
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(interval, timer_callback);
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, timer_callback);
     auto* sse_timer_ctx = new SseTimerCtx;
-    std::cout << "11111111111";
     sse_timer_ctx->server_task = server_task;
-    sse_timer_ctx->interval = interval;
+    sse_timer_ctx->microseconds = microseconds;
+    sse_timer_ctx->use_microseconds = true;
     sse_timer_ctx->sse_cb = sse_cb;
     timer_task->user_data = sse_timer_ctx;
     server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
         delete sse_timer_ctx;
     });
-    std::cout << "11111111111";
+    server_task->noreply();  // no need to send original response
+    **server_task << timer_task;
+}
+
+void HttpResp::Push(time_t seconds, long nanoseconds, const PushFunc& sse_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_sse_header();
+    server_task->push(http_header.c_str(), http_header.size());
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, timer_callback);
+    auto* sse_timer_ctx = new SseTimerCtx;
+    sse_timer_ctx->server_task = server_task;
+    sse_timer_ctx->seconds = seconds;
+    sse_timer_ctx->nanoseconds = nanoseconds;
+    sse_timer_ctx->use_microseconds = false;
+    sse_timer_ctx->sse_cb = sse_cb;
+    timer_task->user_data = sse_timer_ctx;
+    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
+        delete sse_timer_ctx;
+    });
+    server_task->noreply();  // no need to send original response
+    **server_task << timer_task;
+}
+
+void HttpResp::Push(unsigned int microseconds, const PushJsonFunc& sse_json_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_sse_header();
+    server_task->push(http_header.c_str(), http_header.size());
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, timer_callback);
+    auto* sse_timer_ctx = new SseTimerCtx;
+    sse_timer_ctx->server_task = server_task;
+    sse_timer_ctx->microseconds = microseconds;
+    sse_timer_ctx->use_microseconds = true;
+    sse_timer_ctx->sse_json_cb = sse_json_cb;
+    timer_task->user_data = sse_timer_ctx;
+    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
+        delete sse_timer_ctx;
+    });
+    server_task->noreply();  // no need to send original response
+    **server_task << timer_task;
+}
+
+void HttpResp::Push(time_t seconds, long nanoseconds, const PushJsonFunc& sse_json_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_sse_header();
+    server_task->push(http_header.c_str(), http_header.size());
+    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, timer_callback);
+    auto* sse_timer_ctx = new SseTimerCtx;
+    sse_timer_ctx->server_task = server_task;
+    sse_timer_ctx->seconds = seconds;
+    sse_timer_ctx->nanoseconds = nanoseconds;
+    sse_timer_ctx->use_microseconds = false;
+    sse_timer_ctx->sse_json_cb = sse_json_cb;
+    timer_task->user_data = sse_timer_ctx;
+    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
+        delete sse_timer_ctx;
+    });
     server_task->noreply();  // no need to send original response
     **server_task << timer_task;
 }

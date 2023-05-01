@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 
 #include "HttpServerTask.h"
+#include "HttpServer.h"
 #include "StrUtil.h"
 
 using namespace protocol;
@@ -228,6 +229,12 @@ unsigned short HttpServerTask::peer_port() const
         port = ntohs(sin6->sin6_port);
     }
     return port;
+}
+
+
+bool HttpServerTask::close_flag() const
+{
+    return server->close_flag_;
 }
 
 } // namespace wfrest

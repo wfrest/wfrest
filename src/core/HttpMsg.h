@@ -176,7 +176,6 @@ public:
         id = "";
         comment = "";
         retry = "";
-        close = false;
     }
 
     bool check() const
@@ -190,7 +189,6 @@ public:
     std::string id;
     std::string comment;
     std::string retry;
-    bool close = false;
 };
 
 class HttpResp : public protocol::HttpResponse, public Noncopyable
@@ -204,7 +202,9 @@ public:
 
     using TimerFunc = std::function<void()>;
 
-    using PushFunc = std::function<void(std::vector<SseContext>* ctx)>;
+    using PushFunc = std::function<void(OUT std::vector<SseContext>& ctx)>;
+
+    using PushJsonFunc = std::function<void(OUT Json &js)>;
 
 public:
     // send string
@@ -306,7 +306,13 @@ public:
 
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
-    void Push(unsigned int interval, const PushFunc& cb);
+    void Push(unsigned int microseconds, const PushFunc& cb);
+
+    void Push(time_t seconds, long nanoseconds, const PushFunc& cb);
+
+    void Push(unsigned int microsecond, const PushJsonFunc& cb);
+
+    void Push(time_t seconds, long nanoseconds, const PushJsonFunc& cb);
 
     void add_task(SubTask *task);
 

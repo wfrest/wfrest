@@ -35,27 +35,41 @@ int main()
 
     HttpServer svr;
 
-
     svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push(1000000, [](std::vector<SseContext>* ctx_list) {
+        resp->Push(1000000, [](std::vector<SseContext>& ctx_list) {
             SseContext sse_ctx;
             sse_ctx.id = std::to_string(StockPrice::id());
             sse_ctx.event = "message";
             sse_ctx.data = "price : " + std::to_string(StockPrice::price());
-            ctx_list->emplace_back(std::move(sse_ctx));
+            ctx_list.emplace_back(std::move(sse_ctx));
         });
     });
 
-    /*
-    svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
+    svr.GET("/sse_json", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push(1000000, [](Json* js) {
-            js["id"] = id++;
+        resp->Push(1, 0, [](Json& js) {
+            js["id"] = std::to_string(StockPrice::id()); 
             js["data"] = "data";
         });
     });
-    */
+
+    svr.GET("/sse_json_arr", [](const HttpReq *req, HttpResp *resp)
+    {
+        resp->Push(1, 0, [](Json& js) {
+            Json data1;
+            data1["id"] = std::to_string(StockPrice::id()); 
+            data1["data"] = "data1";
+            js.push_back(data1);
+            Json data2;
+            data2["data"] = "data2";
+            js.push_back(data2);
+            Json data3;
+            data3["data"] = "data3";
+            js.push_back(data3);
+        });
+    });
+
     if (svr.track().start(8888) == 0)
     {
         wait_group.wait();
