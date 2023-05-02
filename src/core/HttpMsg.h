@@ -338,6 +338,11 @@ private:
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
+inline void sse_signal(const std::string& cond_name)
+{
+    WFTaskFactory::signal_by_name(cond_name, NULL); 
+}
+
 } // namespace wfrest
 
 

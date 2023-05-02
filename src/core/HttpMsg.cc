@@ -742,7 +742,7 @@ void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
     this->add_task(timer_task);
 }
 
-struct SseCounterContext
+struct SseTaskContext
 {
     HttpServerTask *server_task = nullptr;
     std::string cond_name;
@@ -895,10 +895,9 @@ struct SseCounterContext
     }
 };
 
-void sse_counter_callback(WFCounterTask *counter_task)
+void sse_func(SseTaskContext* sse_task_ctx)
 {
-    auto* sse_conter_ctx = static_cast<SseCounterContext *>(counter_task->user_data);
-    auto* server_task = sse_conter_ctx->server_task;
+    auto* server_task = sse_task_ctx->server_task;
     auto* req = server_task->get_req();
     bool close_header = strcmp(req->get_method(), "GET") == 0 && req->header("Connection") == "close";
     if (close_header || server_task->close_flag())
@@ -908,13 +907,13 @@ void sse_counter_callback(WFCounterTask *counter_task)
     }
     // construct response
     // TODO : construct chunked body
-    std::string resp_body = sse_conter_ctx->construct();
+    std::string resp_body = sse_task_ctx->construct();
     // TODO : Handle EAGAIN, retry (We need a application buffer here)
     // TODO : Handler error
     server_task->push(resp_body.c_str(), resp_body.size());
-    counter_task = WFTaskFactory::create_counter_task(sse_conter_ctx->cond_name, 1, sse_counter_callback);
-    counter_task->user_data = sse_conter_ctx;
-    **server_task << counter_task;
+    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
+    auto* cond = WFTaskFactory::create_conditional(sse_task_ctx->cond_name, go_task);
+    **server_task << cond;
 }
 
 static std::string construct_sse_header()
@@ -936,17 +935,18 @@ void HttpResp::Push(const std::string& cond_name, const PushFunc& sse_cb)
     // Construct HTTP header
     std::string http_header = construct_sse_header();
     server_task->push(http_header.c_str(), http_header.size());
-    WFCounterTask* counter_task = WFTaskFactory::create_counter_task(cond_name, 1, sse_counter_callback);
-    auto* sse_counter_ctx = new SseCounterContext;
-    sse_counter_ctx->server_task = server_task;
-    sse_counter_ctx->cond_name = cond_name;
-    sse_counter_ctx->sse_cb = sse_cb;
-    counter_task->user_data = sse_counter_ctx;
-    server_task->add_callback([sse_counter_ctx](HttpTask *server_task) {
-        delete sse_counter_ctx;
+
+    auto* sse_task_ctx = new SseTaskContext;
+    sse_task_ctx->server_task = server_task;
+    sse_task_ctx->cond_name = cond_name;
+    sse_task_ctx->sse_cb = sse_cb;
+    server_task->add_callback([sse_task_ctx](HttpTask *server_task) {
+        delete sse_task_ctx;
     });
+    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
+    auto* cond = WFTaskFactory::create_conditional(cond_name, go_task);
     server_task->noreply();  // no need to send original response
-    **server_task << counter_task;
+    **server_task << cond;
 }
 
 void HttpResp::File(const std::string &path)

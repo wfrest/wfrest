@@ -37,7 +37,7 @@ int main()
 
     svr.GET("/notify", [](const HttpReq *req, HttpResp *resp)
     {
-        WFTaskFactory::count_by_name("test"); 
+        sse_signal("test"); 
     });
 
     svr.GET("/interval", [](const HttpReq *req, HttpResp *resp)
@@ -45,7 +45,7 @@ int main()
         int cnt = 0;
         while (true)
         {
-            WFTaskFactory::count_by_name("test"); 
+            sse_signal("test"); 
             sleep(1);
             if (cnt++ == 10)
             {
