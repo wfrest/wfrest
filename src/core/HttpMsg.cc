@@ -742,15 +742,10 @@ void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
     this->add_task(timer_task);
 }
 
-struct SseTimerCtx
+struct SseCounterContext
 {
     HttpServerTask *server_task = nullptr;
-    // interval
-    unsigned int microseconds = 0;
-    bool use_microseconds = true;
-    time_t seconds = 0;
-    long nanoseconds = 0;
-
+    std::string cond_name;
     HttpResp::PushFunc sse_cb;
     HttpResp::PushJsonFunc sse_json_cb;
 
@@ -900,10 +895,10 @@ struct SseTimerCtx
     }
 };
 
-void timer_callback(WFTimerTask *timer_task)
+void sse_counter_callback(WFCounterTask *counter_task)
 {
-    auto* sse_timer_ctx = static_cast<SseTimerCtx *>(timer_task->user_data);
-    auto* server_task = sse_timer_ctx->server_task;
+    auto* sse_conter_ctx = static_cast<SseCounterContext *>(counter_task->user_data);
+    auto* server_task = sse_conter_ctx->server_task;
     auto* req = server_task->get_req();
     bool close_header = strcmp(req->get_method(), "GET") == 0 && req->header("Connection") == "close";
     if (close_header || server_task->close_flag())
@@ -913,18 +908,13 @@ void timer_callback(WFTimerTask *timer_task)
     }
     // construct response
     // TODO : construct chunked body
-    std::string resp_body = sse_timer_ctx->construct();
+    std::string resp_body = sse_conter_ctx->construct();
     // TODO : Handle EAGAIN, retry (We need a application buffer here)
+    // TODO : Handler error
     server_task->push(resp_body.c_str(), resp_body.size());
-    if (sse_timer_ctx->use_microseconds)
-    {
-        timer_task = WFTaskFactory::create_timer_task(sse_timer_ctx->microseconds, timer_callback);
-    } else 
-    {
-        timer_task = WFTaskFactory::create_timer_task(sse_timer_ctx->seconds, sse_timer_ctx->nanoseconds, timer_callback);
-    } 
-    timer_task->user_data = sse_timer_ctx;
-    **server_task << timer_task;
+    counter_task = WFTaskFactory::create_counter_task(sse_conter_ctx->cond_name, 1, sse_counter_callback);
+    counter_task->user_data = sse_conter_ctx;
+    **server_task << counter_task;
 }
 
 static std::string construct_sse_header()
@@ -940,86 +930,23 @@ static std::string construct_sse_header()
     return http_header;
 }
 
-void HttpResp::Push(unsigned int microseconds, const PushFunc& sse_cb)
+void HttpResp::Push(const std::string& cond_name, const PushFunc& sse_cb)
 {
     HttpServerTask *server_task = task_of(this);
     // Construct HTTP header
     std::string http_header = construct_sse_header();
     server_task->push(http_header.c_str(), http_header.size());
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, timer_callback);
-    auto* sse_timer_ctx = new SseTimerCtx;
-    sse_timer_ctx->server_task = server_task;
-    sse_timer_ctx->microseconds = microseconds;
-    sse_timer_ctx->use_microseconds = true;
-    sse_timer_ctx->sse_cb = sse_cb;
-    timer_task->user_data = sse_timer_ctx;
-    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
-        delete sse_timer_ctx;
+    WFCounterTask* counter_task = WFTaskFactory::create_counter_task(cond_name, 1, sse_counter_callback);
+    auto* sse_counter_ctx = new SseCounterContext;
+    sse_counter_ctx->server_task = server_task;
+    sse_counter_ctx->cond_name = cond_name;
+    sse_counter_ctx->sse_cb = sse_cb;
+    counter_task->user_data = sse_counter_ctx;
+    server_task->add_callback([sse_counter_ctx](HttpTask *server_task) {
+        delete sse_counter_ctx;
     });
     server_task->noreply();  // no need to send original response
-    **server_task << timer_task;
-}
-
-void HttpResp::Push(time_t seconds, long nanoseconds, const PushFunc& sse_cb)
-{
-    HttpServerTask *server_task = task_of(this);
-    // Construct HTTP header
-    std::string http_header = construct_sse_header();
-    server_task->push(http_header.c_str(), http_header.size());
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, timer_callback);
-    auto* sse_timer_ctx = new SseTimerCtx;
-    sse_timer_ctx->server_task = server_task;
-    sse_timer_ctx->seconds = seconds;
-    sse_timer_ctx->nanoseconds = nanoseconds;
-    sse_timer_ctx->use_microseconds = false;
-    sse_timer_ctx->sse_cb = sse_cb;
-    timer_task->user_data = sse_timer_ctx;
-    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
-        delete sse_timer_ctx;
-    });
-    server_task->noreply();  // no need to send original response
-    **server_task << timer_task;
-}
-
-void HttpResp::Push(unsigned int microseconds, const PushJsonFunc& sse_json_cb)
-{
-    HttpServerTask *server_task = task_of(this);
-    // Construct HTTP header
-    std::string http_header = construct_sse_header();
-    server_task->push(http_header.c_str(), http_header.size());
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(microseconds, timer_callback);
-    auto* sse_timer_ctx = new SseTimerCtx;
-    sse_timer_ctx->server_task = server_task;
-    sse_timer_ctx->microseconds = microseconds;
-    sse_timer_ctx->use_microseconds = true;
-    sse_timer_ctx->sse_json_cb = sse_json_cb;
-    timer_task->user_data = sse_timer_ctx;
-    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
-        delete sse_timer_ctx;
-    });
-    server_task->noreply();  // no need to send original response
-    **server_task << timer_task;
-}
-
-void HttpResp::Push(time_t seconds, long nanoseconds, const PushJsonFunc& sse_json_cb)
-{
-    HttpServerTask *server_task = task_of(this);
-    // Construct HTTP header
-    std::string http_header = construct_sse_header();
-    server_task->push(http_header.c_str(), http_header.size());
-    WFTimerTask *timer_task = WFTaskFactory::create_timer_task(seconds, nanoseconds, timer_callback);
-    auto* sse_timer_ctx = new SseTimerCtx;
-    sse_timer_ctx->server_task = server_task;
-    sse_timer_ctx->seconds = seconds;
-    sse_timer_ctx->nanoseconds = nanoseconds;
-    sse_timer_ctx->use_microseconds = false;
-    sse_timer_ctx->sse_json_cb = sse_json_cb;
-    timer_task->user_data = sse_timer_ctx;
-    server_task->add_callback([sse_timer_ctx](HttpTask *server_task) {
-        delete sse_timer_ctx;
-    });
-    server_task->noreply();  // no need to send original response
-    **server_task << timer_task;
+    **server_task << counter_task;
 }
 
 void HttpResp::File(const std::string &path)

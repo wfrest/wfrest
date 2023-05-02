@@ -35,9 +35,28 @@ int main()
 
     HttpServer svr;
 
+    svr.GET("/notify", [](const HttpReq *req, HttpResp *resp)
+    {
+        WFTaskFactory::count_by_name("test"); 
+    });
+
+    svr.GET("/interval", [](const HttpReq *req, HttpResp *resp)
+    {
+        int cnt = 0;
+        while (true)
+        {
+            WFTaskFactory::count_by_name("test"); 
+            sleep(1);
+            if (cnt++ == 10)
+            {
+                break;
+            }
+        }
+    });
+
     svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push(1000000, [](std::vector<SseContext>& ctx_list) {
+        resp->Push("test", [](std::vector<SseContext>& ctx_list) {
             SseContext sse_ctx;
             sse_ctx.id = std::to_string(StockPrice::id());
             sse_ctx.event = "message";
@@ -46,9 +65,10 @@ int main()
         });
     });
 
+    /*
     svr.GET("/sse_json", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push(1, 0, [](Json& js) {
+        resp->Push("json_test", [](Json& js) {
             js["id"] = std::to_string(StockPrice::id()); 
             js["data"] = "data";
         });
@@ -56,7 +76,7 @@ int main()
 
     svr.GET("/sse_json_arr", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push(1, 0, [](Json& js) {
+        resp->Push("multi_json_test", [](Json& js) {
             Json data1;
             data1["id"] = std::to_string(StockPrice::id()); 
             data1["data"] = "data1";
@@ -69,6 +89,7 @@ int main()
             js.push_back(data3);
         });
     });
+    */
 
     if (svr.track().start(8888) == 0)
     {

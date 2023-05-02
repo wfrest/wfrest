@@ -306,13 +306,7 @@ public:
 
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
-    void Push(unsigned int microseconds, const PushFunc& cb);
-
-    void Push(time_t seconds, long nanoseconds, const PushFunc& cb);
-
-    void Push(unsigned int microsecond, const PushJsonFunc& cb);
-
-    void Push(time_t seconds, long nanoseconds, const PushJsonFunc& cb);
+    void Push(const std::string& cond_name, const PushFunc& cb);
 
     void add_task(SubTask *task);
 
