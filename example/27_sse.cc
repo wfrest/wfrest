@@ -65,7 +65,6 @@ int main()
         });
     });
 
-    /*
     svr.GET("/sse_json", [](const HttpReq *req, HttpResp *resp)
     {
         resp->Push("json_test", [](Json& js) {
@@ -89,7 +88,22 @@ int main()
             js.push_back(data3);
         });
     });
-    */
+
+    svr.GET("/sse_close", [](const HttpReq *req, HttpResp *resp)
+    {
+        int cnt = 0;
+        resp->Push("test", [&cnt](Json& js) {
+            if (++cnt == 10)
+            {
+                js["event"] = "close";
+                js["data"] = "";
+            } else 
+            {
+                js["id"] = std::to_string(StockPrice::id()); 
+                js["data"] = "data";
+            }
+        });
+    });
 
     if (svr.track().start(8888) == 0)
     {

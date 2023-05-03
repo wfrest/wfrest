@@ -906,10 +906,7 @@ void sse_func(SseTaskContext* sse_task_ctx)
         return;
     }
     // construct response
-    // TODO : construct chunked body
     std::string resp_body = sse_task_ctx->construct();
-    // TODO : Handle EAGAIN, retry (We need a application buffer here)
-    // TODO : Handler error
     server_task->push(resp_body.c_str(), resp_body.size());
     auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
     auto* cond = WFTaskFactory::create_conditional(sse_task_ctx->cond_name, go_task);
@@ -924,7 +921,7 @@ static std::string construct_sse_header()
     http_header.append("Content-Type: text/event-stream\r\n");
     http_header.append("Cache-Control: no-cache\r\n");
     http_header.append("Connection: keep-alive\r\n");
-    // http_header.append("Transfer-Encoding: chunked\r\n");
+    http_header.append("Transfer-Encoding: chunked\r\n");
     http_header.append("\r\n");
     return http_header;
 }
@@ -940,6 +937,26 @@ void HttpResp::Push(const std::string& cond_name, const PushFunc& sse_cb)
     sse_task_ctx->server_task = server_task;
     sse_task_ctx->cond_name = cond_name;
     sse_task_ctx->sse_cb = sse_cb;
+    server_task->add_callback([sse_task_ctx](HttpTask *server_task) {
+        delete sse_task_ctx;
+    });
+    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
+    auto* cond = WFTaskFactory::create_conditional(cond_name, go_task);
+    server_task->noreply();  // no need to send original response
+    **server_task << cond;
+}
+
+void HttpResp::Push(const std::string& cond_name, const PushJsonFunc& sse_json_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_sse_header();
+    server_task->push(http_header.c_str(), http_header.size());
+
+    auto* sse_task_ctx = new SseTaskContext;
+    sse_task_ctx->server_task = server_task;
+    sse_task_ctx->cond_name = cond_name;
+    sse_task_ctx->sse_json_cb = sse_json_cb;
     server_task->add_callback([sse_task_ctx](HttpTask *server_task) {
         delete sse_task_ctx;
     });

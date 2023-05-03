@@ -308,6 +308,8 @@ public:
 
     void Push(const std::string& cond_name, const PushFunc& cb);
 
+    void Push(const std::string& cond_name, const PushJsonFunc& cb);
+
     void add_task(SubTask *task);
 
 private:
