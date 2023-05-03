@@ -751,15 +751,25 @@ struct SseTaskContext
 
     std::string construct()
     {
+        std::string data;
         if (sse_cb)
         {
-            return construct_sse();
+            data = construct_sse();
         }
         if (sse_json_cb)
         {
-            return construct_sse_json();
+            data = construct_sse_json();
         }
-        return "";
+        if (data.empty())
+        {
+            return data;
+        }
+        // construct chunked data
+        std::stringstream ss;
+        ss << std::hex << data.size() << "\r\n";
+        ss << data << "\r\n";
+        ss << "0\r\n\r\n";
+        return ss.str();
     }
     std::string construct_sse()
     {
@@ -895,6 +905,43 @@ struct SseTaskContext
     }
 };
 
+struct SseChunkeData
+{
+    std::string data;
+    size_t nleft = 0;
+    HttpServerTask *server_task = nullptr;
+};
+
+void sse_timer_callback(WFTimerTask *timer_task)
+{
+    auto* sse_chunked_data = static_cast<SseChunkeData *>(timer_task->user_data);
+    auto* server_task = sse_chunked_data->server_task;
+    size_t nleft = sse_chunked_data->nleft;
+    size_t pos = sse_chunked_data->data.size() - nleft;
+    size_t nwrited = server_task->push(sse_chunked_data->data.c_str() + pos, nleft);
+    if (nwrited >= 0)
+    {
+        nleft = nleft - nwrited;
+    } else {
+        nwrited = 0;
+        if (errno != EWOULDBLOCK)
+        {
+            delete sse_chunked_data;
+            return;
+        }
+    }
+    if (nleft > 0)
+    {
+        sse_chunked_data->nleft = nleft;
+        timer_task = WFTaskFactory::create_timer_task(1000, sse_timer_callback);
+        timer_task->user_data = sse_chunked_data;
+        series_of(server_task)->push_front(timer_task);
+    } else {
+        // all the data has been sent
+        delete sse_chunked_data;
+    }
+}
+
 void sse_func(SseTaskContext* sse_task_ctx)
 {
     auto* server_task = sse_task_ctx->server_task;
@@ -907,7 +954,28 @@ void sse_func(SseTaskContext* sse_task_ctx)
     }
     // construct response
     std::string resp_body = sse_task_ctx->construct();
-    server_task->push(resp_body.c_str(), resp_body.size());
+    size_t nleft = resp_body.size();
+    size_t nwrited = server_task->push(resp_body.c_str(), resp_body.size());
+    if (nwrited >= 0)
+    {
+        nleft = nleft - nwrited;
+    } else {
+        nwrited = 0;
+        if (errno != EWOULDBLOCK)
+        {
+            return;
+        }
+    }
+    if (nleft > 0)
+    {
+        auto* sse_chunked_data = new SseChunkeData; 
+        sse_chunked_data->data = std::move(resp_body);
+        sse_chunked_data->nleft = nleft;
+        sse_chunked_data->server_task = server_task;
+        auto* timer_task = WFTaskFactory::create_timer_task(1000, sse_timer_callback);
+        timer_task->user_data = sse_chunked_data;
+        series_of(server_task)->push_front(timer_task);
+    }
     auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
     auto* cond = WFTaskFactory::create_conditional(sse_task_ctx->cond_name, go_task);
     **server_task << cond;
