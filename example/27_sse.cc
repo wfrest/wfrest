@@ -56,51 +56,47 @@ int main()
 
     svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->Push("test", [](std::vector<SseContext>& ctx_list) {
-            SseContext sse_ctx;
-            sse_ctx.id = std::to_string(StockPrice::id());
-            sse_ctx.event = "message";
-            sse_ctx.data = "price : " + std::to_string(StockPrice::price());
-            ctx_list.emplace_back(std::move(sse_ctx));
-        });
-    });
-
-    svr.GET("/sse_json", [](const HttpReq *req, HttpResp *resp)
-    {
-        resp->Push("json_test", [](Json& js) {
-            js["id"] = std::to_string(StockPrice::id()); 
-            js["data"] = "data";
-        });
-    });
-
-    svr.GET("/sse_json_arr", [](const HttpReq *req, HttpResp *resp)
-    {
-        resp->Push("multi_json_test", [](Json& js) {
-            Json data1;
-            data1["id"] = std::to_string(StockPrice::id()); 
-            data1["data"] = "data1";
-            js.push_back(data1);
-            Json data2;
-            data2["data"] = "data2";
-            js.push_back(data2);
-            Json data3;
-            data3["data"] = "data3";
-            js.push_back(data3);
+        // sse header required
+        resp->add_header("Content-Type", "text/event-stream");
+        resp->add_header("Cache-Control", "no-cache");
+        resp->add_header("Connection", "keep-alive");
+        resp->Push("test", [](std::string &body) {
+            body.reserve(128);
+            body.append(": ");
+            body.append("comment");
+            body.append("\n");
+            body.append("id: ");
+            body.append(std::to_string(StockPrice::id()));
+            body.append("\n");
+            body.append("event: ");
+            body.append("message");
+            body.append("\n");
+            body.append("data: ");
+            body.append("price : " + std::to_string(StockPrice::price()));
+            body.append("\n\n");
         });
     });
 
     svr.GET("/sse_close", [](const HttpReq *req, HttpResp *resp)
     {
-        int cnt = 0;
-        resp->Push("test", [&cnt](Json& js) {
-            if (++cnt == 10)
+        int *cnt = new int;
+        resp->Push("test", [cnt](std::string &body) {
+            if (++(*cnt) == 10)
             {
-                js["event"] = "close";
-                js["data"] = "";
+                body.append("event: ");
+                body.append("close");
+                body.append("\n");
+                body.append("data: ");
+                body.append("\n\n");
+                delete cnt;
             } else 
             {
-                js["id"] = std::to_string(StockPrice::id()); 
-                js["data"] = "data";
+                body.append("id: ");
+                body.append(std::to_string(StockPrice::id()));
+                body.append("\n");
+                body.append("data: ");
+                body.append("price : " + std::to_string(StockPrice::price()));
+                body.append("\n\n");
             }
         });
     });

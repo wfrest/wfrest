@@ -77,7 +77,7 @@ CommMessageOut *HttpServerTask::message_out()
         header.name_len = header_kv.first.size();
         header.value = header_kv.second.c_str();
         header.value_len = header_kv.second.size();
-        resp->add_header(&header);
+        resp->protocol::HttpResponse::add_header(&header);
     }
     // fill cookie
     for(auto &cookie : resp->cookies())
@@ -87,7 +87,7 @@ CommMessageOut *HttpServerTask::message_out()
         header.name_len = 10;
         header.value = cookie_str.c_str();
         header.value_len = cookie_str.size();
-        resp->add_header(&header);
+        resp->protocol::HttpResponse::add_header(&header);
     }
 
     if (!resp->get_http_version())
@@ -113,7 +113,7 @@ CommMessageOut *HttpServerTask::message_out()
         header.name_len = strlen("Content-Length");
         header.value = buf;
         header.value_len = sprintf(buf, "%zu", resp->get_output_body_size());
-        resp->add_header(&header);
+        resp->protocol::HttpResponse::add_header(&header);
     }
 
     bool is_alive;
@@ -185,7 +185,7 @@ CommMessageOut *HttpServerTask::message_out()
             header.value_len = 10;
         }
 
-        resp->add_header(&header);
+        resp->protocol::HttpResponse::add_header(&header);
     }
     return this->WFServerTask::message_out();
 }

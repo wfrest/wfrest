@@ -742,28 +742,52 @@ void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
     this->add_task(timer_task);
 }
 
-struct SseTaskContext
+struct PushChunkData
+{
+    std::string data;
+    size_t nleft = 0;
+    HttpServerTask *server_task = nullptr;
+};
+
+void push_retry_callback(WFTimerTask *timer_task)
+{
+    auto* push_chunk_data = static_cast<PushChunkData *>(timer_task->user_data);
+    auto* server_task = push_chunk_data->server_task;
+    size_t nleft = push_chunk_data->nleft;
+    size_t pos = push_chunk_data->data.size() - nleft;
+    size_t nwritten = server_task->push(push_chunk_data->data.c_str() + pos, nleft);
+    if (nwritten >= 0)
+    {
+        nleft = nleft - nwritten;
+    } else {
+        nwritten = 0;
+        if (errno != EWOULDBLOCK)
+        {
+            delete push_chunk_data;
+            return;
+        }
+    }
+    if (nleft > 0)
+    {
+        push_chunk_data->nleft = nleft;
+        timer_task = WFTaskFactory::create_timer_task(0, 1000000, push_retry_callback);
+        timer_task->user_data = push_chunk_data;
+        series_of(server_task)->push_front(timer_task);
+    } else {
+        // all the data has been sent
+        delete push_chunk_data;
+    }
+}
+
+struct PushTaskCtx
 {
     HttpServerTask *server_task = nullptr;
     std::string cond_name;
-    HttpResp::PushFunc sse_cb;
-    HttpResp::PushJsonFunc sse_json_cb;
-
-    std::string construct()
+    HttpResp::PushFunc push_cb;
+    std::string body()
     {
         std::string data;
-        if (sse_cb)
-        {
-            data = construct_sse();
-        }
-        if (sse_json_cb)
-        {
-            data = construct_sse_json();
-        }
-        if (data.empty())
-        {
-            return data;
-        }
+        push_cb(data);
         // construct chunked data
         std::stringstream ss;
         ss << std::hex << data.size() << "\r\n";
@@ -771,196 +795,27 @@ struct SseTaskContext
         ss << "0\r\n\r\n";
         return ss.str();
     }
-    std::string construct_sse()
-    {
-        std::string body;
-        body.reserve(128);
-        std::vector<SseContext> sse_ctx_list;
-        sse_cb(sse_ctx_list);
-        for (int i = 0; i < sse_ctx_list.size(); i++)
-        {
-            const auto& sse_ctx = sse_ctx_list[i];
-            if (!sse_ctx.check())
-            {
-                return "Error : Invalid Content";
-            }
-            if (!sse_ctx.comment.empty())
-            {
-                body.append(": ");
-                body.append(sse_ctx.comment);
-                body.append("\n");
-            }
-            if (!sse_ctx.data.empty())
-            {
-                body.append("data: ");
-                body.append(sse_ctx.data);
-                body.append("\n");
-                if (i == sse_ctx_list.size() - 1)
-                {
-                    body.append("\n");
-                }
-            }
-            if (!sse_ctx.event.empty())
-            {
-                body.append("event: ");
-                body.append(sse_ctx.event);
-                body.append("\n");
-            }
-            if (!sse_ctx.id.empty())
-            {
-                body.append("id: ");
-                body.append(sse_ctx.id);
-                body.append("\n");
-            }
-            if (!sse_ctx.retry.empty())
-            {
-                body.append("retry: ");
-                body.append(sse_ctx.retry);
-                body.append("\n");
-            }
-        }
-        return body;
-    }
-    std::string construct_sse_json()
-    {
-        std::string body;
-        body.reserve(128);
-        Json sse_json;
-        sse_json_cb(sse_json);
-        if (sse_json.is_object())
-        {
-            if (sse_json.has("comment"))
-            {
-                body.append(": ");
-                body.append(sse_json["comment"].get<std::string>());
-                body.append("\n");
-            }
-            if (sse_json.has("data"))
-            {
-                body.append("data: ");
-                body.append(sse_json["data"].get<std::string>());
-                body.append("\n\n");
-            }
-            if (sse_json.has("event"))
-            {
-                body.append("event: ");
-                body.append(sse_json["event"].get<std::string>());
-                body.append("\n");
-            }
-            if (sse_json.has("id"))
-            {
-                body.append("id: ");
-                body.append(sse_json["id"].get<std::string>());
-                body.append("\n");
-            }
-            if (sse_json.has("retry"))
-            {
-                body.append("retry: ");
-                body.append(sse_json["retry"].get<std::string>());
-                body.append("\n");
-            }
-        }
-        if (sse_json.is_array())
-        {
-            for (int i = 0; i < sse_json.size(); i++) 
-            {
-                Json js = sse_json[i];
-                if (js.has("comment"))
-                {
-                    body.append(": ");
-                    body.append(js["comment"].get<std::string>());
-                    body.append("\n");
-                }
-                if (js.has("data"))
-                {
-                    body.append("data: ");
-                    body.append(js["data"].get<std::string>());
-                    body.append("\n");
-                    if (i == sse_json.size() -1)
-                    {
-                        body.append("\n");
-                    }
-                }
-                if (js.has("event"))
-                {
-                    body.append("event: ");
-                    body.append(js["event"].get<std::string>());
-                    body.append("\n");
-                }
-                if (js.has("id"))
-                {
-                    body.append("id: ");
-                    body.append(js["id"].get<std::string>());
-                    body.append("\n");
-                }
-                if (js.has("retry"))
-                {
-                    body.append("retry: ");
-                    body.append(js["retry"].get<std::string>());
-                    body.append("\n");
-                }
-            }
-        }
-        return body;
-    }
 };
 
-struct SseChunkeData
+void push_func(WFTimerTask *push_task)
 {
-    std::string data;
-    size_t nleft = 0;
-    HttpServerTask *server_task = nullptr;
-};
-
-void sse_timer_callback(WFTimerTask *timer_task)
-{
-    auto* sse_chunked_data = static_cast<SseChunkeData *>(timer_task->user_data);
-    auto* server_task = sse_chunked_data->server_task;
-    size_t nleft = sse_chunked_data->nleft;
-    size_t pos = sse_chunked_data->data.size() - nleft;
-    size_t nwrited = server_task->push(sse_chunked_data->data.c_str() + pos, nleft);
-    if (nwrited >= 0)
-    {
-        nleft = nleft - nwrited;
-    } else {
-        nwrited = 0;
-        if (errno != EWOULDBLOCK)
-        {
-            delete sse_chunked_data;
-            return;
-        }
-    }
-    if (nleft > 0)
-    {
-        sse_chunked_data->nleft = nleft;
-        timer_task = WFTaskFactory::create_timer_task(1000, sse_timer_callback);
-        timer_task->user_data = sse_chunked_data;
-        series_of(server_task)->push_front(timer_task);
-    } else {
-        // all the data has been sent
-        delete sse_chunked_data;
-    }
-}
-
-void sse_func(SseTaskContext* sse_task_ctx)
-{
-    auto* server_task = sse_task_ctx->server_task;
-    auto* req = server_task->get_req();
-    bool close_header = strcmp(req->get_method(), "GET") == 0 && req->header("Connection") == "close";
-    if (close_header || server_task->close_flag())
+    auto *push_task_ctx = static_cast<PushTaskCtx *>(push_task->user_data);
+    auto *server_task = push_task_ctx->server_task;
+    auto *req = server_task->get_req();
+    if (!req->is_keep_alive() || server_task->close_flag())
     {
         fprintf(stderr, "Close the connection\n");
         return;
     }
     // construct response
-    std::string resp_body = sse_task_ctx->construct();
+    std::string resp_body = push_task_ctx->body();
     size_t nleft = resp_body.size();
-    size_t nwrited = server_task->push(resp_body.c_str(), resp_body.size());
-    if (nwrited >= 0)
+    size_t nwritten = server_task->push(resp_body.c_str(), resp_body.size());
+    if (nwritten >= 0)
     {
-        nleft = nleft - nwrited;
+        nleft = nleft - nwritten;
     } else {
-        nwrited = 0;
+        nwritten = 0;
         if (errno != EWOULDBLOCK)
         {
             return;
@@ -968,68 +823,63 @@ void sse_func(SseTaskContext* sse_task_ctx)
     }
     if (nleft > 0)
     {
-        auto* sse_chunked_data = new SseChunkeData; 
-        sse_chunked_data->data = std::move(resp_body);
-        sse_chunked_data->nleft = nleft;
-        sse_chunked_data->server_task = server_task;
-        auto* timer_task = WFTaskFactory::create_timer_task(1000, sse_timer_callback);
-        timer_task->user_data = sse_chunked_data;
+        auto* push_chunk_data = new PushChunkData; 
+        push_chunk_data->data = std::move(resp_body);
+        push_chunk_data->nleft = nleft;
+        push_chunk_data->server_task = server_task;
+        auto* timer_task = WFTaskFactory::create_timer_task(0, 1000000, push_retry_callback);
+        timer_task->user_data = push_chunk_data;
         series_of(server_task)->push_front(timer_task);
     }
-    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
-    auto* cond = WFTaskFactory::create_conditional(sse_task_ctx->cond_name, go_task);
+    push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
     **server_task << cond;
 }
 
-static std::string construct_sse_header()
+std::string HttpResp::construct_push_header()
 {
     std::string http_header;
     http_header.reserve(128);
     http_header.append("HTTP/1.1 200 OK\r\n");
-    http_header.append("Content-Type: text/event-stream\r\n");
-    http_header.append("Cache-Control: no-cache\r\n");
-    http_header.append("Connection: keep-alive\r\n");
+    if (headers.find("Transfer-Encoding") != headers.end())
+    {
+        headers.erase("Transfer-Encoding");
+    }
+    for (auto it = headers.begin(); it != headers.end(); it++)
+    {
+        const auto &key = it->first;
+        const auto &val = it->second;
+        http_header.append(key);
+        http_header.append(": ");
+        http_header.append(val);
+        http_header.append("\r\n");
+    }
+    if (headers.find("Connection") == headers.end())
+    {
+        http_header.append("Connection: keep-alive\r\n");
+    }
     http_header.append("Transfer-Encoding: chunked\r\n");
     http_header.append("\r\n");
     return http_header;
 }
 
-void HttpResp::Push(const std::string& cond_name, const PushFunc& sse_cb)
+void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb)
 {
     HttpServerTask *server_task = task_of(this);
     // Construct HTTP header
-    std::string http_header = construct_sse_header();
+    std::string http_header = construct_push_header();
     server_task->push(http_header.c_str(), http_header.size());
 
-    auto* sse_task_ctx = new SseTaskContext;
-    sse_task_ctx->server_task = server_task;
-    sse_task_ctx->cond_name = cond_name;
-    sse_task_ctx->sse_cb = sse_cb;
-    server_task->add_callback([sse_task_ctx](HttpTask *server_task) {
-        delete sse_task_ctx;
+    auto* push_task_ctx = new PushTaskCtx;
+    push_task_ctx->server_task = server_task;
+    push_task_ctx->cond_name = cond_name;
+    push_task_ctx->push_cb = push_cb;
+    server_task->add_callback([push_task_ctx](HttpTask *server_task) {
+        delete push_task_ctx;
     });
-    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
-    auto* cond = WFTaskFactory::create_conditional(cond_name, go_task);
-    server_task->noreply();  // no need to send original response
-    **server_task << cond;
-}
-
-void HttpResp::Push(const std::string& cond_name, const PushJsonFunc& sse_json_cb)
-{
-    HttpServerTask *server_task = task_of(this);
-    // Construct HTTP header
-    std::string http_header = construct_sse_header();
-    server_task->push(http_header.c_str(), http_header.size());
-
-    auto* sse_task_ctx = new SseTaskContext;
-    sse_task_ctx->server_task = server_task;
-    sse_task_ctx->cond_name = cond_name;
-    sse_task_ctx->sse_json_cb = sse_json_cb;
-    server_task->add_callback([sse_task_ctx](HttpTask *server_task) {
-        delete sse_task_ctx;
-    });
-    auto* go_task = WFTaskFactory::create_go_task("sse", sse_func, sse_task_ctx);
-    auto* cond = WFTaskFactory::create_conditional(cond_name, go_task);
+    auto* push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    push_task->user_data = push_task_ctx;
+    auto* cond = WFTaskFactory::create_conditional(cond_name, push_task);
     server_task->noreply();  // no need to send original response
     **server_task << cond;
 }

@@ -166,31 +166,6 @@ inline double HttpReq::param<double>(const std::string &key) const
         return 0.0;
 }
 
-struct SseContext
-{
-public:
-    void clear()
-    {
-        data = "";
-        event = "";
-        id = "";
-        comment = "";
-        retry = "";
-    }
-
-    bool check() const
-    {
-        // Any required field?
-        return true;
-    }
-    // TODO : Use Json
-    std::string data;
-    std::string event;
-    std::string id;
-    std::string comment;
-    std::string retry;
-};
-
 class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
@@ -202,9 +177,7 @@ public:
 
     using TimerFunc = std::function<void()>;
 
-    using PushFunc = std::function<void(OUT std::vector<SseContext>& ctx)>;
-
-    using PushJsonFunc = std::function<void(OUT Json &js)>;
+    using PushFunc = std::function<void(OUT std::string &ctx)>;
 
 public:
     // send string
@@ -306,14 +279,18 @@ public:
 
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
-    void Push(const std::string& cond_name, const PushFunc& cb);
-
-    void Push(const std::string& cond_name, const PushJsonFunc& cb);
+    void Push(const std::string &cond_name, const PushFunc &cb);
 
     void add_task(SubTask *task);
 
+    void add_header(const std::string &key, const std::string &val)
+    {
+        headers[key] = val;
+    }
 private:
     int compress(const std::string * const data, std::string *compress_data);
+
+    std::string construct_push_header();
 
     void String(MultiPartEncoder *encoder);
 
