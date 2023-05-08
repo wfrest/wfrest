@@ -72,7 +72,7 @@ int main()
             body.append("message");
             body.append("\n");
             body.append("data: ");
-            body.append("price : " + std::to_string(StockPrice::price()));
+            body.append("price|" + std::to_string(StockPrice::price()));
             body.append("\n\n");
         });
     });

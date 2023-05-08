@@ -812,7 +812,6 @@ void push_func(WFTimerTask *push_task)
     }
     // construct response
     std::string resp_body = push_task_ctx->body();
-    std::cout << "2222222 : " << resp_body.size() << std::endl;
     size_t nleft = resp_body.size();
     size_t nwritten = server_task->push(resp_body.c_str(), resp_body.size());
     if (nwritten >= 0)
@@ -822,7 +821,6 @@ void push_func(WFTimerTask *push_task)
         nwritten = 0;
         if (errno != EWOULDBLOCK)
         {
-            std::cout << "333333333" << std::endl;
             return;
         }
     }
@@ -836,11 +834,9 @@ void push_func(WFTimerTask *push_task)
         timer_task->user_data = push_chunk_data;
         series_of(server_task)->push_front(timer_task);
     }
-    push_task = WFTaskFactory::create_timer_task(0, push_func);
+    push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
     push_task->user_data = push_task_ctx;
-    std::cout << "4444444444444444 : " << push_task_ctx->cond_name << std::endl;
     auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
-    std::cout << "111111111111111" << std::endl;
     **server_task << cond;
 }
 
