@@ -79,20 +79,23 @@ int main()
 
     svr.GET("/sse_close", [](const HttpReq *req, HttpResp *resp)
     {
-        int *cnt = new int;
-        resp->Push("test", [cnt](std::string &body) {
-            if (++(*cnt) == 10)
+        // sse header required
+        resp->add_header("Content-Type", "text/event-stream");
+        resp->add_header("Cache-Control", "no-cache");
+        resp->add_header("Connection", "keep-alive");
+        resp->Push("test", [](std::string &body) {
+            auto id = StockPrice::id();
+            if (id == 10)
             {
                 body.append("event: ");
                 body.append("close");
                 body.append("\n");
                 body.append("data: ");
                 body.append("\n\n");
-                delete cnt;
             } else 
             {
                 body.append("id: ");
-                body.append(std::to_string(StockPrice::id()));
+                body.append(std::to_string(id));
                 body.append("\n");
                 body.append("data: ");
                 body.append("price : " + std::to_string(StockPrice::price()));
