@@ -794,8 +794,11 @@ struct PushTaskCtx
         {
             ss << std::hex << data.size() << "\r\n";
             ss << data << "\r\n";
+        } 
+        else 
+        {
+            ss << "0\r\n\r\n";
         }
-        ss << "0\r\n\r\n";
         return ss.str();
     }
 };
