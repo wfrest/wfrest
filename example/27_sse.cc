@@ -85,13 +85,14 @@ int main()
         resp->add_header("Connection", "keep-alive");
         resp->Push("test", [](std::string &body) {
             auto id = StockPrice::id();
-            if (id == 10)
+            if (id > 10)
             {
-                body.append("event: ");
-                body.append("close");
-                body.append("\n");
-                body.append("data: ");
-                body.append("\n\n");
+                body.clear();
+                // body.append("event: ");
+                // body.append("close");
+                // body.append("\n");
+                // body.append("data: ");
+                // body.append("\n\n");
             } else 
             {
                 body.append("id: ");
