@@ -89,3 +89,4 @@ wfrest-config.cmake
 # xmake configs
 .xmake
 build.xmake
+.cache

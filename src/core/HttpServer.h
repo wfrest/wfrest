@@ -398,6 +398,7 @@ public:
     }
 
 public:
+    friend class HttpServerTask;
     void Static(const char *relative_path, const char *root);
 
     void list_routes();
@@ -409,6 +410,12 @@ public:
     {
         auto *tp = new std::tuple<AP...>(std::move(ap)...);
         for_each(*tp, GlobalAspectFunc());
+    }
+    
+    void stop()
+    {
+        close_flag_ = true;
+        WFServerBase::stop();
     }
 
 public:
@@ -484,6 +491,7 @@ private:
 private:
     BluePrint blue_print_;
     TrackFunc track_func_;
+    bool close_flag_ = false;
 };
 
 }  // namespace wfrest

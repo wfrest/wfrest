@@ -7,6 +7,8 @@
 namespace wfrest
 {
 
+class HttpServer;
+
 class HttpServerTask : public WFServerTask<HttpReq, HttpResp> , public Noncopyable
 {
 public:
@@ -14,7 +16,7 @@ public:
     using ServerCallBack = std::function<void(HttpTask *)>;
 
     using WFServerTask::Series;
-
+    friend class HttpServer;
     // if we remove & here, leads to coredump
     HttpServerTask(CommService *service, ProcFunc &process);
 
@@ -34,6 +36,7 @@ public:
 
     unsigned short peer_port() const;
     
+    bool close_flag() const;
 protected:
     void handle(int state, int error) override;
 
@@ -53,12 +56,13 @@ private:
     HttpServerTask(std::function<void(HttpTask *)> proc) :
             WFServerTask(nullptr, nullptr, proc)
     {}
-
+    
 private:
     bool req_is_alive_;
     bool req_has_keep_alive_header_;
     std::string req_keep_alive_;
     std::vector<ServerCallBack> cb_list_;
+    HttpServer* server = nullptr;
 };
 
 inline HttpServerTask *task_of(const SubTask *task)

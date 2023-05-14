@@ -177,6 +177,8 @@ public:
 
     using TimerFunc = std::function<void()>;
 
+    using PushFunc = std::function<void(OUT std::string &ctx)>;
+
 public:
     // send string
     void String(const std::string &str);
@@ -277,10 +279,18 @@ public:
 
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
+    void Push(const std::string &cond_name, const PushFunc &cb);
+
     void add_task(SubTask *task);
 
+    void add_header(const std::string &key, const std::string &val)
+    {
+        headers[key] = val;
+    }
 private:
     int compress(const std::string * const data, std::string *compress_data);
+
+    std::string construct_push_header();
 
     void String(MultiPartEncoder *encoder);
 
@@ -306,6 +316,11 @@ private:
 };
 
 using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
+
+inline void sse_signal(const std::string& cond_name)
+{
+    WFTaskFactory::signal_by_name(cond_name, NULL); 
+}
 
 } // namespace wfrest
 

@@ -742,6 +742,155 @@ void HttpResp::Timer(time_t seconds, long nanoseconds, const TimerFunc &func)
     this->add_task(timer_task);
 }
 
+struct PushChunkData
+{
+    std::string data;
+    size_t nleft = 0;
+    HttpServerTask *server_task = nullptr;
+};
+
+void push_retry_callback(WFTimerTask *timer_task)
+{
+    auto* push_chunk_data = static_cast<PushChunkData *>(timer_task->user_data);
+    auto* server_task = push_chunk_data->server_task;
+    size_t nleft = push_chunk_data->nleft;
+    size_t pos = push_chunk_data->data.size() - nleft;
+    size_t nwritten = server_task->push(push_chunk_data->data.c_str() + pos, nleft);
+    if (nwritten >= 0)
+    {
+        nleft = nleft - nwritten;
+    } else {
+        nwritten = 0;
+        if (errno != EWOULDBLOCK)
+        {
+            delete push_chunk_data;
+            return;
+        }
+    }
+    if (nleft > 0)
+    {
+        push_chunk_data->nleft = nleft;
+        timer_task = WFTaskFactory::create_timer_task(0, 1000000, push_retry_callback);
+        timer_task->user_data = push_chunk_data;
+        series_of(server_task)->push_front(timer_task);
+    } else {
+        // all the data has been sent
+        delete push_chunk_data;
+    }
+}
+
+struct PushTaskCtx
+{
+    HttpServerTask *server_task = nullptr;
+    std::string cond_name;
+    HttpResp::PushFunc push_cb;
+    std::string body()
+    {
+        std::string data;
+        push_cb(data);
+        // construct chunked data
+        std::stringstream ss;
+        if (!data.empty())
+        {
+            ss << std::hex << data.size() << "\r\n";
+            ss << data << "\r\n";
+        } 
+        else 
+        {
+            ss << "0\r\n\r\n";
+        }
+        return ss.str();
+    }
+};
+
+void push_func(WFTimerTask *push_task)
+{
+    auto *push_task_ctx = static_cast<PushTaskCtx *>(push_task->user_data);
+    auto *server_task = push_task_ctx->server_task;
+    auto *req = server_task->get_req();
+    if (!req->is_keep_alive() || server_task->close_flag())
+    {
+        fprintf(stderr, "Close the connection\n");
+        return;
+    }
+    // construct response
+    std::string resp_body = push_task_ctx->body();
+    size_t nleft = resp_body.size();
+    size_t nwritten = server_task->push(resp_body.c_str(), resp_body.size());
+    if (nwritten >= 0)
+    {
+        nleft = nleft - nwritten;
+    } else {
+        nwritten = 0;
+        if (errno != EWOULDBLOCK)
+        {
+            return;
+        }
+    }
+    if (nleft > 0)
+    {
+        auto* push_chunk_data = new PushChunkData; 
+        push_chunk_data->data = std::move(resp_body);
+        push_chunk_data->nleft = nleft;
+        push_chunk_data->server_task = server_task;
+        auto* timer_task = WFTaskFactory::create_timer_task(0, 1000000, push_retry_callback);
+        timer_task->user_data = push_chunk_data;
+        series_of(server_task)->push_front(timer_task);
+    }
+    push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    push_task->user_data = push_task_ctx;
+    auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
+    **server_task << cond;
+}
+
+std::string HttpResp::construct_push_header()
+{
+    std::string http_header;
+    http_header.reserve(128);
+    http_header.append("HTTP/1.1 200 OK\r\n");
+    if (headers.find("Transfer-Encoding") != headers.end())
+    {
+        headers.erase("Transfer-Encoding");
+    }
+    for (auto it = headers.begin(); it != headers.end(); it++)
+    {
+        const auto &key = it->first;
+        const auto &val = it->second;
+        http_header.append(key);
+        http_header.append(": ");
+        http_header.append(val);
+        http_header.append("\r\n");
+    }
+    if (headers.find("Connection") == headers.end())
+    {
+        http_header.append("Connection: keep-alive\r\n");
+    }
+    http_header.append("Transfer-Encoding: chunked\r\n");
+    http_header.append("\r\n");
+    return http_header;
+}
+
+void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb)
+{
+    HttpServerTask *server_task = task_of(this);
+    // Construct HTTP header
+    std::string http_header = construct_push_header();
+    server_task->push(http_header.c_str(), http_header.size());
+
+    auto* push_task_ctx = new PushTaskCtx;
+    push_task_ctx->server_task = server_task;
+    push_task_ctx->cond_name = cond_name;
+    push_task_ctx->push_cb = push_cb;
+    server_task->add_callback([push_task_ctx](HttpTask *server_task) {
+        delete push_task_ctx;
+    });
+    auto* push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    push_task->user_data = push_task_ctx;
+    auto* cond = WFTaskFactory::create_conditional(cond_name, push_task);
+    server_task->noreply();  // no need to send original response
+    **server_task << cond;
+}
+
 void HttpResp::File(const std::string &path)
 {
     this->File(path, 0, -1);
