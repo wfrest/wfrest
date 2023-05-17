@@ -861,11 +861,8 @@ std::string HttpResp::construct_push_header()
         http_header.append(val);
         http_header.append("\r\n");
     }
-    if (headers.find("Connection") == headers.end())
-    {
-        http_header.append("Connection: keep-alive\r\n");
-    }
     http_header.append("Transfer-Encoding: chunked\r\n");
+    http_header.append("Connection: close\r\n");
     http_header.append("\r\n");
     return http_header;
 }
