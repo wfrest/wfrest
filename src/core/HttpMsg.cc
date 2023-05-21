@@ -863,7 +863,7 @@ std::string HttpResp::construct_push_header()
     }
     if (headers.find("Connection") == headers.end())
     {
-        http_header.append("Connection: keep-alive\r\n");
+        http_header.append("Connection: close\r\n");
     }
     http_header.append("Transfer-Encoding: chunked\r\n");
     http_header.append("\r\n");
