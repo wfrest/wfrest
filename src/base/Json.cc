@@ -116,6 +116,11 @@ Json::Json(Object&& val)
     val.parent_ = nullptr;
 }
 
+Json::Json(const json_value_t* node, const json_value_t* parent, bool allocated)
+    : node_(node), parent_(parent), allocated_(allocated)
+{
+}
+
 Json::~Json()
 {
     if (allocated_)
@@ -561,7 +566,7 @@ bool Json::can_arr_push_back()
 
 Json Json::copy() const
 {
-    return Json(json_value_copy(node_), nullptr);
+    return Json(json_value_copy(node_), nullptr, true);
 }
 
 void Json::push_back(bool val)

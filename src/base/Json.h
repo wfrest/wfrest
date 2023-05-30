@@ -685,6 +685,7 @@ protected:
     struct Empty
     {
     };
+    Json(const json_value_t* node, const json_value_t* parent, bool allocated);
     // watcher
     Json(const json_value_t* parent, std::string&& key);
     Json(const json_value_t* parent, const std::string& key);

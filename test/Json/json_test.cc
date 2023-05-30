@@ -94,6 +94,17 @@ TEST(JsonTest, dump)
     EXPECT_EQ(os.str(), R"({"key":1,"name":"chanchan"})");
 }
 
+TEST(JsonTest, copy)
+{
+    Json data;
+    data["key"] = 1;
+    data["name"] = "chanchan";
+    std::cout << data << std::endl;
+
+    Json data1 = data.copy();
+    std::cout << data1 << std::endl;
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
