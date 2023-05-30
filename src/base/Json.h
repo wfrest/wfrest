@@ -675,8 +675,8 @@ public:
 
     ~Json();
 
-    Json(const Json& json) = delete;
-    Json& operator=(const Json& json) = delete;
+    Json(const Json& json);
+    Json& operator=(const Json& json);
     Json(Json&& other);
     Json& operator=(Json&& other);
 
