@@ -624,6 +624,7 @@ private:
         if (allocated_)
         {
             json_value_destroy(const_cast<json_value_t*>(node));
+            allocated_ = false;
         }
     }
 
@@ -692,6 +693,12 @@ protected:
                std::string&& parent_key)
     {
         node_ = node;
+        parent_ = parent;
+        parent_key_ = std::move(parent_key);
+    }
+
+    void set_parent(const json_value_t* parent, std::string&& parent_key)
+    {
         parent_ = parent;
         parent_key_ = std::move(parent_key);
     }
