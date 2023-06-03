@@ -103,20 +103,21 @@ Json::Json(const std::string& str, bool parse_flag) : parent_(nullptr)
 
 Json::~Json()
 {
-    destroy_node(node_);
+    destroy_node(&node_);
 }
 
 // watcher constructor
 Json::Json(const json_value_t* node, const json_value_t* parent,
            std::string&& key)
-    : node_(node), parent_(parent), allocated_(false),
-      parent_key_(std::move(key))
+    : node_(const_cast<json_value_t*>(node)), parent_(parent),
+      allocated_(false), parent_key_(std::move(key))
 {
 }
 
 Json::Json(const json_value_t* node, const json_value_t* parent,
            const std::string& key)
-    : node_(node), parent_(parent), allocated_(false), parent_key_(key)
+    : node_(const_cast<json_value_t*>(node)), parent_(parent),
+      allocated_(false), parent_key_(key)
 {
 }
 
@@ -154,7 +155,7 @@ Json& Json::operator=(const Json& other)
     {
         return *this;
     }
-    destroy_node(node_);
+    destroy_node(&node_);
     if (other.allocated_)
     {
         node_ = json_value_copy(other.node_);
@@ -189,7 +190,7 @@ Json& Json::operator=(Json&& other)
     {
         return *this;
     }
-    destroy_node(node_);
+    destroy_node(&node_);
     node_ = other.node_;
     other.node_ = nullptr;
     parent_ = other.parent_;
@@ -269,10 +270,10 @@ Json Json::operator[](const char* key)
     }
     if (is_placeholder())
     {
-        destroy_node(node_);
+        destroy_node(&node_);
         json_object_t* parent_obj = json_value_object(parent_);
-        node_ = json_object_append(parent_obj, parent_key_.c_str(),
-                                   JSON_VALUE_OBJECT);
+        node_ = const_cast<json_value_t*>(json_object_append(
+            parent_obj, parent_key_.c_str(), JSON_VALUE_OBJECT));
     }
     if (!is_object())
     {
@@ -448,22 +449,25 @@ void Json::push_back(const std::string& key, const Json& val)
 void Json::placeholder_push_back(const std::string& key, bool val)
 {
     json_object_t* obj = json_value_object(parent_);
-    destroy_node(node_);
+    destroy_node(&node_);
     if (val)
     {
-        node_ = json_object_append(obj, key.c_str(), JSON_VALUE_TRUE);
+        node_ = const_cast<json_value_t*>(
+            json_object_append(obj, key.c_str(), JSON_VALUE_TRUE));
     }
     else
     {
-        node_ = json_object_append(obj, key.c_str(), JSON_VALUE_FALSE);
+        node_ = const_cast<json_value_t*>(
+            json_object_append(obj, key.c_str(), JSON_VALUE_FALSE));
     }
 }
 
 void Json::placeholder_push_back(const std::string& key, std::nullptr_t val)
 {
     json_object_t* obj = json_value_object(parent_);
-    destroy_node(node_);
-    node_ = json_object_append(obj, key.c_str(), JSON_VALUE_NULL);
+    destroy_node(&node_);
+    node_ = const_cast<json_value_t*>(
+        json_object_append(obj, key.c_str(), JSON_VALUE_NULL));
 }
 
 void Json::placeholder_push_back(const std::string& key, const std::string& val)
@@ -474,16 +478,18 @@ void Json::placeholder_push_back(const std::string& key, const std::string& val)
 void Json::placeholder_push_back(const std::string& key, const char* val)
 {
     json_object_t* obj = json_value_object(parent_);
-    destroy_node(node_);
-    node_ = json_object_append(obj, key.c_str(), JSON_VALUE_STRING, val);
+    destroy_node(&node_);
+    node_ = const_cast<json_value_t*>(
+        json_object_append(obj, key.c_str(), JSON_VALUE_STRING, val));
 }
 
 void Json::placeholder_push_back(const std::string& key, const Json& val)
 {
     json_object_t* obj = json_value_object(parent_);
-    destroy_node(node_);
+    destroy_node(&node_);
     Json copy_json = val;
-    node_ = json_object_append(obj, key.c_str(), 0, copy_json.node_);
+    node_ = const_cast<json_value_t*>(
+        json_object_append(obj, key.c_str(), 0, copy_json.node_));
     copy_json.reset();
 }
 
@@ -714,7 +720,7 @@ bool Json::empty() const
 void Json::clear()
 {
     int type = json_value_type(node_);
-    destroy_node(node_);
+    destroy_node(&node_);
     parent_ = nullptr;
     allocated_ = true;
     parent_key_.clear();
@@ -740,8 +746,9 @@ bool Json::to_object()
         // watcher and non-null type can't change type
         return false;
     }
-    destroy_node(node_);
+    destroy_node(&node_);
     node_ = json_value_create(JSON_VALUE_OBJECT);
+    allocated_ = true;
     return true;
 }
 
@@ -752,8 +759,9 @@ bool Json::to_array()
         // watcher and non-null type can't change type
         return false;
     }
-    destroy_node(node_);
+    destroy_node(&node_);
     node_ = json_value_create(JSON_VALUE_ARRAY);
+    allocated_ = true;
     return true;
 }
 

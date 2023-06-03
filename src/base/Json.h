@@ -248,9 +248,9 @@ private:
     void placeholder_push_back(const std::string& key, const T& val)
     {
         json_object_t* obj = json_value_object(parent_);
-        destroy_node(node_);
-        node_ = json_object_append(obj, key.c_str(), JSON_VALUE_NUMBER,
-                                   static_cast<double>(val));
+        destroy_node(&node_);
+        node_ = const_cast<json_value_t*>(json_object_append(
+            obj, key.c_str(), JSON_VALUE_NUMBER, static_cast<double>(val)));
     }
 
     template <typename T,
@@ -507,12 +507,14 @@ public:
             {
                 json_object_t* obj = json_value_object(val_);
                 key_ = json_object_next_name(key_, obj);
-                json_->node_ = json_object_next_value(json_->node_, obj);
+                json_->node_ = const_cast<json_value_t*>(
+                    json_object_next_value(json_->node_, obj));
             }
             else if (json_value_type(val_) == JSON_VALUE_ARRAY)
             {
                 json_array_t* arr = json_value_array(val_);
-                json_->node_ = json_array_next_value(json_->node_, arr);
+                json_->node_ = const_cast<json_value_t*>(
+                    json_array_next_value(json_->node_, arr));
             }
         }
     };
@@ -570,12 +572,14 @@ public:
             {
                 json_object_t* obj = json_value_object(val_);
                 key_ = json_object_prev_name(key_, obj);
-                json_->node_ = json_object_prev_value(json_->node_, obj);
+                json_->node_ = const_cast<json_value_t*>(
+                    json_object_prev_value(json_->node_, obj));
             }
             else if (json_value_type(val_) == JSON_VALUE_ARRAY)
             {
                 json_array_t* arr = json_value_array(val_);
-                json_->node_ = json_array_prev_value(json_->node_, arr);
+                json_->node_ = const_cast<json_value_t*>(
+                    json_array_prev_value(json_->node_, arr));
             }
         }
     };
@@ -619,11 +623,12 @@ private:
         return is_null() && parent_ != nullptr;
     }
 
-    void destroy_node(const json_value_t* node)
+    void destroy_node(json_value_t** node)
     {
         if (allocated_)
         {
-            json_value_destroy(const_cast<json_value_t*>(node));
+            json_value_destroy(*node);
+            *node = nullptr;
             allocated_ = false;
         }
     }
@@ -680,8 +685,8 @@ protected:
         parent_key_.clear();
     }
 
-    void reset(const json_value_t* node, const json_value_t* parent,
-               bool allocated, const std::string& parent_key)
+    void reset(json_value_t* node, const json_value_t* parent, bool allocated,
+               const std::string& parent_key)
     {
         node_ = node;
         parent_ = parent;
@@ -689,11 +694,12 @@ protected:
         parent_key_ = parent_key;
     }
 
-    void reset(const json_value_t* node, const json_value_t* parent,
+    void reset(json_value_t* node, const json_value_t* parent, bool allocated,
                std::string&& parent_key)
     {
         node_ = node;
         parent_ = parent;
+        allocated_ = allocated;
         parent_key_ = std::move(parent_key);
     }
 
@@ -704,7 +710,7 @@ protected:
     }
 
 private:
-    const json_value_t* node_ = nullptr;
+    json_value_t* node_ = nullptr;
     const json_value_t* parent_ = nullptr;
     bool allocated_ = false;
     std::string parent_key_;
@@ -815,9 +821,10 @@ template <typename T,
 void Json::placeholder_push_back(const std::string& key, const T& val)
 {
     json_object_t* obj = json_value_object(parent_);
-    destroy_node(node_);
+    destroy_node(&node_);
     Json copy_json = val.copy();
-    node_ = json_object_append(obj, key.c_str(), 0, copy_json.node_);
+    node_ = const_cast<json_value_t*>(
+        json_object_append(obj, key.c_str(), 0, copy_json.node_));
     copy_json.reset();
 }
 
