@@ -20,18 +20,30 @@ target("wfrest")
         if (not os.isdir(lib_dir)) then
             os.mkdir(lib_dir)
         end
+        shared_suffix = "*.so"
+        if is_plat("macosx") then
+            shared_suffix = "*.dylib"
+        end
         if target:is_static() then
             os.mv(path.join("$(projectdir)", target:targetdir(), "*.a"), lib_dir)
         else
-            os.mv(path.join("$(projectdir)", target:targetdir(), "*.so"), lib_dir)
+            os.mv(path.join("$(projectdir)", target:targetdir(), shared_suffix), lib_dir)
         end
     end)
 
+
     on_install(function (target)
+        os.mkdir(path.join(target:installdir(), "include/wfrest"))
+        os.mkdir(path.join(target:installdir(), "lib"))
         os.cp(path.join(get_config("wfrest_inc"), "wfrest"), path.join(target:installdir(), "include"))
+        shared_suffix = "*.so"
+        if is_plat("macosx") then
+            shared_suffix = "*.dylib"
+        end
         if target:is_static() then
             os.cp(path.join(get_config("wfrest_lib"), "*.a"), path.join(target:installdir(), "lib"))
         else
-            os.cp(path.join(get_config("wfrest_lib"), "*.so"), path.join(target:installdir(), "lib"))
+            os.cp(path.join(get_config("wfrest_lib"), shared_suffix), path.join(target:installdir(), "lib"))
         end
     end)
+
