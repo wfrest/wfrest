@@ -17,7 +17,6 @@
 #include "HttpServerTask.h"
 #include "CodeUtil.h"
 
-using namespace wfrest;
 using namespace protocol;
 
 namespace wfrest
@@ -293,9 +292,6 @@ void mysql_callback(WFMySQLTask *mysql_task)
     auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
     server_resp->String(json.dump());
 }
-
-} // namespace wfrest
-
 
 HttpReq::HttpReq() : req_data_(new ReqData)
 {}
@@ -1138,4 +1134,6 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     cookies_ = std::move(other.cookies_);
     return *this;
 }
+
+} // namespace wfrest
 
