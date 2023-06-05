@@ -2,6 +2,7 @@ includes("**/xmake.lua")
 
 target("wfrest")
     add_deps("base", "core", "util")
+    add_packages("workflow")
     set_kind("$(kind)")
 
     on_load(function (package)
@@ -30,7 +31,6 @@ target("wfrest")
             os.mv(path.join("$(projectdir)", target:targetdir(), shared_suffix), lib_dir)
         end
     end)
-
 
     on_install(function (target)
         os.mkdir(path.join(target:installdir(), "include/wfrest"))
