@@ -169,11 +169,11 @@ inline double HttpReq::param<double>(const std::string &key) const
 class HttpResp : public protocol::HttpResponse, public Noncopyable
 {
 public:
-    using MySQLJsonFunc = std::function<void(nlohmann::json *json)>;
+    using MySQLJsonFunc = std::function<void(wfrest::Json *json)>;
 
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
-    using RedisFunc = std::function<void(nlohmann::json *json)>;
+    using RedisFunc = std::function<void(wfrest::Json *json)>;
 
     using TimerFunc = std::function<void()>;
 

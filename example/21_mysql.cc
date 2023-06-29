@@ -28,9 +28,9 @@ int main(int argc, char **argv)
     svr.GET("/mysql1", [](const HttpReq *req, HttpResp *resp)
     {
         std::string url = "mysql://root:111111@localhost";
-        resp->MySQL(url, "SHOW DATABASES", [resp](nlohmann::json *json) 
+        resp->MySQL(url, "SHOW DATABASES", [resp](wfrest::Json *json) 
         {
-            nlohmann::json js;
+            wfrest::Json js;
             js["rows"] = (*json)["result_set"][0]["rows"];
             resp->String(js.dump());
         });

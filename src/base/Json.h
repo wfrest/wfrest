@@ -222,6 +222,7 @@ public:
     void push_back(const std::string& key, std::nullptr_t val);
     void push_back(const std::string& key, const std::string& val);
     void push_back(const std::string& key, const char* val);
+    void push_back(const std::string& key, const std::vector<std::string>& val);
     void push_back(const std::string& key, const Json& val);
 
 private:
@@ -263,6 +264,8 @@ private:
     void placeholder_push_back(const std::string& key, std::nullptr_t val);
     void placeholder_push_back(const std::string& key, const std::string& val);
     void placeholder_push_back(const std::string& key, const char* val);
+    void placeholder_push_back(const std::string& key,
+                               const std::vector<std::string>& val);
     void placeholder_push_back(const std::string& key, const Json& val);
 
     template <typename T, typename std::enable_if<detail::is_number<T>::value,
@@ -293,6 +296,8 @@ private:
     void normal_push_back(const std::string& key, std::nullptr_t val);
     void normal_push_back(const std::string& key, const std::string& val);
     void normal_push_back(const std::string& key, const char* val);
+    void normal_push_back(const std::string& key,
+                          const std::vector<std::string>& val);
     void normal_push_back(const std::string& key, const Json& val);
 
 public:
@@ -317,9 +322,10 @@ public:
     void push_back(const T& val);
 
     void push_back(bool val);
+    void push_back(std::nullptr_t val);
     void push_back(const std::string& val);
     void push_back(const char* val);
-    void push_back(std::nullptr_t val);
+    void push_back(const std::vector<std::string>& val);
     void push_back(const Json& val);
 
     void erase(int index);
@@ -343,9 +349,10 @@ private:
     void update_arr(const T& val);
 
     void update_arr(bool val);
+    void update_arr(std::nullptr_t val);
     void update_arr(const std::string& val);
     void update_arr(const char* val);
-    void update_arr(std::nullptr_t val);
+    void update_arr(const std::vector<std::string>& val);
     void update_arr(const Json& val);
 
 public:
