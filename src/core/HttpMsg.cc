@@ -119,9 +119,9 @@ void proxy_http_callback(WFHttpTask *http_task)
     *server_req = std::move(*http_task->get_req());
 }
 
-nlohmann::json mysql_concat_json_res(WFMySQLTask *mysql_task)
+wfrest::Json mysql_concat_json_res(WFMySQLTask *mysql_task)
 {
-    nlohmann::json json;
+    wfrest::Json json;
     MySQLResponse *mysql_resp = mysql_task->get_resp();
     MySQLResultCursor cursor(mysql_resp);
     const MySQLField *const *fields;
@@ -135,7 +135,7 @@ nlohmann::json mysql_concat_json_res(WFMySQLTask *mysql_task)
     }
 
     do {
-        nlohmann::json result_set;
+        wfrest::Json result_set;
         if (cursor.get_cursor_status() != MYSQL_STATUS_GET_RESULT &&
             cursor.get_cursor_status() != MYSQL_STATUS_OK)
         {
@@ -167,7 +167,7 @@ nlohmann::json mysql_concat_json_res(WFMySQLTask *mysql_task)
 
             while (cursor.fetch_row(arr))
             {
-                nlohmann::json row;
+                wfrest::Json row;
                 for (size_t i = 0; i < arr.size(); i++)
                 {
                     if (arr[i].is_string())
@@ -229,14 +229,14 @@ nlohmann::json mysql_concat_json_res(WFMySQLTask *mysql_task)
     return json;
 }
 
-nlohmann::json redis_json_res(WFRedisTask *redis_task)
+wfrest::Json redis_json_res(WFRedisTask *redis_task)
 {
     RedisRequest *redis_req = redis_task->get_req();
     RedisResponse *redis_resp = redis_task->get_resp();
     int state = redis_task->get_state();
     int error = redis_task->get_error();
     RedisValue val;
-    nlohmann::json js;
+    wfrest::Json js;
     switch (state)
     {
     case WFT_STATE_SYS_ERROR:
@@ -288,7 +288,7 @@ nlohmann::json redis_json_res(WFRedisTask *redis_task)
 
 void mysql_callback(WFMySQLTask *mysql_task)
 {
-    nlohmann::json json = mysql_concat_json_res(mysql_task);
+    wfrest::Json json = mysql_concat_json_res(mysql_task);
     auto *server_resp = static_cast<HttpResp *>(mysql_task->user_data);
     server_resp->String(json.dump());
 }
@@ -607,7 +607,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
         content->append("--\r\n");
         this->append_output_body_nocopy(content->c_str(), content->size());
     }
-    int file_idx = 0;
+    size_t file_idx = 0;
     for(const auto &file : file_list)
     {
         if(!PathUtil::is_file(file.second))
@@ -1056,7 +1056,7 @@ void HttpResp::MySQL(const std::string &url, const std::string &sql, const MySQL
     WFMySQLTask *mysql_task = WFTaskFactory::create_mysql_task(url, 0,
     [func](WFMySQLTask *mysql_task)
     {
-        nlohmann::json json = mysql_concat_json_res(mysql_task);
+        wfrest::Json json = mysql_concat_json_res(mysql_task);
         func(&json);
     });
 
@@ -1091,7 +1091,7 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 {
     WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [this](WFRedisTask *redis_task)
     {
-        nlohmann::json js = redis_json_res(redis_task);
+        wfrest::Json js = redis_json_res(redis_task);
         this->Json(js);
     });
 	redis_task->get_req()->set_request(command, params);
@@ -1103,7 +1103,7 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 {
     WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task)
     {
-        nlohmann::json js = redis_json_res(redis_task);
+        wfrest::Json js = redis_json_res(redis_task);
         func(&js);
     });
 	redis_task->get_req()->set_request(command, params);
