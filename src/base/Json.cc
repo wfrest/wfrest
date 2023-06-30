@@ -224,7 +224,7 @@ Json Json::parse(FILE* fp)
     fseek(fp, 0, SEEK_SET);
     char* buffer = (char*)malloc(length + 1);
     buffer[length] = '\0';
-    ssize_t ret = fread(buffer, 1, length, fp);
+    long ret = fread(buffer, 1, length, fp);
     Json js;
     if (ret != length)
     {
