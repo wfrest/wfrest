@@ -120,6 +120,20 @@ TEST(ArrTest, erase)
     EXPECT_EQ(data.dump(), R"([1,null,true,false])");
 }
 
+TEST(ArrTest, push_vector) {
+    Json data;
+    std::vector<std::string> values = {"val1", "val2"};
+    data.push_back(values);
+
+    EXPECT_EQ(data[0].get<std::string>(), "val1");
+    EXPECT_EQ(data[1].get<std::string>(), "val2");
+
+    data.push_back({"val3", "val4", "val5"});
+    EXPECT_EQ(data[2].get<std::string>(), "val3");
+    EXPECT_EQ(data[3].get<std::string>(), "val4");
+    EXPECT_EQ(data[4].get<std::string>(), "val5");
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

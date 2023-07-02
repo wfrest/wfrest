@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 namespace wfrest
 {
@@ -223,6 +224,10 @@ public:
     void push_back(const std::string& key, const std::string& val);
     void push_back(const std::string& key, const char* val);
     void push_back(const std::string& key, const std::vector<std::string>& val);
+    void push_back(const std::string& key, const std::initializer_list<std::string>& val)
+    {
+        push_back(key, std::vector<std::string>(val));
+    }
     void push_back(const std::string& key, const Json& val);
 
 private:
@@ -326,6 +331,10 @@ public:
     void push_back(const std::string& val);
     void push_back(const char* val);
     void push_back(const std::vector<std::string>& val);
+    void push_back(const std::initializer_list<std::string>& val)
+    {
+        push_back(std::vector<std::string>(val));
+    }
     void push_back(const Json& val);
 
     void erase(int index);

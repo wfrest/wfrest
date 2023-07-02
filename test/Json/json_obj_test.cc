@@ -153,6 +153,18 @@ TEST(ObjTest, erase)
     EXPECT_EQ(data.dump(), R"({"test1":false,"test3":"string","test4":null})");
 }
 
+TEST(ObjTest, push_vector) {
+  Json data;
+  data.push_back("key1", {"val1", "val2"});
+  data.push_back("key2", {"val3", "val4", "val5"});
+
+  EXPECT_EQ(data["key1"][0].get<std::string>(), "val1");
+  EXPECT_EQ(data["key1"][1].get<std::string>(), "val2");
+  EXPECT_EQ(data["key2"][0].get<std::string>(), "val3");
+  EXPECT_EQ(data["key2"][1].get<std::string>(), "val4");
+  EXPECT_EQ(data["key2"][2].get<std::string>(), "val5");
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
