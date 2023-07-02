@@ -15,7 +15,7 @@ namespace wfrest
 namespace
 {
 
-struct SaveFileContext 
+struct SaveFileContext
 {
     std::string content;
     std::string notify_msg;
@@ -52,7 +52,7 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
     HttpServerTask *server_task = task_of(pwrite_task);
     HttpResp *resp = server_task->get_resp();
     auto *save_context = static_cast<SaveFileContext *>(pwrite_task->user_data);
-    if(save_context->fileio_args_func) 
+    if(save_context->fileio_args_func)
     {
         save_context->fileio_args_func(pwrite_task->get_args());
     }
@@ -61,10 +61,7 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
         resp->Error(StatusFileWriteError);
     } else
     {
-        if(save_context->notify_msg.empty()) 
-        {
-            resp->append_output_body_nocopy("Save File success\n", 18);
-        } else 
+        if(!save_context->notify_msg.empty())
         {
             resp->append_output_body_nocopy(save_context->notify_msg.c_str(), save_context->notify_msg.size());
         }
@@ -130,22 +127,22 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
                                                                 size,
                                                                 static_cast<off_t>(start),
                                                                 pread_callback);
-    pread_task->user_data = resp;  
+    pread_task->user_data = resp;
     **server_task << pread_task;
     return StatusOK;
 }
 
 
-void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
-                        HttpResp *resp, const std::string &notify_msg, 
-                        const FileIOArgsFunc &func) 
+void HttpFile::save_file(const std::string &dst_path, const std::string &content,
+                        HttpResp *resp, const std::string &notify_msg,
+                        const FileIOArgsFunc &func)
 {
     HttpServerTask *server_task = task_of(resp);
 
-    auto *save_context = new SaveFileContext; 
+    auto *save_context = new SaveFileContext;
     save_context->content = content;    // copy
     save_context->notify_msg = notify_msg;  // copy
-    if (func) 
+    if (func)
     {
         save_context->fileio_args_func = func;
     }
@@ -161,16 +158,16 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
     pwrite_task->user_data = save_context;
 }
 
-void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
-                        HttpResp *resp, const std::string &notify_msg, 
+void HttpFile::save_file(const std::string &dst_path, std::string &&content,
+                        HttpResp *resp, const std::string &notify_msg,
                         const FileIOArgsFunc &func)
 {
     HttpServerTask *server_task = task_of(resp);
 
-    auto *save_context = new SaveFileContext; 
-    save_context->content = std::move(content);  
-    save_context->notify_msg = std::move(notify_msg); 
-    if (func) 
+    auto *save_context = new SaveFileContext;
+    save_context->content = std::move(content);
+    save_context->notify_msg = std::move(notify_msg);
+    if (func)
     {
         save_context->fileio_args_func = func;
     }
@@ -192,13 +189,13 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
     return save_file(dst_path, content, resp, "", nullptr);
 }
 
-void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
+void HttpFile::save_file(const std::string &dst_path, const std::string &content,
                                     HttpResp *resp, const std::string &notify_msg)
 {
     return save_file(dst_path, content, resp, notify_msg, nullptr);
 }
 
-void HttpFile::save_file(const std::string &dst_path, const std::string &content, 
+void HttpFile::save_file(const std::string &dst_path, const std::string &content,
                     HttpResp *resp, const FileIOArgsFunc &func)
 {
     return save_file(dst_path, content, resp, "", func);
@@ -209,13 +206,13 @@ void HttpFile::save_file(const std::string &dst_path, std::string&& content, Htt
     return save_file(dst_path, std::move(content), resp, "", nullptr);
 }
 
-void HttpFile::save_file(const std::string &dst_path, std::string&& content, 
+void HttpFile::save_file(const std::string &dst_path, std::string&& content,
                                     HttpResp *resp, const std::string &notify_msg)
 {
     return save_file(dst_path, std::move(content), resp, notify_msg, nullptr);
 }
 
-void HttpFile::save_file(const std::string &dst_path, std::string &&content, 
+void HttpFile::save_file(const std::string &dst_path, std::string &&content,
                     HttpResp *resp, const FileIOArgsFunc &func)
 {
     return save_file(dst_path, std::move(content), resp, "", func);
