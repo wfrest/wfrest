@@ -960,7 +960,7 @@ void HttpResp::Json(const wfrest::Json &json)
 
 void HttpResp::Json(const std::string &str)
 {
-    if (!nlohmann::json::accept(str))
+    if (!wfrest::Json::parse(str).is_valid())
     {
         this->Error(StatusJsonInvalid);
         return;
