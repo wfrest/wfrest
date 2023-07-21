@@ -27,9 +27,9 @@ struct ReqData
     std::string body;
     std::map<std::string, std::string> form_kv;
     Form form;
-    // todo : need optimize by std::variant
-    nlohmann::json json;
-    Json builtin_json;
+    // todo : remove nlohmann JSON
+    Json json;
+    nlohmann::json n_json;
 };
 
 struct ProxyCtx
@@ -354,23 +354,23 @@ nlohmann::json &HttpReq::json<nlohmann::json>() const
         const std::string &body_content = this->body();
         if (!nlohmann::json::accept(body_content))
         {
-            return req_data_->json;
+            return req_data_->n_json;
             // todo : how to let user know the error ?
         }
-        req_data_->json = nlohmann::json::parse(body_content);
+        req_data_->n_json = nlohmann::json::parse(body_content);
     }
-    return req_data_->json;
+    return req_data_->n_json;
 }
 
 template <>
 Json &HttpReq::json<Json>() const
 {
-    if (content_type_ == APPLICATION_JSON && req_data_->builtin_json.empty())
+    if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
         const std::string &body_content = this->body();
-        req_data_->builtin_json = Json::parse(body_content);
+        req_data_->json = Json::parse(body_content);
     }
-    return req_data_->builtin_json;
+    return req_data_->json;
 }
 
 const std::string &HttpReq::param(const std::string &key) const
