@@ -1,7 +1,6 @@
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
 
 using namespace wfrest;
 
@@ -21,7 +20,7 @@ int main()
     // curl -v http://ip:port/json1
     svr.GET("/json1", [](const HttpReq *req, HttpResp *resp)
     {
-        nlohmann::json json;
+        Json json;
         json["test"] = 123;
         json["json"] = "test json";
         resp->Json(json);
@@ -60,7 +59,7 @@ int main()
             resp->String("NOT APPLICATION_JSON");
             return;
         }
-        fprintf(stderr, "Json : %s", req->json<nlohmann::json>().dump(4).c_str());
+        fprintf(stderr, "Json : %s", req->json().dump(4).c_str());
     });
 
     if (svr.start(8888) == 0)

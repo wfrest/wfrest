@@ -41,7 +41,7 @@ public:
 
     Form &form() const;
 
-    template <typename T>
+    template <typename T = wfrest::Json>
     T &json() const;
 
     http_content_type content_type() const
