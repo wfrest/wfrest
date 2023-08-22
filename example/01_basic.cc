@@ -43,6 +43,9 @@ int main()
         fprintf(stderr, "post data : %s\n", body.c_str());
     });
 
+    // curl -v http://ip:port/any_path
+    svr.set_default_route("/data");
+
     if (svr.track().start(8888) == 0)
     {
         svr.list_routes();
