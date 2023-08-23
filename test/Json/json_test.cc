@@ -104,6 +104,16 @@ TEST(JsonTest, copy)
     std::cout << data1 << std::endl;
 }
 
+TEST(JsonTest, push_back_test)
+{
+    Json data2;
+    Json data1;
+    data1.push_back("key", 1);
+    data2.push_back("key1", data1["key"]);
+    EXPECT_EQ(data1["key"].get<int>(), 1);
+    EXPECT_EQ(data2["key1"].get<int>(), 1);
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
