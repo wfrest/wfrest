@@ -30,6 +30,7 @@ namespace wfrest
 
 struct ReqData;
 class MySQL;
+struct HttpServerTask;
 
 class HttpReq : public protocol::HttpRequest, public Noncopyable
 {
@@ -179,6 +180,8 @@ public:
 
     using PushFunc = std::function<void(OUT std::string &ctx)>;
 
+    using PushErrorFunc = std::function<void()>;
+
 public:
     // send string
     void String(const std::string &str);
@@ -281,6 +284,8 @@ public:
 
     void Push(const std::string &cond_name, const PushFunc &cb);
 
+    void Push(const std::string &cond_name, const PushFunc &cb, const PushErrorFunc &err_cb);
+
     void add_task(SubTask *task);
 
     void add_header(const std::string &key, const std::string &val)
@@ -319,7 +324,7 @@ using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
 inline void sse_signal(const std::string& cond_name)
 {
-    WFTaskFactory::signal_by_name(cond_name, NULL); 
+    WFTaskFactory::signal_by_name(cond_name, NULL);
 }
 
 } // namespace wfrest

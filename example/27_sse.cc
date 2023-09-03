@@ -1,3 +1,4 @@
+#include "HttpServerTask.h"
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
@@ -37,7 +38,7 @@ int main()
 
     svr.GET("/notify", [](const HttpReq *req, HttpResp *resp)
     {
-        sse_signal("test"); 
+        sse_signal("test");
     });
 
     svr.GET("/interval", [](const HttpReq *req, HttpResp *resp)
@@ -45,7 +46,7 @@ int main()
         int cnt = 0;
         while (true)
         {
-            sse_signal("test"); 
+            sse_signal("test");
             sleep(1);
             if (cnt++ == 10)
             {
@@ -93,7 +94,7 @@ int main()
                 // body.append("\n");
                 // body.append("data: ");
                 // body.append("\n\n");
-            } else 
+            } else
             {
                 body.append("id: ");
                 body.append(std::to_string(id));
@@ -102,6 +103,31 @@ int main()
                 body.append("price : " + std::to_string(StockPrice::price()));
                 body.append("\n\n");
             }
+        });
+    });
+
+    svr.GET("/sse_handle_err", [](const HttpReq *req, HttpResp *resp)
+    {
+        // sse header required
+        resp->add_header("Content-Type", "text/event-stream");
+        resp->add_header("Cache-Control", "no-cache");
+        resp->add_header("Connection", "keep-alive");
+        resp->Push("test", [](std::string &body) {
+            auto id = StockPrice::id();
+            if (id > 10)
+            {
+                body.clear();
+            } else
+            {
+                body.append("id: ");
+                body.append(std::to_string(id));
+                body.append("\n");
+                body.append("data: ");
+                body.append("price : " + std::to_string(StockPrice::price()));
+                body.append("\n\n");
+            }
+        }, [] {
+            fprintf(stderr, "sse_handle_err\n");
         });
     });
 
