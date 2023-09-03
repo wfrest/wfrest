@@ -1,4 +1,4 @@
-#include "HttpServerTask.h"
+#include "wfrest/HttpServerTask.h"
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
