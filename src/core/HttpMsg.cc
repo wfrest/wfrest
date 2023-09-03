@@ -1109,13 +1109,21 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 }
 
 void HttpResp::Redis(const std::string &url, const std::string &command,
-        const std::vector<std::string>& params, const RedisFunc &func)
+        const std::vector<std::string>& params, const RedisJsonFunc &func)
 {
     WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task)
     {
         wfrest::Json js = redis_json_res(redis_task);
         func(&js);
     });
+	redis_task->get_req()->set_request(command, params);
+    this->add_task(redis_task);
+}
+
+void HttpResp::Redis(const std::string &url, const std::string &command,
+        const std::vector<std::string>& params, const RedisFunc &func)
+{
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, func);
 	redis_task->get_req()->set_request(command, params);
     this->add_task(redis_task);
 }

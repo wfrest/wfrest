@@ -30,7 +30,6 @@ namespace wfrest
 
 struct ReqData;
 class MySQL;
-struct HttpServerTask;
 
 class HttpReq : public protocol::HttpRequest, public Noncopyable
 {
@@ -174,7 +173,9 @@ public:
 
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
-    using RedisFunc = std::function<void(wfrest::Json *json)>;
+    using RedisJsonFunc = std::function<void(wfrest::Json *json)>;
+
+    using RedisFunc = std::function<void(WFRedisTask *redis_task)>;
 
     using TimerFunc = std::function<void()>;
 
@@ -259,6 +260,9 @@ public:
     // Redis
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params);
+
+    void Redis(const std::string &url, const std::string &command,
+            const std::vector<std::string>& params, const RedisJsonFunc &func);
 
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
