@@ -22,6 +22,10 @@ int main()
 
     svr.Static("/", "./www/index.html");
 
+    svr.Static("/test", "./www/test.html");
+
+    svr.set_default_route("/");
+
     if (svr.start(8888) == 0)
     {
         svr.list_routes();

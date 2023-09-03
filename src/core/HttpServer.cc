@@ -113,9 +113,14 @@ int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
     {
         return StatusNotFound;
     }
-    bp.GET("/*", [path_str, is_file](const HttpReq *req, HttpResp *resp) {
+    std::string route = "";
+    if (!is_file)
+    {
+        route = "/*";
+    }
+    bp.GET(route, [path_str, is_file](const HttpReq *req, HttpResp *resp) {
         std::string match_path = req->match_path();
-        if(is_file && match_path.empty())
+        if(is_file)
         {
             resp->File(path_str);
         } else
