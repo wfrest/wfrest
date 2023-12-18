@@ -42,6 +42,28 @@ TEST(RouteTableNode, create_and_find)
     EXPECT_TRUE(it == rtn.end());
 }
 
+TEST(RouteTableNode, find)
+{
+    RouteTableNode rtn;
+    StringPiece route1("/api/test");
+    rtn.find_or_create(route1, 0);
+
+    std::map<std::string, std::string> route_params;
+    std::string route_match_path;
+
+    StringPiece route2("/api/test");
+    RouteTableNode::iterator it = rtn.find(route2, 0, route_params, route_match_path);
+    EXPECT_TRUE(it != rtn.end());
+
+    // StringPiece route3("/api/test/");
+    // it = rtn.find(route3, 0, route_params, route_match_path);
+    // EXPECT_TRUE(it != rtn.end());
+
+    StringPiece route4("/api/test/11");
+    it = rtn.find(route4, 0, route_params, route_match_path);
+    EXPECT_TRUE(it == rtn.end());
+}
+
 TEST(RouteTableNode, root_path)
 {
     RouteTableNode rtn;
@@ -75,3 +97,4 @@ TEST(RouteTableNode, root_path_match)
     EXPECT_TRUE(it != rtn.end());
     EXPECT_EQ(route_match_path, "111");
 }
+

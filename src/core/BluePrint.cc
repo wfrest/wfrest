@@ -161,7 +161,7 @@ void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, Ve
                 if(!global_aspect->aspect_list.empty())
                 {
                     HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
+                    server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
                         for(auto asp : global_aspect->aspect_list)
                         {
@@ -196,7 +196,7 @@ void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const Seri
                 if(!global_aspect->aspect_list.empty())
                 {
                     HttpServerTask *server_task = task_of(resp);
-                    server_task->add_callback([req, resp, global_aspect](HttpTask *) 
+                    server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
                         for(auto asp : global_aspect->aspect_list)
                         {
@@ -218,13 +218,13 @@ void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, co
     }
 }
 
-void BluePrint::ROUTE(const std::string &route, int compute_queue_id, 
+void BluePrint::ROUTE(const std::string &route, int compute_queue_id,
             const SeriesHandler &handler, const std::vector<std::string> &methods)
 {
     for(const auto &method : methods)
     {
         this->ROUTE(route, compute_queue_id, handler, str_to_verb(method));
-    } 
+    }
 }
 
 void BluePrint::GET(const std::string &route, const SeriesHandler &handler)
@@ -292,19 +292,35 @@ void BluePrint::add_blueprint(const BluePrint &bp, const std::string &url_prefix
     bp.router_.routes_map_.all_routes([this, &url_prefix]
     (const std::string &sub_prefix, VerbHandler verb_handler)
     {
-        std::string path;
-        if (!url_prefix.empty() && url_prefix.back() == '/')
-            path = url_prefix + sub_prefix;
-        else
-            path = url_prefix + "/" + sub_prefix;
-    
+        std::string path = url_prefix;
+        if (!path.empty() && path.back() == '/')
+        {
+            path.pop_back();
+        }
+        if (!sub_prefix.empty())
+        {
+            if (sub_prefix.front() != '/')
+            {
+                path += '/';
+            }
+            path += sub_prefix;
+        }
+        if (!path.empty() && path.back() == '/')
+        {
+            path.pop_back();
+        }
+        if (path.empty())
+        {
+            path = "/";
+        }
+
         std::vector<Verb> verb_list;
         for(auto &vh_item : verb_handler.verb_handler_map)
         {
             verb_list.push_back(vh_item.first);
         }
         std::pair<Router::RouteVerbIter, bool> rv_pair = this->router_.add_route(verb_list, path.c_str());
-        
+
         VerbHandler &vh = this->router_.routes_map_.find_or_create(rv_pair.first->route.c_str());
         vh = verb_handler;
         vh.path = rv_pair.first->route;

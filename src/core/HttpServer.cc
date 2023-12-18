@@ -20,12 +20,12 @@ void HttpServer::process(HttpTask *task)
     server_task->server = this;
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
-    
+
     req->fill_header_map();
     req->fill_content_type();
 
     const std::string &host = req->header("Host");
-    
+
     if (host.empty())
     {
         //header Host not found
@@ -56,8 +56,11 @@ void HttpServer::process(HttpTask *task)
     req->set_parsed_uri(std::move(uri));
     std::string verb = req->get_method();
     int ret = blue_print_.router().call(str_to_verb(verb), CodeUtil::url_encode(route), server_task);
-    if(ret != StatusOK)
+    if(ret != StatusOK && !default_route_.empty())
     {
+        ret = blue_print_.router().call(str_to_verb(verb), CodeUtil::url_encode(default_route_), server_task);
+    }
+    if (ret != StatusOK) {
         resp->Error(ret, verb + " " + route);
     }
     if(track_func_)
@@ -109,13 +112,18 @@ int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
     } else if(!PathUtil::is_file(path_str))
     {
         return StatusNotFound;
-    }    
-    bp.GET("/*", [path_str, is_file](const HttpReq *req, HttpResp *resp) {
+    }
+    std::string route = "";
+    if (!is_file)
+    {
+        route = "/*";
+    }
+    bp.GET(route, [path_str, is_file](const HttpReq *req, HttpResp *resp) {
         std::string match_path = req->match_path();
-        if(is_file && match_path.empty())
+        if(is_file)
         {
             resp->File(path_str);
-        } else 
+        } else
         {
             resp->File(path_str + "/" + match_path);
         }
@@ -132,11 +140,11 @@ HttpServer &HttpServer::track()
         Timestamp current_time = Timestamp::now();
         std::string fmt_time = current_time.to_format_str();
         // time | http status code | peer ip address | verb | route path
-        fprintf(stderr, "[WFREST] %s | %s | %s : %d | %s | \"%s\" | -- \n", 
+        fprintf(stderr, "[WFREST] %s | %s | %s : %d | %s | \"%s\" | -- \n",
                     fmt_time.c_str(),
                     resp->get_status_code(),
                     task->peer_addr().c_str(),
-                    task->peer_port(), 
+                    task->peer_port(),
                     req->get_method(),
                     req->current_path().c_str());
     };

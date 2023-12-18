@@ -173,11 +173,15 @@ public:
 
     using MySQLFunc = std::function<void(protocol::MySQLResultCursor *cursor)>;
 
-    using RedisFunc = std::function<void(wfrest::Json *json)>;
+    using RedisJsonFunc = std::function<void(wfrest::Json *json)>;
+
+    using RedisFunc = std::function<void(WFRedisTask *redis_task)>;
 
     using TimerFunc = std::function<void()>;
 
     using PushFunc = std::function<void(OUT std::string &ctx)>;
+
+    using PushErrorFunc = std::function<void()>;
 
 public:
     // send string
@@ -258,6 +262,9 @@ public:
             const std::vector<std::string>& params);
 
     void Redis(const std::string &url, const std::string &command,
+            const std::vector<std::string>& params, const RedisJsonFunc &func);
+
+    void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
 
     template<class FUNC, class... ARGS>
@@ -280,6 +287,8 @@ public:
     void Timer(time_t seconds, long nanoseconds, const TimerFunc& cb);
 
     void Push(const std::string &cond_name, const PushFunc &cb);
+
+    void Push(const std::string &cond_name, const PushFunc &cb, const PushErrorFunc &err_cb);
 
     void add_task(SubTask *task);
 
@@ -319,7 +328,7 @@ using HttpTask = WFNetworkTask<HttpReq, HttpResp>;
 
 inline void sse_signal(const std::string& cond_name)
 {
-    WFTaskFactory::signal_by_name(cond_name, NULL); 
+    WFTaskFactory::signal_by_name(cond_name, NULL);
 }
 
 } // namespace wfrest

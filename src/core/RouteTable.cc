@@ -55,8 +55,13 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
 {
     assert(cursor >= 0);
     // We found the route
-    if ((cursor == route.size() and !verb_handler_.verb_handler_map.empty()) or (children_.empty()))
-        return iterator{this, route, verb_handler_};
+    if (cursor == route.size())
+    {
+        if (!verb_handler_.verb_handler_map.empty() || children_.empty())
+        {
+            return iterator{this, route, verb_handler_};
+        }
+    }
     // /*
     if(cursor == route.size() and !children_.empty())
     {
@@ -83,11 +88,11 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
         {
             // it2 == RouteTableNode::iterator
             // search in the corresponding child.
-            auto it2 = it->second->find(route, ++cursor, route_params, route_match_path); 
+            auto it2 = it->second->find(route, ++cursor, route_params, route_match_path);
             if (it2 != it->second->end())
                 return it2;
         }
-    }   
+    }
 
     if (route[cursor] == '/')
         cursor++; // skip the first /
@@ -125,7 +130,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
                 StringPiece match_path(route.data() + cursor);
                 route_match_path = mid.as_string() + match_path.as_string();
                 return iterator{kv.second, route, kv.second->verb_handler_};
-            } 
+            }
         }
 
         if (param.size() > 2 and param[0] == '{' and
@@ -154,16 +159,16 @@ void RouteTableNode::print_node_arch()
     {
         fprintf(stderr, "level %d:\t", level);
         size_t queue_size = node_queue.size();
-        fprintf(stderr, "(size : %zu)\t", queue_size);  
+        fprintf(stderr, "(size : %zu)\t", queue_size);
         for(size_t i = 0; i < queue_size; i++)
         {
             std::pair<StringPiece, RouteTableNode *> node = node_queue.front();
             node_queue.pop();
-            
+
             fprintf(stderr, "[%s :", node.first.as_string().c_str());
             const std::map<StringPiece, RouteTableNode *> &children = node.second->children_;
-            
-            if(children.empty()) 
+
+            if(children.empty())
                 fprintf(stderr, "\tNULL");
             for (const auto &pair: children)
             {
@@ -174,7 +179,7 @@ void RouteTableNode::print_node_arch()
         }
         level++;
         fprintf(stderr, "\n");
-    } 
+    }
 }
 
 VerbHandler &RouteTable::find_or_create(const char *route)

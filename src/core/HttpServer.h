@@ -17,14 +17,14 @@ class HttpServer : public WFServer<HttpReq, HttpResp>, public Noncopyable
 {
 public:
     // reserve basic interface
-    void ROUTE(const std::string &route, const Handler &handler, Verb verb) 
+    void ROUTE(const std::string &route, const Handler &handler, Verb verb)
     {
         blue_print_.ROUTE(route, handler, verb);
     }
 
-    void ROUTE(const std::string &route, int compute_queue_id, const Handler &handler, Verb verb) 
+    void ROUTE(const std::string &route, int compute_queue_id, const Handler &handler, Verb verb)
     {
-        blue_print_.ROUTE(route, compute_queue_id, handler, verb);   
+        blue_print_.ROUTE(route, compute_queue_id, handler, verb);
     }
 
     void ROUTE(const std::string &route, const Handler &handler, const std::vector<std::string> &methods)
@@ -32,7 +32,7 @@ public:
         blue_print_.ROUTE(route, handler, methods);
     }
 
-    void ROUTE(const std::string &route, int compute_queue_id, 
+    void ROUTE(const std::string &route, int compute_queue_id,
                 const Handler &handler, const std::vector<std::string> &methods)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, methods);
@@ -53,12 +53,12 @@ public:
         blue_print_.POST(route, handler);
     }
 
-    void POST(const std::string &route, int compute_queue_id, const Handler &handler) 
+    void POST(const std::string &route, int compute_queue_id, const Handler &handler)
     {
         blue_print_.POST(route, compute_queue_id, handler);
     }
 
-    void DELETE(const std::string &route, const Handler &handler) 
+    void DELETE(const std::string &route, const Handler &handler)
     {
         blue_print_.DELETE(route, handler);
     }
@@ -80,14 +80,14 @@ public:
 
     void PUT(const std::string &route, const Handler &handler)
     {
-        blue_print_.PUT(route, handler);   
+        blue_print_.PUT(route, handler);
     }
 
     void PUT(const std::string &route, int compute_queue_id, const Handler &handler)
     {
-        blue_print_.PUT(route, compute_queue_id, handler); 
+        blue_print_.PUT(route, compute_queue_id, handler);
     }
-    
+
     void HEAD(const std::string &route, const Handler &handler)
     {
         blue_print_.HEAD(route, handler);
@@ -101,29 +101,29 @@ public:
 
 public:
     template<typename... AP>
-    void ROUTE(const std::string &route, const Handler &handler, 
+    void ROUTE(const std::string &route, const Handler &handler,
                 Verb verb, const AP &... ap)
     {
         blue_print_.ROUTE(route, handler, verb, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, int compute_queue_id, 
+    void ROUTE(const std::string &route, int compute_queue_id,
                 const Handler &handler, Verb verb, const AP &... ap)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, verb, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, const Handler &handler, 
+    void ROUTE(const std::string &route, const Handler &handler,
                 const std::vector<std::string> &methods, const AP &... ap)
     {
         blue_print_.ROUTE(route, handler, methods, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, int compute_queue_id, 
-                const Handler &handler, 
+    void ROUTE(const std::string &route, int compute_queue_id,
+                const Handler &handler,
                 const std::vector<std::string> &methods, const AP &... ap)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, methods, ap...);
@@ -139,7 +139,7 @@ public:
     void GET(const std::string &route, int compute_queue_id,
              const Handler &handler, const AP &... ap)
     {
-        blue_print_.GET(route, compute_queue_id, handler, ap...);   
+        blue_print_.GET(route, compute_queue_id, handler, ap...);
     }
 
     template<typename... AP>
@@ -184,7 +184,7 @@ public:
     template<typename... AP>
     void PUT(const std::string &route, const Handler &handler, const AP &... ap)
     {
-        blue_print_.PUT(route, handler, ap...);   
+        blue_print_.PUT(route, handler, ap...);
     }
 
     template<typename... AP>
@@ -223,12 +223,12 @@ public:
         blue_print_.ROUTE(route, handler, methods);
     }
 
-    void ROUTE(const std::string &route, int compute_queue_id, 
+    void ROUTE(const std::string &route, int compute_queue_id,
                 const SeriesHandler &handler, const std::vector<std::string> &methods)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, methods);
     }
-    
+
     void GET(const std::string &route, const SeriesHandler &handler)
     {
         blue_print_.GET(route, handler);
@@ -257,7 +257,7 @@ public:
     void DELETE(const std::string &route, int compute_queue_id, const SeriesHandler &handler)
     {
         blue_print_.DELETE(route, compute_queue_id, handler);
-    } 
+    }
 
     void PATCH(const std::string &route, const SeriesHandler &handler)
     {
@@ -291,34 +291,34 @@ public:
 
 public:
     template<typename... AP>
-    void ROUTE(const std::string &route, const SeriesHandler &handler, 
+    void ROUTE(const std::string &route, const SeriesHandler &handler,
                 Verb verb, const AP &... ap)
     {
         blue_print_.ROUTE(route, handler, verb, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, int compute_queue_id, 
+    void ROUTE(const std::string &route, int compute_queue_id,
                 const SeriesHandler &handler, Verb verb, const AP &... ap)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, verb, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, const SeriesHandler &handler, 
+    void ROUTE(const std::string &route, const SeriesHandler &handler,
                 const std::vector<std::string> &methods, const AP &... ap)
     {
         blue_print_.ROUTE(route, handler, methods, ap...);
     }
 
     template<typename... AP>
-    void ROUTE(const std::string &route, int compute_queue_id, 
-                const SeriesHandler &handler, 
+    void ROUTE(const std::string &route, int compute_queue_id,
+                const SeriesHandler &handler,
                 const std::vector<std::string> &methods, const AP &... ap)
     {
         blue_print_.ROUTE(route, compute_queue_id, handler, methods, ap...);
     }
-                
+
     template<typename... AP>
     void GET(const std::string &route, const SeriesHandler &handler, const AP &... ap)
     {
@@ -403,15 +403,20 @@ public:
 
     void list_routes();
 
+    void set_default_route(const std::string& default_route)
+    {
+        default_route_ = default_route;
+    }
+
     void register_blueprint(const BluePrint &bp, const std::string &url_prefix);
-    
+
     template <typename... AP>
     void Use(AP &&...ap)
     {
         auto *tp = new std::tuple<AP...>(std::move(ap)...);
         for_each(*tp, GlobalAspectFunc());
     }
-    
+
     void stop()
     {
         close_flag_ = true;
@@ -460,7 +465,7 @@ public:
     }
 
     using TrackFunc = std::function<void(HttpTask *server_task)>;
-    
+
     HttpServer &track();
 
     HttpServer &track(const TrackFunc &track_func);
@@ -468,7 +473,7 @@ public:
     HttpServer &track(TrackFunc &&track_func);
 
     void print_node_arch() { blue_print_.print_node_arch(); }  // for test
-    
+
 protected:
     CommSession *new_session(long long seq, CommConnection *conn) override;
 
@@ -476,22 +481,23 @@ private:
     void process(HttpTask *task);
 
     int serve_static(const char *path, OUT BluePrint &bp);
-    
-    struct GlobalAspectFunc 
+
+    struct GlobalAspectFunc
     {
         template <typename T>
-        void operator()(T &t) const 
+        void operator()(T &t) const
         {
             Aspect *asp = new T(std::move(t));
             GlobalAspect *global_aspect = GlobalAspect::get_instance();
             global_aspect->aspect_list.push_back(asp);
         }
     };
-    
+
 private:
+    bool close_flag_ = false;
+    std::string default_route_;
     BluePrint blue_print_;
     TrackFunc track_func_;
-    bool close_flag_ = false;
 };
 
 }  // namespace wfrest

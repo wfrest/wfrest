@@ -58,7 +58,7 @@ int main()
         HttpCookie cookie;
         cookie.set_key("user")
                 .set_value("chanchan")
-                .set_path("/")  
+                .set_path("/")
                 .set_domain("localhost")
                 .set_http_only(true);
 
@@ -100,4 +100,46 @@ int main()
     }
     return 0;
 }
+```
+
+## How to set multiple cookies to user agent?
+
+ref : https://www.rfc-editor.org/rfc/rfc6265#section-5.4
+
+As shown in the next example, the server can store multiple cookies
+at the user agent.  For example, the server can store a session
+identifier as well as the user's preferred language by returning two
+Set-Cookie header fields.  Notice that the server uses the Secure and
+HttpOnly attributes to provide additional security protections for
+the more sensitive session identifier (see Section 4.1.2.)
+
+== Server -> User Agent ==
+
+Set-Cookie: SID=31d4d96e407aad42; Path=/; Secure; HttpOnly
+Set-Cookie: lang=en-US; Path=/; Domain=example.com
+
+You can write code like this:
+
+```cpp
+svr.GET("/multi", [](const HttpReq *req, HttpResp *resp)
+{
+    // set cookie
+    HttpCookie cookie;
+
+    cookie.set_key("user")
+            .set_value("chanchan")
+            .set_path("/")
+            .set_domain("localhost")
+            .set_http_only(true);
+
+    resp->add_cookie(std::move(cookie));
+
+    HttpCookie cookie2;
+    cookie2.set_key("animal")
+            .set_value("panda");
+    resp->add_cookie(std::move(cookie2));
+
+    resp->set_status(HttpStatusOK);
+    resp->String("Login success");
+});
 ```

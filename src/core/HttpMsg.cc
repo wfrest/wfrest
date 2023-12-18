@@ -266,7 +266,7 @@ wfrest::Json redis_json_res(WFRedisTask *redis_task)
     redis_req->get_params(params);
     if (state == WFT_STATE_SUCCESS && cmd == "SET")
     {
-        js["status"] = "sucess";
+        js["status"] = "success";
         js["cmd"] = "SET";
         js[params[0]] = params[1];
     }
@@ -276,7 +276,7 @@ wfrest::Json redis_json_res(WFRedisTask *redis_task)
         if (val.is_string())
         {
             js[params[0]] = val.string_value();
-            js["status"] = "sucess";
+            js["status"] = "success";
         }
         else
         {
@@ -780,6 +780,7 @@ struct PushTaskCtx
     HttpServerTask *server_task = nullptr;
     std::string cond_name;
     HttpResp::PushFunc push_cb;
+    HttpResp::PushErrorFunc push_err_cb;
     std::string body()
     {
         std::string data;
@@ -790,8 +791,8 @@ struct PushTaskCtx
         {
             ss << std::hex << data.size() << "\r\n";
             ss << data << "\r\n";
-        } 
-        else 
+        }
+        else
         {
             ss << "0\r\n\r\n";
         }
@@ -820,12 +821,13 @@ void push_func(WFTimerTask *push_task)
         nwritten = 0;
         if (errno != EWOULDBLOCK)
         {
+            push_task_ctx->push_err_cb();
             return;
         }
     }
     if (nleft > 0)
     {
-        auto* push_chunk_data = new PushChunkData; 
+        auto* push_chunk_data = new PushChunkData;
         push_chunk_data->data = std::move(resp_body);
         push_chunk_data->nleft = nleft;
         push_chunk_data->server_task = server_task;
@@ -868,6 +870,13 @@ std::string HttpResp::construct_push_header()
 
 void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb)
 {
+    this->Push(cond_name, push_cb, [] {
+        fprintf(stderr, "Connection has lost...\n");
+    });
+}
+
+void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb, const PushErrorFunc &err_cb)
+{
     HttpServerTask *server_task = task_of(this);
     // Construct HTTP header
     std::string http_header = construct_push_header();
@@ -877,6 +886,7 @@ void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb)
     push_task_ctx->server_task = server_task;
     push_task_ctx->cond_name = cond_name;
     push_task_ctx->push_cb = push_cb;
+    push_task_ctx->push_err_cb = err_cb;
     server_task->add_callback([push_task_ctx](HttpTask *server_task) {
         delete push_task_ctx;
     });
@@ -1099,13 +1109,21 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 }
 
 void HttpResp::Redis(const std::string &url, const std::string &command,
-        const std::vector<std::string>& params, const RedisFunc &func)
+        const std::vector<std::string>& params, const RedisJsonFunc &func)
 {
     WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, [func](WFRedisTask *redis_task)
     {
         wfrest::Json js = redis_json_res(redis_task);
         func(&js);
     });
+	redis_task->get_req()->set_request(command, params);
+    this->add_task(redis_task);
+}
+
+void HttpResp::Redis(const std::string &url, const std::string &command,
+        const std::vector<std::string>& params, const RedisFunc &func)
+{
+    WFRedisTask *redis_task = WFTaskFactory::create_redis_task(url, 2, func);
 	redis_task->get_req()->set_request(command, params);
     this->add_task(redis_task);
 }

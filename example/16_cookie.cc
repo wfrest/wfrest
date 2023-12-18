@@ -24,11 +24,33 @@ int main()
 
         cookie.set_key("user")
                 .set_value("chanchan")
-                .set_path("/")  
+                .set_path("/")
                 .set_domain("localhost")
                 .set_http_only(true);
 
         resp->add_cookie(std::move(cookie));
+        resp->set_status(HttpStatusOK);
+        resp->String("Login success");
+    });
+
+    svr.GET("/multi", [](const HttpReq *req, HttpResp *resp)
+    {
+        // set cookie
+        HttpCookie cookie;
+
+        cookie.set_key("user")
+                .set_value("chanchan")
+                .set_path("/")
+                .set_domain("localhost")
+                .set_http_only(true);
+
+        resp->add_cookie(std::move(cookie));
+
+        HttpCookie cookie2;
+        cookie2.set_key("animal")
+              .set_value("panda");
+        resp->add_cookie(std::move(cookie2));
+
         resp->set_status(HttpStatusOK);
         resp->String("Login success");
     });
