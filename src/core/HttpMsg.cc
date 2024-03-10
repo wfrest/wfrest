@@ -368,7 +368,11 @@ Json &HttpReq::json<Json>() const
     if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
         const std::string &body_content = this->body();
-        req_data_->json = Json::parse(body_content);
+        Json tmp = Json::parse(body_content);
+        if (tmp.is_valid())
+        {
+            req_data_->json = std::move(tmp);
+        }
     }
     return req_data_->json;
 }
