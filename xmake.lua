@@ -1,5 +1,5 @@
 set_project("wfrest")
-set_version("0.9.2")
+set_version("0.9.5")
 
 if is_mode("release") then
     set_optimize("faster")
