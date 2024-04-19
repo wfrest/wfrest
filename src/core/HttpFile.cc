@@ -107,6 +107,7 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
         content_type = APPLICATION_OCTET_STREAM;
     }
     resp->headers["Content-Type"] = ContentType::to_str(content_type);
+    resp->headers["Content-Disposition"] = "attachment; filename=" + PathUtil::base(path);
 
     size_t size = end - start;
     void *buf = malloc(size);
