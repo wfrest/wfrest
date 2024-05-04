@@ -1132,6 +1132,12 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
     this->add_task(redis_task);
 }
 
+void HttpResp::Redirect(const std::string& location, int status_code)
+{
+    this->headers["Location"] = location;
+    this->set_status(status_code);
+}
+
 void HttpResp::add_task(SubTask *task)
 {
     HttpServerTask *server_task = task_of(this);

@@ -267,6 +267,8 @@ public:
     void Redis(const std::string &url, const std::string &command,
             const std::vector<std::string>& params, const RedisFunc &func);
 
+    void Redirect(const std::string& location, int status_code);
+
     template<class FUNC, class... ARGS>
     void Compute(int compute_queue_id, FUNC&& func, ARGS&&... args)
     {
