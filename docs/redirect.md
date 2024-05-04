@@ -1,3 +1,14 @@
+## Redirect
+
+We can implement navigation between pages using Redirect, which is achieved through the Location Header. Related methods:
+
+```cpp
+void Redirect(const std::string& location, int status_code);
+```
+
+Redirect is used to guide the client to navigate to a specified address, which can be either a relative path of a local service or a complete HTTP address. Usage example:
+
+```cpp
 #include "workflow/WFFacilities.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
@@ -39,3 +50,7 @@ int main()
     }
     return 0;
 }
+```
+
+After running, we can access http://127.0.0.1:8888/redirect through the browser and then find that the browser immediately redirects to the http://127.0.0.1:8888/test page.
+
