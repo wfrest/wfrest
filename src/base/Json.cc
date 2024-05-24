@@ -3,11 +3,6 @@
 namespace wfrest
 {
 
-namespace
-{
-
-} // namespace
-
 // ------------------------ Constructor -------------------------
 Json::Json()
     : node_(json_value_create(JSON_VALUE_NULL)), parent_(nullptr),
