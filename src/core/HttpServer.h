@@ -480,7 +480,7 @@ protected:
 private:
     void process(HttpTask *task);
 
-    int serve_static(const char *path, OUT BluePrint &bp);
+    int serve_static(const char *path, BluePrint &bp);
 
     struct GlobalAspectFunc
     {

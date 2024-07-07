@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "StringPiece.h"
-#include "Macro.h"
 #include "VerbHandler.h"
 
 namespace wfrest
@@ -43,8 +42,8 @@ public:
 
     iterator find(const StringPiece &route,
                   size_t cursor,
-                  OUT std::map<std::string, std::string> &route_params,
-                  OUT std::string &route_match_path) const;
+                  std::map<std::string, std::string> &route_params,
+                  std::string &route_match_path) const;
 
     template<typename Func>
     void all_routes(const Func &func, std::string prefix) const;
@@ -80,8 +79,8 @@ public:
     VerbHandler &find_or_create(const char *route);
 
     RouteTableNode::iterator find(const StringPiece &route, 
-                                OUT std::map<std::string, std::string> &route_params,
-                                OUT std::string &route_match_path) const
+                                  std::map<std::string, std::string> &route_params,
+                                  std::string &route_match_path) const
     { return root_.find(route, 0, route_params, route_match_path); }
 
     template<typename Func>

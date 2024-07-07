@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <string>
-#include "Macro.h"
 
 namespace wfrest
 {

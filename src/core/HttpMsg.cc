@@ -477,7 +477,7 @@ const std::map<std::string, std::string> &HttpReq::cookies() const
     {
         const std::string &cookie = this->header("Cookie");
         StringPiece cookie_piece(cookie);
-        cookies_ = std::move(HttpCookie::split(cookie_piece));
+        cookies_ = HttpCookie::split(cookie_piece);
     }
     return cookies_;
 }
@@ -620,7 +620,7 @@ void HttpResp::String(MultiPartEncoder *encoder)
             continue;
         }
         size_t file_size;
-        int ret = FileUtil::size(file.second, OUT &file_size);
+        int ret = FileUtil::size(file.second, &file_size);
         if (ret != StatusOK)
         {
             fprintf(stderr, "[Error] Invalid File : %s\n", file.second.c_str());

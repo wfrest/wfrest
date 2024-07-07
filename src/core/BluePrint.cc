@@ -148,9 +148,9 @@ void BluePrint::HEAD(const std::string &route, int compute_queue_id, const Handl
 void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
-            [handler, this](const HttpReq *req,
-                            HttpResp *resp,
-                            SeriesWork *series) -> WFGoTask *
+            [handler](const HttpReq *req,
+                      HttpResp *resp,
+                      SeriesWork *series) -> WFGoTask *
             {
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
@@ -178,7 +178,7 @@ void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, Ve
 void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const SeriesHandler &handler, Verb verb)
 {
     WrapHandler wrap_handler =
-            [handler, compute_queue_id, this](HttpReq *req,
+            [handler, compute_queue_id](HttpReq *req,
                                         HttpResp *resp,
                                         SeriesWork *series) -> WFGoTask *
             {

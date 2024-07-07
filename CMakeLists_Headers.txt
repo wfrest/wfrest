@@ -5,7 +5,6 @@ set(SRC_HEADERS
     src/base/ErrorCode.h
     src/base/json_fwd.hpp
     src/base/json.hpp
-    src/base/Macro.h
     src/base/Noncopyable.h
     src/base/StringPiece.h
     src/base/Timestamp.h
