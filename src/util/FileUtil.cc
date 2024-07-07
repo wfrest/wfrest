@@ -6,7 +6,7 @@
 
 using namespace wfrest;
 
-int FileUtil::size(const std::string &path, OUT size_t *size)
+int FileUtil::size(const std::string &path, size_t *size)
 {
     // https://linux.die.net/man/2/stat
     struct stat st;

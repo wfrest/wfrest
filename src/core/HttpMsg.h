@@ -179,7 +179,7 @@ public:
 
     using TimerFunc = std::function<void()>;
 
-    using PushFunc = std::function<void(OUT std::string &ctx)>;
+    using PushFunc = std::function<void(std::string &ctx)>;
 
     using PushErrorFunc = std::function<void()>;
 
