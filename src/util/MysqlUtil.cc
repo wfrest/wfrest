@@ -5,22 +5,31 @@ using namespace protocol;
 
 std::vector<std::string> MySQLUtil::fields(const MySQLResultCursor &cursor)
 {
-    std::vector<std::string> fields_name(cursor.get_field_count());
-    const MySQLField *const *fields = cursor.fetch_fields();
-    for (int i = 0; i < cursor.get_field_count(); i++)
+    std::vector<std::string> fields_name;
+    if (cursor.get_field_count() < 0) 
     {
-        fields_name.push_back(fields[i]->get_name());
+        return fields_name;
+    }
+    fields_name.reserve(cursor.get_field_count());
+    const MySQLField *const *fields = cursor.fetch_fields();
+    for (int i = 0; i < cursor.get_field_count(); i++) {
+        fields_name.emplace_back(fields[i]->get_name());
     }
     return fields_name;
 }
 
 std::vector<std::string> MySQLUtil::data_type(const protocol::MySQLResultCursor &cursor)
 {
-    std::vector<std::string> data_type(cursor.get_field_count());
+    std::vector<std::string> data_type;
+    if (cursor.get_field_count() < 0) 
+    {
+        return data_type;
+    }
+    data_type.reserve(cursor.get_field_count());
     const MySQLField *const *fields = cursor.fetch_fields();
     for (int i = 0; i < cursor.get_field_count(); i++)
     {
-        data_type.push_back(datatype2str(fields[i]->get_data_type()));
+        data_type.emplace_back(datatype2str(fields[i]->get_data_type()));
     }
     return data_type;
 }
