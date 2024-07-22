@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <string>
-#include "Macro.h"
 
 namespace wfrest
 {
@@ -11,7 +10,7 @@ namespace wfrest
 class FileUtil
 {
 public:
-    static int size(const std::string &path, OUT size_t *size);
+    static int size(const std::string &path, size_t *size);
 
     static bool file_exists(const std::string &path);
 };

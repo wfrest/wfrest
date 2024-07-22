@@ -48,10 +48,9 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, size_t cur
     }
 }
 
-RouteTableNode::iterator RouteTableNode::find(const StringPiece &route,
-                                        size_t cursor,
-                                        OUT std::map<std::string, std::string> &route_params,
-                                        OUT std::string &route_match_path) const
+RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t cursor,
+                                              std::map<std::string, std::string> &route_params,
+                                              std::string &route_match_path) const
 {
     assert(cursor >= 0);
     // We found the route

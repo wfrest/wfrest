@@ -5,7 +5,6 @@
 #include <map>
 #include <vector>
 #include "MultiPartParser.h"
-#include "Macro.h"
 #include "Noncopyable.h"
 
 namespace wfrest

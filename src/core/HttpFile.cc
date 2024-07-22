@@ -82,7 +82,7 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     if (end == -1 || start < 0)
     {
         size_t file_size;
-        int ret = FileUtil::size(path, OUT &file_size);
+        int ret = FileUtil::size(path, &file_size);
 
         if (ret != StatusOK)
         {

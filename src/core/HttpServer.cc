@@ -7,7 +7,6 @@
 #include "UriUtil.h"
 #include "HttpFile.h"
 #include "PathUtil.h"
-#include "Macro.h"
 #include "Router.h"
 #include "ErrorCode.h"
 #include "CodeUtil.h"
@@ -93,7 +92,7 @@ void HttpServer::register_blueprint(const BluePrint &bp, const std::string& url_
 void HttpServer::Static(const char *relative_path, const char *root)
 {
     BluePrint bp;
-    int ret = serve_static(root, OUT bp);
+    int ret = serve_static(root, bp);
     if(ret != StatusOK)
     {
         fprintf(stderr, "[WFREST] Error : %s dose not exists\n", root);
@@ -102,7 +101,7 @@ void HttpServer::Static(const char *relative_path, const char *root)
     blue_print_.add_blueprint(std::move(bp), relative_path);
 }
 
-int HttpServer::serve_static(const char* path, OUT BluePrint &bp)
+int HttpServer::serve_static(const char* path, BluePrint &bp)
 {
     std::string path_str(path);
     bool is_file = true;
