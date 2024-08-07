@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
     HttpServer svr;
 
-    // curl -v http://ip:port/https
+    // curl -v https://ip:port/https
     svr.GET("/https", [](const HttpReq *req, HttpResp *resp)
     {
         resp->String("Test Https\n");
