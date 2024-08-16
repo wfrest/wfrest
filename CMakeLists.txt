@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "build type")
 
 project(wfrest
-	VERSION 0.9.6
+	VERSION 0.9.7
 	LANGUAGES C CXX)
 
 #### CHECK
