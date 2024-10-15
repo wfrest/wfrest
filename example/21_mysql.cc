@@ -2,7 +2,6 @@
 #include "workflow/MySQLResult.h"
 #include <csignal>
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
 
 using namespace wfrest;
 using namespace protocol;
