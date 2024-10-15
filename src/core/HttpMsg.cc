@@ -716,7 +716,7 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
     }
     this->headers["Content-Type"] = "application/json";
     this->set_status(status_code);
-    nlohmann::json js;
+    wfrest::Json js;
     std::string resp_msg = error_code_to_str(error_code);
     if(!errmsg.empty()) resp_msg = resp_msg + " : " + errmsg;
     if(CodeUtil::is_url_encode(errmsg))
