@@ -8,9 +8,7 @@ json是Http中最常用的传输格式。
 
 ```cpp
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
 using namespace wfrest;
-using Json = nlohmann::json;
 
 int main()
 {

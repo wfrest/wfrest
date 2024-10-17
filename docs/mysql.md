@@ -3,9 +3,7 @@
 ```cpp
 #include "workflow/MySQLResult.h"
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
 
-using Json = nlohmann::json;
 using namespace wfrest;
 using namespace protocol;
 

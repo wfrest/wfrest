@@ -9,9 +9,7 @@ MySQL接口目前支持多种模式
 ```cpp
 #include "workflow/MySQLResult.h"
 #include "wfrest/HttpServer.h"
-#include "wfrest/json.hpp"
 
-using Json = nlohmann::json;
 using namespace wfrest;
 using namespace protocol;
 
