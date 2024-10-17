@@ -10,7 +10,6 @@
 #include "HttpMsg.h"
 #include "UriUtil.h"
 #include "PathUtil.h"
-#include "json.hpp"
 #include "MysqlUtil.h"
 #include "ErrorCode.h"
 #include "FileUtil.h"
@@ -27,9 +26,7 @@ struct ReqData
     std::string body;
     std::map<std::string, std::string> form_kv;
     Form form;
-    // todo : remove nlohmann JSON
     Json json;
-    nlohmann::json n_json;
 };
 
 struct ProxyCtx
@@ -346,24 +343,7 @@ Form &HttpReq::form() const
     return req_data_->form;
 }
 
-template <>
-nlohmann::json &HttpReq::json<nlohmann::json>() const
-{
-    if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
-    {
-        const std::string &body_content = this->body();
-        if (!nlohmann::json::accept(body_content))
-        {
-            return req_data_->n_json;
-            // todo : how to let user know the error ?
-        }
-        req_data_->n_json = nlohmann::json::parse(body_content);
-    }
-    return req_data_->n_json;
-}
-
-template <>
-Json &HttpReq::json<Json>() const
+wfrest::Json &HttpReq::json() const
 {
     if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
     {
@@ -955,15 +935,6 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content,
         const HttpFile::FileIOArgsFunc &func)
 {
     HttpFile::save_file(file_dst, std::move(content), this, func);
-}
-
-void HttpResp::Json(const nlohmann::json &json)
-{
-    // The header value itself does not allow for multiple values,
-    // and it is also not allowed to send multiple Content-Type headers
-    // https://stackoverflow.com/questions/5809099/does-the-http-protocol-support-multiple-content-types-in-response-headers
-    this->headers["Content-Type"] = "application/json";
-    this->String(json.dump());
 }
 
 void HttpResp::Json(const wfrest::Json &json)
