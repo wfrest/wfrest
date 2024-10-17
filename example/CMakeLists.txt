@@ -55,7 +55,6 @@ set(EXAMPLE_LIST
     07_file_save
     08_upload_file
     09_json
-    10_nlohmann_json
     11_compute_handler
     12_series_interface
     13_compession
