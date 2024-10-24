@@ -39,12 +39,41 @@ void HttpServer::process(HttpTask *task)
         return;
     }
 
-    std::string route;
+    std::string route("/");
+    const char *pos = uri.path;
 
-    if (uri.path && uri.path[0])
-        route = uri.path;
-    else
-        route = "/";
+    if (!pos)
+        pos = "/";
+
+    while (*pos)
+    {
+        const char *slash = pos;
+        while (*slash && *slash != '/')
+            slash++;
+
+        size_t n = slash - pos;
+        if (n == 0 || (n == 1 && *pos == '.'))
+            ;
+        else if (n == 2 && *pos == '.' && pos[1] == '.')
+        {
+            if (route.size() > 1)
+            {
+                n = route.find_last_of('/', route.size() - 2);
+                route.resize(n + 1);
+            }
+        }
+        else
+        {
+            route.append(pos, slash);
+            if (*slash)
+                route.push_back('/');
+        }
+
+        if (!*slash)
+            break;
+
+        pos = slash + 1;
+    }
 
     if (uri.query)
     {
