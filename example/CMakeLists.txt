@@ -84,7 +84,7 @@ foreach(src ${EXAMPLE_LIST})
 endforeach()
 
 add_executable(14_blueprint 14_blue_print/blog.cc)
-target_link_libraries(14_blueprint wfrest)
+target_link_libraries(14_blueprint ${WFREST_LIB})
 
 
 
