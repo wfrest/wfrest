@@ -12,6 +12,7 @@
 #include "HttpDef.h"
 #include "HttpContent.h"
 #include "Compress.h"
+#include "json_fwd.hpp"
 #include "StrUtil.h"
 #include "HttpCookie.h"
 #include "Noncopyable.h"
@@ -40,7 +41,8 @@ public:
 
     Form &form() const;
 
-    wfrest::Json &json() const;
+    template <typename T = wfrest::Json>
+    T &json() const;
 
     http_content_type content_type() const
     { return content_type_; }
@@ -214,6 +216,8 @@ public:
               const HttpFile::FileIOArgsFunc &func);
 
     // json
+    void Json(const nlohmann::json &json);
+
     void Json(const wfrest::Json &json);
 
     void Json(const std::string &str);

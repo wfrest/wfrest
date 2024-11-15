@@ -13,6 +13,7 @@ target("wfrest")
 
         os.cp(path.join("$(projectdir)", "src/**.h"), include_path)
         os.cp(path.join("$(projectdir)", "src/**.inl"), include_path)
+        os.cp(path.join("$(projectdir)", "src/**.hpp"), include_path)
     end)
 
     after_build(function (target)

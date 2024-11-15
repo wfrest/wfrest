@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.6)
 set(SRC_HEADERS
     src/base/Copyable.h
     src/base/ErrorCode.h
+    src/base/json_fwd.hpp
+    src/base/json.hpp
     src/base/Noncopyable.h
     src/base/StringPiece.h
     src/base/Timestamp.h
