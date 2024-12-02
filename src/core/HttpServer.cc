@@ -31,17 +31,12 @@ void HttpServer::process(HttpTask *task)
         return;
     }
 
-    const char *scheme;
-    if (this->get_ssl_ctx())
-        scheme = "https://";
-    else
-        scheme = "http://";
-
+    const char *scheme = this->get_ssl_ctx() ? "https://" : "http://";
     std::string uri_str = scheme + host;
     if (*req->get_request_uri() != '/')
         uri_str += '/';
-
     uri_str += req->get_request_uri();
+
     ParsedURI uri;
     if (URIParser::parse(uri_str, uri) < 0 || !uri.path)
     {
