@@ -13,7 +13,8 @@ void BluePrint::ROUTE(const std::string &route, const Handler &handler, Verb ver
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
                 {
-                    asp->before(req, resp);
+                    auto ret = asp->before(req, resp);
+                    if(!ret) return nullptr;
                 }
 
                 handler(req, resp);
@@ -45,7 +46,8 @@ void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const Hand
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
                 {
-                    asp->before(req, resp);
+                    auto ret = asp->before(req, resp);
+                    if(!ret) return nullptr;
                 }
                 WFGoTask *go_task = WFTaskFactory::create_go_task(
                         "wfrest" + std::to_string(compute_queue_id),
@@ -155,7 +157,8 @@ void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, Ve
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
                 {
-                    asp->before(req, resp);
+                    auto ret = asp->before(req, resp);
+                    if(!ret) return nullptr;
                 }
                 handler(req, resp, series);
                 if(!global_aspect->aspect_list.empty())
@@ -185,7 +188,8 @@ void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const Seri
                 GlobalAspect *global_aspect = GlobalAspect::get_instance();
                 for(auto asp : global_aspect->aspect_list)
                 {
-                    asp->before(req, resp);
+                    auto ret = asp->before(req, resp);
+                    if(!ret) return nullptr;
                 }
                 WFGoTask *go_task = WFTaskFactory::create_go_task(
                         "wfrest" + std::to_string(compute_queue_id),
