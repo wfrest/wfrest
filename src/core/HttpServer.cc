@@ -25,15 +25,25 @@ void HttpServer::process(HttpTask *task)
 
     const std::string &host = req->header("Host");
 
-    if (host.empty())
+    if (host.empty() || host.find_first_of("/?#") != std::string::npos)
     {
-        //header Host not found
         resp->set_status(HttpStatusBadRequest);
         return;
     }
-    std::string request_uri = "http://" + host + req->get_request_uri();  // or can't parse URI
+
+    const char *scheme;
+    if (this->get_ssl_ctx())
+        scheme = "https://";
+    else
+        scheme = "http://";
+
+    std::string uri_str = scheme + host;
+    if (*req->get_request_uri() != '/')
+        uri_str += '/';
+
+    uri_str += req->get_request_uri();
     ParsedURI uri;
-    if (URIParser::parse(request_uri, uri) < 0)
+    if (URIParser::parse(uri_str, uri) < 0 || !uri.path)
     {
         resp->set_status(HttpStatusBadRequest);
         return;
@@ -41,9 +51,6 @@ void HttpServer::process(HttpTask *task)
 
     std::string route("/");
     const char *pos = uri.path;
-
-    if (!pos)
-        pos = "/";
 
     while (*pos)
     {
