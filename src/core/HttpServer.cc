@@ -19,6 +19,8 @@ void HttpServer::process(HttpTask *task)
     server_task->server = this;
     auto *req = server_task->get_req();
     auto *resp = server_task->get_resp();
+    const char *request_uri;
+    std::string uri_str;
 
     req->fill_header_map();
     req->fill_content_type();
@@ -31,21 +33,32 @@ void HttpServer::process(HttpTask *task)
         return;
     }
 
-    const char *scheme = this->get_ssl_ctx() ? "https://" : "http://";
-    std::string uri_str = scheme + host;
-    if (*req->get_request_uri() != '/')
-        uri_str += '/';
-    uri_str += req->get_request_uri();
+    request_uri = req->get_request_uri();
+	if (strncasecmp(request_uri, "http://", 7) == 0 ||
+        strncasecmp(request_uri, "https://", 8) == 0)
+    {
+        uri_str = request_uri;
+    }
+    else if (*request_uri == '/')
+    {
+        const char *scheme = this->get_ssl_ctx() ? "https://" : "http://";
+        uri_str = scheme + host + req->get_request_uri();
+    }
+    else
+    {
+        resp->set_status(HttpStatusBadRequest);
+        return;
+    }
 
     ParsedURI uri;
-    if (URIParser::parse(uri_str, uri) < 0 || !uri.path)
+    if (URIParser::parse(uri_str, uri) < 0)
     {
         resp->set_status(HttpStatusBadRequest);
         return;
     }
 
     std::string route("/");
-    const char *pos = uri.path;
+    const char *pos = uri.path ? uri.path : "/";
 
     while (*pos)
     {
