@@ -56,10 +56,11 @@ void HttpServer::process(HttpTask *task)
         resp->set_status(HttpStatusBadRequest);
         return;
     }
+    if (!uri.path)
+        uri.path = strdup("/");
 
     std::string route("/");
-    const char *pos = uri.path ? uri.path : "/";
-
+    const char *pos = uri.path;
     while (*pos)
     {
         const char *slash = pos;
