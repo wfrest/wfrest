@@ -29,9 +29,9 @@ WFGoTask *aop_process(const Handler &handler,
     server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_aspect->aspect_list)
+        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
         {
-            asp->after(req, resp);
+            (*it)->after(req, resp);
         }
         delete tp;
     });
@@ -64,9 +64,9 @@ WFGoTask *aop_process(const SeriesHandler &handler,
     server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_aspect->aspect_list)
+        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
         {
-            asp->after(req, resp);
+            (*it)->after(req, resp);
         }
         delete tp;
     });
@@ -103,9 +103,9 @@ WFGoTask *aop_compute_process(const Handler &handler,
     server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_aspect->aspect_list)
+        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
         {
-            asp->after(req, resp);
+            (*it)->after(req, resp);
         }
         delete tp;
     });
@@ -145,9 +145,9 @@ WFGoTask *aop_compute_process(const SeriesHandler &handler,
     server_task->add_callback([req, resp, tp, global_aspect](HttpTask *) 
     {
         aop_after(req, resp, *tp);
-        for(auto asp : global_aspect->aspect_list)
+        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
         {
-            asp->after(req, resp);
+            (*it)->after(req, resp);
         }
         delete tp;
     });

@@ -24,9 +24,9 @@ void BluePrint::ROUTE(const std::string &route, const Handler &handler, Verb ver
                     HttpServerTask *server_task = task_of(resp);
                     server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
-                        for(auto asp : global_aspect->aspect_list)
+                        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
                         {
-                            asp->after(req, resp);
+                            (*it)->after(req, resp);
                         }
                     });
                 }
@@ -59,9 +59,9 @@ void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const Hand
                     HttpServerTask *server_task = task_of(resp);
                     server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
-                        for(auto asp : global_aspect->aspect_list)
+                        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
                         {
-                            asp->after(req, resp);
+                            (*it)->after(req, resp);
                         }
                     });
                 }
@@ -166,9 +166,9 @@ void BluePrint::ROUTE(const std::string &route, const SeriesHandler &handler, Ve
                     HttpServerTask *server_task = task_of(resp);
                     server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
-                        for(auto asp : global_aspect->aspect_list)
+                        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
                         {
-                            asp->after(req, resp);
+                            (*it)->after(req, resp);
                         }
                     });
                 }
@@ -202,9 +202,9 @@ void BluePrint::ROUTE(const std::string &route, int compute_queue_id, const Seri
                     HttpServerTask *server_task = task_of(resp);
                     server_task->add_callback([req, resp, global_aspect](HttpTask *)
                     {
-                        for(auto asp : global_aspect->aspect_list)
+                        for(auto it = global_aspect->aspect_list.rbegin(); it != global_aspect->aspect_list.rend(); ++it)
                         {
-                            asp->after(req, resp);
+                            (*it)->after(req, resp);
                         }
                     });
                 }
