@@ -41,7 +41,7 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wall -fPIC -pipe -std=gnu90")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -pipe -std=c++11 -fno-exceptions")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -pipe -std=c++14 -fno-exceptions")
 
 set(GTEST_LIB GTest::GTest GTest::Main)
 set(WFREST_LIB wfrest workflow pthread OpenSSL::SSL OpenSSL::Crypto z)
