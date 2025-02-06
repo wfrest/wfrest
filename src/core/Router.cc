@@ -32,7 +32,7 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
     // /hello ==  /hello/
     // / not change
     StringPiece route2(route);
-    if (route2.size() > 1 and route2[static_cast<int>(route2.size()) - 1] == '/')
+    if (route2.size() > 1 && route2[static_cast<int>(route2.size()) - 1] == '/')
         route2.remove_suffix(1);
 
     std::map<std::string, std::string> route_params;
@@ -45,8 +45,8 @@ int Router::call(Verb verb, const std::string &route, HttpServerTask *server_tas
         // match verb
         // it == <StringPiece : path, VerbHandler>
         std::map<Verb, WrapHandler> &verb_handler_map = it->second.verb_handler_map;
-        bool has_verb = verb_handler_map.find(verb) != verb_handler_map.end() ? true : false;
-        if(verb_handler_map.find(Verb::ANY) != verb_handler_map.end() or has_verb)
+        bool has_verb = (verb_handler_map.find(verb) != verb_handler_map.end());
+        if (has_verb || verb_handler_map.find(Verb::ANY) != verb_handler_map.end())
         {
             req->set_full_path(it->second.path.as_string());
             req->set_route_params(std::move(route_params));
