@@ -32,7 +32,7 @@ VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, size_t cur
     if (route[cursor] == '/')
         cursor++; // skip the /
     int anchor = cursor;
-    while (cursor < route.size() and route[cursor] != '/')
+    while (cursor < route.size() && route[cursor] != '/')
         cursor++;
     // get the '/ {mid} /' part
     StringPiece mid(route.begin() + anchor, cursor - anchor);
@@ -62,7 +62,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t c
         }
     }
     // /*
-    if(cursor == route.size() and !children_.empty())
+    if(cursor == route.size() && !children_.empty())
     {
         auto it = children_.find(StringPiece("*"));
         if(it != children_.end())
@@ -74,7 +74,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t c
     }
 
     // route does not match any.
-    if (cursor == route.size() and verb_handler_.verb_handler_map.empty())
+    if (cursor == route.size() && verb_handler_.verb_handler_map.empty())
         return iterator{nullptr, route, verb_handler_};
 
     // find GET("/", ...)
@@ -98,7 +98,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t c
     // Find the next /.
     // mark an anchor here
     int anchor = cursor;
-    while (cursor < route.size() and route[cursor] != '/')
+    while (cursor < route.size() && route[cursor] != '/')
         cursor++;
 
     // mid is the string between the 2 /.
@@ -132,8 +132,7 @@ RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t c
             }
         }
 
-        if (param.size() > 2 and param[0] == '{' and
-            param[param.size() - 1] == '}')
+        if (param.size() > 2 && param[0] == '{' && param[param.size() - 1] == '}')
         {
             int i = 1;
             int j = param.size() - 2;
