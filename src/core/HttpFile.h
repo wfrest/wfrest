@@ -3,10 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <functional>
+#include "workflow/WFTaskFactory.h"
 
 namespace wfrest
 {
 class HttpResp;
+// struct FileIOArgs;
 
 class HttpFile
 {
@@ -15,6 +18,12 @@ public:
 
 public:
     static int send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
+
+    // 新增：清除文件缓存
+    static void clear_cache();
+    
+    // 新增：预加载文件到缓存
+    static void preload_file(const std::string &path);
 
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
 

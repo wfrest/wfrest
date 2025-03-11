@@ -1,15 +1,26 @@
 #!/bin/bash
 
 # 用于比较wfrest静态文件服务性能优化前后的差异
-# 使用方法: ./compare_static_performance.sh [优化前的wfrest路径] [优化后的wfrest路径]
+# 使用方法: ./compare_static_performance.sh [优化前的二进制文件] [优化后的二进制文件]
 
 set -e
 
-ORIGINAL_PATH=$1
-OPTIMIZED_PATH=$2
+ORIGINAL_BIN=$1
+OPTIMIZED_BIN=$2
 
-if [ -z "$ORIGINAL_PATH" ] || [ -z "$OPTIMIZED_PATH" ]; then
-    echo "使用方法: $0 [优化前的wfrest路径] [优化后的wfrest路径]"
+if [ -z "$ORIGINAL_BIN" ] || [ -z "$OPTIMIZED_BIN" ]; then
+    echo "使用方法: $0 [优化前的二进制文件] [优化后的二进制文件]"
+    exit 1
+fi
+
+# 检查二进制文件是否存在且可执行
+if [ ! -f "$ORIGINAL_BIN" ] || [ ! -x "$ORIGINAL_BIN" ]; then
+    echo "错误: 优化前的二进制文件不存在或不可执行: $ORIGINAL_BIN"
+    exit 1
+fi
+
+if [ ! -f "$OPTIMIZED_BIN" ] || [ ! -x "$OPTIMIZED_BIN" ]; then
+    echo "错误: 优化后的二进制文件不存在或不可执行: $OPTIMIZED_BIN"
     exit 1
 fi
 
@@ -43,20 +54,15 @@ generate_test_files() {
 
 # 函数：测试单个版本
 test_version() {
-    version_path=$1
+    binary_path=$1
     version_name=$2
     port=$3
     
     echo "=== 测试 $version_name 版本 ==="
     
-    # 构建和启动服务器（假设有一个简单的启动脚本）
-    cd "$version_path"
-    echo "构建中..."
-    make -j$(nproc) benchmark_static_files
-    
     # 启动服务器（后台运行）
     echo "启动服务器在端口 $port"
-    ./benchmark_static_files --port $port --dir $TEST_DIR &
+    $binary_path --port $port --dir $TEST_DIR &
     server_pid=$!
     
     # 等待服务器启动
@@ -128,10 +134,10 @@ compare_results() {
 generate_test_files
 
 # 测试原始版本
-test_version "$ORIGINAL_PATH" "original" 8888
+test_version "$ORIGINAL_BIN" "original" 8888
 
 # 测试优化版本
-test_version "$OPTIMIZED_PATH" "optimized" 8889
+test_version "$OPTIMIZED_BIN" "optimized" 8889
 
 # 比较结果
 compare_results
