@@ -77,20 +77,21 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     {
         return StatusNotFound;
     }
+    
+    size_t file_size;
+    int ret = FileUtil::size(path, &file_size);
+    if (ret != StatusOK)
+    {
+        return ret;
+    }
+    
     int start = file_start;
     int end = file_end;
-    if (end == -1 || start < 0)
-    {
-        size_t file_size;
-        int ret = FileUtil::size(path, &file_size);
-
-        if (ret != StatusOK)
-        {
-            return ret;
-        }
-        if (end == -1) end = file_size;
-        if (start < 0) start = file_size + start;
-    }
+    
+    if (end == -1)
+        end = file_size;
+    if (start < 0)
+        start = file_size + start;
 
     if (end <= start)
     {
@@ -109,6 +110,58 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     resp->headers["Content-Type"] = ContentType::to_str(content_type);
 
     size_t size = end - start;
+    
+    // 优化：小文件使用同步读取（小于50KB）
+    const size_t SMALL_FILE_THRESHOLD = 50 * 1024; // 50KB
+    
+    if (size <= SMALL_FILE_THRESHOLD)
+    {
+        // 使用同步读取小文件
+        FILE *fp = fopen(path.c_str(), "rb");
+        if (!fp)
+        {
+            return StatusFileReadError;
+        }
+        
+        void *buf = malloc(size);
+        if (!buf)
+        {
+            fclose(fp);
+            return StatusFileReadError;
+        }
+        
+        if (fseek(fp, start, SEEK_SET) != 0)
+        {
+            free(buf);
+            fclose(fp);
+            return StatusFileReadError;
+        }
+        
+        size_t read_size = fread(buf, 1, size, fp);
+        fclose(fp);
+        
+        if (read_size != size)
+        {
+            free(buf);
+            return StatusFileReadError;
+        }
+        
+        HttpServerTask *server_task = task_of(resp);
+        server_task->add_callback([buf](HttpTask *) {
+            free(buf);
+        });
+        
+        // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
+        // Content-Range: bytes 42-1233/1234
+        resp->headers["Content-Range"] = "bytes " + std::to_string(start)
+                                                + "-" + std::to_string(end)
+                                                + "/" + std::to_string(size);
+        
+        resp->append_output_body_nocopy(buf, size);
+        return StatusOK;
+    }
+    
+    // 大文件仍使用异步方式
     void *buf = malloc(size);
 
     HttpServerTask *server_task = task_of(resp);
