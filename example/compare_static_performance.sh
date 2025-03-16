@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 用于比较wfrest静态文件服务性能优化前后的差异
-# 使用方法: ./compare_static_performance.sh [优化前的wfrest路径] [优化后的wfrest路径]
+# For comparing performance differences of wfrest static file service before and after optimization
+# Usage: ./compare_static_performance.sh [pre-optimization wfrest path] [post-optimization wfrest path]
 
 set -e
 
@@ -9,23 +9,23 @@ ORIGINAL_PATH=$1
 OPTIMIZED_PATH=$2
 
 if [ -z "$ORIGINAL_PATH" ] || [ -z "$OPTIMIZED_PATH" ]; then
-    echo "使用方法: $0 [优化前的wfrest路径] [优化后的wfrest路径]"
+    echo "Usage: $0 [pre-optimization wfrest path] [post-optimization wfrest path]"
     exit 1
 fi
 
-# 检查wrk工具
+# Check wrk tool
 which wrk > /dev/null 2>&1 || { 
-    echo "错误: 未找到'wrk'工具，请安装它"
-    echo "  在Debian/Ubuntu上: sudo apt-get install wrk"
-    echo "  在macOS上: brew install wrk"
+    echo "Error: 'wrk' tool not found, please install it"
+    echo "  On Debian/Ubuntu: sudo apt-get install wrk"
+    echo "  On macOS: brew install wrk"
     exit 1
 }
 
-# 创建临时目录
+# Create temporary directory
 TEST_DIR=$(mktemp -d)
-echo "创建测试目录: $TEST_DIR"
+echo "Creating test directory: $TEST_DIR"
 
-# 函数：生成测试文件
+# Function: Generate test files
 generate_test_files() {
     sizes=("1" "10" "30" "50" "100" "1024")
     names=("tiny.txt" "small.txt" "medium.txt" "threshold.txt" "large.txt" "huge.txt")
@@ -35,75 +35,75 @@ generate_test_files() {
         name=${names[$i]}
         path="$TEST_DIR/$name"
         
-        # 生成指定大小的文件（以KB为单位）
+        # Generate file of specified size (in KB)
         dd if=/dev/urandom of="$path" bs=1024 count="$size" 2>/dev/null
-        echo "创建测试文件: $path ($size KB)"
+        echo "Created test file: $path ($size KB)"
     done
 }
 
-# 函数：测试单个版本
+# Function: Test single version
 test_version() {
     version_path=$1
     version_name=$2
     port=$3
     
-    echo "=== 测试 $version_name 版本 ==="
+    echo "=== Testing $version_name version ==="
     
-    # 构建和启动服务器（假设有一个简单的启动脚本）
+    # Build and start server (assuming there's a simple startup script)
     cd "$version_path"
-    echo "构建中..."
+    echo "Building..."
     make -j$(nproc) benchmark_static_files
     
-    # 启动服务器（后台运行）
-    echo "启动服务器在端口 $port"
+    # Start server (run in background)
+    echo "Starting server on port $port"
     ./benchmark_static_files --port $port --dir $TEST_DIR &
     server_pid=$!
     
-    # 等待服务器启动
+    # Wait for server to start
     sleep 2
     
-    # 获取进程状态，确保服务器正在运行
+    # Get process status, ensure server is running
     if ! kill -0 $server_pid 2>/dev/null; then
-        echo "服务器启动失败!"
+        echo "Server failed to start!"
         exit 1
     fi
     
-    echo "服务器启动成功，PID: $server_pid"
+    echo "Server started successfully, PID: $server_pid"
     
-    # 测试文件列表
+    # Test file list
     files=("tiny.txt" "small.txt" "medium.txt" "threshold.txt" "large.txt" "huge.txt")
     
-    # 创建结果目录
+    # Create results directory
     mkdir -p "$TEST_DIR/results"
     
-    # 对每个文件运行测试
+    # Run tests for each file
     for file in "${files[@]}"; do
-        echo "测试文件: $file"
+        echo "Testing file: $file"
         result_file="$TEST_DIR/results/${version_name}_${file}.txt"
         
-        # 运行wrk测试
+        # Run wrk test
         wrk -t4 -c50 -d10s --latency http://localhost:$port/static/$file > "$result_file"
         
-        # 提取并显示主要结果
+        # Extract and display main results
         requests=$(grep "Requests/sec" "$result_file" | awk '{print $2}')
         latency=$(grep "Latency" "$result_file" | awk '{print $2" "$3}')
         
-        echo "  吞吐量: $requests 请求/秒"
-        echo "  延迟: $latency"
+        echo "  Throughput: $requests requests/sec"
+        echo "  Latency: $latency"
         echo ""
     done
     
-    # 停止服务器
-    echo "停止服务器 (PID: $server_pid)"
+    # Stop server
+    echo "Stopping server (PID: $server_pid)"
     kill $server_pid
     wait $server_pid 2>/dev/null || true
 }
 
-# 函数：比较结果
+# Function: Compare results
 compare_results() {
-    echo "=== 性能比较结果 ==="
-    echo "文件名 | 优化前(请求/秒) | 优化后(请求/秒) | 提升百分比"
-    echo "-------|-----------------|-----------------|------------"
+    echo "=== Performance Comparison Results ==="
+    echo "Filename | Pre-optimization(req/sec) | Post-optimization(req/sec) | Improvement %"
+    echo "---------|---------------------------|---------------------------|-------------"
     
     files=("tiny.txt" "small.txt" "medium.txt" "threshold.txt" "large.txt" "huge.txt")
     
@@ -114,38 +114,38 @@ compare_results() {
         original_rps=$(grep "Requests/sec" "$original_file" | awk '{print $2}')
         optimized_rps=$(grep "Requests/sec" "$optimized_file" | awk '{print $2}')
         
-        # 计算提升百分比
+        # Calculate improvement percentage
         if [ $(echo "$original_rps > 0" | bc) -eq 1 ]; then
             improvement=$(echo "scale=2; ($optimized_rps - $original_rps) * 100 / $original_rps" | bc)
             echo "$file | $original_rps | $optimized_rps | ${improvement}%"
         else
-            echo "$file | $original_rps | $optimized_rps | 无法计算"
+            echo "$file | $original_rps | $optimized_rps | Cannot calculate"
         fi
     done
 }
 
-# 主流程
+# Main process
 generate_test_files
 
-# 测试原始版本
+# Test original version
 test_version "$ORIGINAL_PATH" "original" 8888
 
-# 测试优化版本
+# Test optimized version
 test_version "$OPTIMIZED_PATH" "optimized" 8889
 
-# 比较结果
+# Compare results
 compare_results
 
-# 整理
-echo "测试完成，结果保存在 $TEST_DIR/results"
-echo "清理测试文件? (y/n)"
+# Clean up
+echo "Tests completed, results saved in $TEST_DIR/results"
+echo "Clean up test files? (y/n)"
 read clean_up
 
 if [ "$clean_up" = "y" ]; then
     rm -rf "$TEST_DIR"
-    echo "测试文件已清理"
+    echo "Test files cleaned up"
 else
-    echo "测试文件保留在 $TEST_DIR"
+    echo "Test files retained in $TEST_DIR"
 fi
 
 exit 0 

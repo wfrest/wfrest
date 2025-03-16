@@ -111,12 +111,11 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
 
     size_t size = end - start;
     
-    // 优化：小文件使用同步读取（小于50KB）
+    // Optimize: Use synchronous reading for small files (less than 50KB)
     const size_t SMALL_FILE_THRESHOLD = 50 * 1024; // 50KB
     
     if (size <= SMALL_FILE_THRESHOLD)
     {
-        // 使用同步读取小文件
         FILE *fp = fopen(path.c_str(), "rb");
         if (!fp)
         {
@@ -161,7 +160,7 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
         return StatusOK;
     }
     
-    // 大文件仍使用异步方式
+    // Big file will be read asynchronously
     void *buf = malloc(size);
 
     HttpServerTask *server_task = task_of(resp);
