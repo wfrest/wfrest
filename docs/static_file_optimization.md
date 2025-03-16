@@ -54,18 +54,6 @@ To evaluate the optimization, we've created two testing tools:
 
 2. **compare_static_performance.sh**: A comparison script that measures performance before and after optimization.
 
-### Expected Performance Improvements
-
-Based on preliminary testing, the following improvements are expected:
-
-| File Size | Expected Improvement |
-|-----------|----------------------|
-| 1KB       | 200% - 400%          |
-| 10KB      | 150% - 300%          |
-| 30KB      | 100% - 200%          |
-| 50KB      | 50% - 100%           |
-| >50KB     | 0% - 5%              |
-
 ## Using the Optimization
 
 The optimization has minimal impact on existing code and requires no API changes. It automatically detects file size and applies the appropriate reading strategy.

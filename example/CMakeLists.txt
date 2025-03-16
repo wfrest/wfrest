@@ -77,6 +77,7 @@ set(EXAMPLE_LIST
     26_timer
     27_sse
     benchmark_static_files
+    file_cache
 )
 
 foreach(src ${EXAMPLE_LIST})

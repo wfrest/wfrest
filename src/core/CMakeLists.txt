@@ -16,6 +16,7 @@ set(SRC
     HttpCookie.cc   
     HttpMsg.cc   
     MultiPartParser.c  
+    FileCache.cc  
 )
 
 add_library(${PROJECT_NAME} OBJECT ${SRC})

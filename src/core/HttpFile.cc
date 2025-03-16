@@ -8,6 +8,7 @@
 #include "HttpServerTask.h"
 #include "FileUtil.h"
 #include "ErrorCode.h"
+#include "FileCache.h"
 
 namespace wfrest
 {
@@ -268,6 +269,99 @@ void HttpFile::save_file(const std::string &dst_path, std::string &&content,
                     HttpResp *resp, const FileIOArgsFunc &func)
 {
     return save_file(dst_path, std::move(content), resp, "", func);
+}
+
+int HttpFile::send_cached_file(const std::string &path, size_t file_start, size_t file_end, HttpResp *resp)
+{
+    FileCache& cache = FileCache::instance();
+    
+    if(!PathUtil::is_file(path))
+    {
+        return StatusNotFound;
+    }
+    
+    // Check file size and other metadata
+    size_t file_size;
+    int ret = FileUtil::size(path, &file_size);
+    if (ret != StatusOK)
+    {
+        return ret;
+    }
+    
+    int start = file_start;
+    int end = file_end;
+    
+    if (end == -1)
+        end = file_size;
+    if (start < 0)
+        start = file_size + start;
+
+    if (end <= start)
+    {
+        return StatusFileRangeInvalid;
+    }
+
+    http_content_type content_type = CONTENT_TYPE_NONE;
+    std::string suffix = PathUtil::suffix(path);
+    if(!suffix.empty())
+    {
+        content_type = ContentType::to_enum_by_suffix(suffix);
+    }
+    if (content_type == CONTENT_TYPE_NONE || content_type == CONTENT_TYPE_UNDEFINED) {
+        content_type = APPLICATION_OCTET_STREAM;
+    }
+    resp->headers["Content-Type"] = ContentType::to_str(content_type);
+
+    size_t size = end - start;
+    
+    // Try to get the file from cache
+    std::string file_content;
+    if (cache.get_file(path, file_content, start, end))
+    {
+        // File is in cache
+        resp->headers["Content-Range"] = "bytes " + std::to_string(start)
+                                                + "-" + std::to_string(end)
+                                                + "/" + std::to_string(file_size);
+        
+        resp->String(std::move(file_content));
+        return StatusOK;
+    }
+    
+    // File not in cache, need to read it
+    FILE *fp = fopen(path.c_str(), "rb");
+    if (!fp)
+    {
+        return StatusFileReadError;
+    }
+    
+    // Read entire file for caching
+    std::string complete_content;
+    complete_content.resize(file_size);
+    
+    size_t read_size = fread(&complete_content[0], 1, file_size, fp);
+    fclose(fp);
+    
+    if (read_size != file_size)
+    {
+        return StatusFileReadError;
+    }
+    
+    // Add to cache
+    struct stat file_stat;
+    if (stat(path.c_str(), &file_stat) == 0) {
+        cache.add_file(path, complete_content, file_stat.st_mtime);
+    }
+    
+    // Extract the requested range
+    file_content = complete_content.substr(start, size);
+    
+    // Send the response
+    resp->headers["Content-Range"] = "bytes " + std::to_string(start)
+                                            + "-" + std::to_string(end)
+                                            + "/" + std::to_string(file_size);
+    
+    resp->String(std::move(file_content));
+    return StatusOK;
 }
 
 }  // namespace wfrest

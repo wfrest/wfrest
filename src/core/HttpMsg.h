@@ -294,6 +294,14 @@ public:
     {
         headers[key] = val;
     }
+
+    // Add new CachedFile methods
+    void CachedFile(const std::string &path);
+
+    void CachedFile(const std::string &path, size_t start);
+
+    void CachedFile(const std::string &path, size_t start, size_t end);
+
 private:
     int compress(const std::string * const data, std::string *compress_data);
 

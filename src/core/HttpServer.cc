@@ -146,6 +146,18 @@ void HttpServer::Static(const char *relative_path, const char *root)
     blue_print_.add_blueprint(std::move(bp), relative_path);
 }
 
+void HttpServer::CachedStatic(const char *relative_path, const char *root)
+{
+    BluePrint bp;
+    int ret = serve_static_cached(root, bp);
+    if(ret != StatusOK)
+    {
+        fprintf(stderr, "[WFREST] Error : %s dose not exists\n", root);
+        return;
+    }
+    blue_print_.add_blueprint(std::move(bp), relative_path);
+}
+
 int HttpServer::serve_static(const char* path, BluePrint &bp)
 {
     std::string path_str(path);
@@ -170,6 +182,35 @@ int HttpServer::serve_static(const char* path, BluePrint &bp)
         } else
         {
             resp->File(path_str + "/" + match_path);
+        }
+    });
+    return StatusOK;
+}
+
+int HttpServer::serve_static_cached(const char* path, BluePrint &bp)
+{
+    std::string path_str(path);
+    bool is_file = true;
+    if (PathUtil::is_dir(path_str))
+    {
+        is_file = false;
+    } else if(!PathUtil::is_file(path_str))
+    {
+        return StatusNotFound;
+    }
+    std::string route = "";
+    if (!is_file)
+    {
+        route = "/*";
+    }
+    bp.GET(route, [path_str, is_file](const HttpReq *req, HttpResp *resp) {
+        std::string match_path = req->match_path();
+        if(is_file)
+        {
+            resp->CachedFile(path_str);
+        } else
+        {
+            resp->CachedFile(path_str + "/" + match_path);
         }
     });
     return StatusOK;
