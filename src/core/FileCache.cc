@@ -6,18 +6,23 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <algorithm>
+#include <vector>
 
 namespace wfrest
 {
 
 bool FileCache::get_file(const std::string& path, std::string& content, size_t start, size_t end)
 {
-    if (!enabled_)
-        return false;
-
-    // Try to get from cache first
+    // First check if caching is enabled without locking
     {
-        std::shared_lock<std::shared_mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!enabled_)
+            return false;
+    }
+
+    // Try to get from cache
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
         auto it = cache_.find(path);
         if (it != cache_.end()) {
             // Check if file has been modified
@@ -43,11 +48,10 @@ bool FileCache::get_file(const std::string& path, std::string& content, size_t s
 
 void FileCache::add_file(const std::string& path, const std::string& content, std::time_t last_modified)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!enabled_)
         return;
         
-    std::unique_lock<std::shared_mutex> lock(mutex_);
-    
     // Check if we need to make room in the cache
     if (current_size_ + content.size() > max_cache_size_) {
         manage_cache_size();
@@ -75,10 +79,10 @@ void FileCache::add_file(const std::string& path, const std::string& content, st
 
 bool FileCache::is_valid(const std::string& path)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!enabled_)
         return false;
         
-    std::shared_lock<std::shared_mutex> lock(mutex_);
     auto it = cache_.find(path);
     if (it == cache_.end()) {
         return false;
@@ -90,7 +94,7 @@ bool FileCache::is_valid(const std::string& path)
 
 void FileCache::clear()
 {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     cache_.clear();
     current_size_ = 0;
 }

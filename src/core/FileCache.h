@@ -4,7 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
-#include <shared_mutex>
 #include <memory>
 #include <ctime>
 
@@ -40,12 +39,26 @@ public:
     void set_max_size(size_t max_size) { max_cache_size_ = max_size; }
     
     // Get current cache size
-    size_t size() const { return current_size_; }
+    size_t size() const { 
+        std::lock_guard<std::mutex> lock(mutex_);
+        return current_size_; 
+    }
 
     // Enable/Disable caching
-    void enable() { enabled_ = true; }
-    void disable() { enabled_ = false; }
-    bool is_enabled() const { return enabled_; }
+    void enable() { 
+        std::lock_guard<std::mutex> lock(mutex_);
+        enabled_ = true; 
+    }
+    
+    void disable() { 
+        std::lock_guard<std::mutex> lock(mutex_);
+        enabled_ = false; 
+    }
+    
+    bool is_enabled() const { 
+        std::lock_guard<std::mutex> lock(mutex_);
+        return enabled_; 
+    }
 
 private:
     FileCache() : max_cache_size_(100 * 1024 * 1024), current_size_(0), enabled_(true) {}
@@ -63,7 +76,7 @@ private:
 
 private:
     std::unordered_map<std::string, std::shared_ptr<CachedFile>> cache_;
-    std::shared_mutex mutex_; // allows multiple readers but exclusive writer
+    mutable std::mutex mutex_; // mutex for thread safety
     size_t max_cache_size_;
     size_t current_size_;
     bool enabled_;

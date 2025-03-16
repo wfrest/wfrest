@@ -78,6 +78,7 @@ set(EXAMPLE_LIST
     27_sse
     28_benchmark_static_files
     29_file_cache
+    30_cache_benchmark
 )
 
 foreach(src ${EXAMPLE_LIST})
