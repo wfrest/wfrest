@@ -1,99 +1,104 @@
-# wfrest静态文件服务性能优化
+# 静态文件服务优化
 
-## 概述
+## 背景
 
-本文档描述了wfrest框架中静态文件服务的性能优化。该优化解决了[#272](https://github.com/wfrest/wfrest/issues/272)问题，该问题报告称静态文件服务比Apache明显慢，特别是对于像React构建中的CSS和JS这样的小文件。
+静态文件服务是Web服务器的常见功能。默认情况下，wfrest使用异步文件I/O，这对于大文件和并发操作非常出色，但对于CSS、JavaScript或小图像等小型、频繁访问的文件，会增加额外的开销。
 
-## 问题背景
+正如[issue #272](https://github.com/wfrest/wfrest/issues/272)中指出的，对于小文件，以这种方式提供静态文件的速度可能比常规Apache配置慢4倍。
 
-如问题#272所述，虽然wfrest在提供从MySQL加载数据的REST API响应方面表现出色，但在提供静态文件时，它被发现比Apache慢约4倍。原因被确定为wfrest总是使用异步文件I/O，即使对于非常小的文件，这也会引入不必要的开销。
+## 文件缓存服务
 
-## 优化方法
+为了解决这个性能问题，wfrest现在提供了一个文件缓存系统，该系统在首次访问后将文件存储在内存中，显著提高了频繁访问文件的响应时间。
 
-### 核心概念
-
-优化实现了一种基于文件大小的服务方法：
-- 小文件（≤50KB）同步读取，避免异步任务调度的开销
-- 大文件（>50KB）继续使用原始的异步方法，以获得更好的大内容性能
-
-### 技术实现
-
-优化修改了`HttpFile::send_file`方法，添加了基于阈值的条件：
+### 在处理程序中使用缓存文件
 
 ```cpp
-// 优化：对小文件使用同步读取（<50KB）
-const size_t SMALL_FILE_THRESHOLD = 50 * 1024; // 50KB
-
-if (size <= SMALL_FILE_THRESHOLD) {
-    // 小文件的同步文件读取
-    FILE *fp = fopen(path.c_str(), "rb");
-    // ... 同步读取文件内容 ...
-    resp->append_output_body_nocopy(buf, size);
-    return StatusOK;
-}
-
-// 对大文件使用原始异步方法
-// ... 原始异步实现 ...
+// 在处理程序中直接使用CachedFile方法
+svr.GET("/css", [](const HttpReq *req, HttpResp *resp) {
+    resp->CachedFile("/path/to/styles.css");
+});
 ```
 
-## 为什么这种方法有效
+与常规的`File()`方法一样，`CachedFile()`也支持指定范围：
 
-1. **减少开销**：对于小文件，创建异步任务、调度和处理回调的开销通常超过实际文件I/O时间。
+```cpp
+// 提供文件的一部分
+resp->CachedFile("/path/to/file.txt", 100, 500);  // 第100-500字节
+```
 
-2. **快速操作**：读取小文件（1KB-50KB）非常快，在同步完成时不会显著阻塞服务器。
+### 使用缓存提供静态目录
 
-3. **任务效率**：通过避免为小文件创建不必要的任务，我们减少了任务调度系统的压力。
+对于提供整个目录，使用`CachedStatic`方法：
 
-4. **平衡方法**：较大的文件仍然受益于异步I/O，以防止阻塞服务器操作。
+```cpp
+HttpServer svr;
 
-## 性能测试
+// 传统静态文件服务
+svr.Static("/static", "/var/www/files");
 
-为了评估优化效果，我们创建了两个测试工具：
+// 缓存静态文件服务
+svr.CachedStatic("/cached", "/var/www/files");
+```
 
-1. **benchmark_static_files**：一个独立的基准测试，测试各种大小文件的服务性能。
+这设置了路由，使用缓存系统从指定目录提供文件。
 
-2. **compare_static_performance.sh**：一个比较脚本，测量优化前后的性能。
+## 缓存管理
 
-### 预期性能改进
+文件缓存通过`FileCache`单例进行管理：
 
-根据初步测试，预期会有以下改进：
+```cpp
+#include "wfrest/FileCache.h"
 
-| 文件大小 | 预期改进 |
-|-----------|----------------------|
-| 1KB       | 200% - 400%          |
-| 10KB      | 150% - 300%          |
-| 30KB      | 100% - 200%          |
-| 50KB      | 50% - 100%           |
-| >50KB     | 0% - 5%              |
+// 获取缓存实例
+FileCache& cache = FileCache::instance();
 
-## 使用优化
+// 配置缓存大小（默认为100MB）
+cache.set_max_size(200 * 1024 * 1024);  // 200MB
 
-该优化对现有代码的影响最小，不需要API更改。它会自动检测文件大小并应用适当的读取策略。
+// 清除缓存（当文件更新时很有用）
+cache.clear();
 
-### 测试优化
+// 如果需要，禁用缓存
+cache.disable();
 
-要测试性能改进：
+// 重新启用缓存
+cache.enable();
 
-1. **使用基准测试工具**：
-   ```bash
-   make example
-   ./example/benchmark_static_files
-   ```
+// 获取当前缓存大小
+size_t current_size = cache.size();
+```
 
-2. **使用比较脚本**：
-   ```bash
-   ./example/compare_static_performance.sh /path/to/original/wfrest /path/to/optimized/wfrest
-   ```
+## 缓存工作原理
 
-## 配置
+1. 当通过`CachedFile()`首次请求文件时，它会从磁盘读取并存储在内存中
+2. 后续请求会检查文件是否在缓存中并且是最新的（跟踪修改时间）
+3. 如果文件已被修改，它会从磁盘重新读取并更新缓存
+4. 当缓存达到其大小限制时，会自动删除较旧的项目
 
-阈值（50KB）的选择基于：
-1. Web应用程序中静态资产的常见大小
-2. 问题中特别提到的React.js构建文件
-3. 使用各种文件大小进行的性能测试
+## 性能考虑
 
-如有必要，可以通过修改`src/core/HttpFile.cc`中的`SMALL_FILE_THRESHOLD`常量来根据特定用例调整此阈值。
+- 文件缓存最适合频繁访问且不经常更改的文件
+- 对于非常大的文件，标准的`File()`方法可能更合适
+- 缓存会检查文件修改时间，因此更新的文件会自动刷新
+- 缓存静态文件服务对于小文件可以明显更快（3-4倍）
 
-## 结论
+## 示例
 
-这种优化显著提高了wfrest服务静态文件的性能，特别是CSS和JS等小文件，同时不会损害其对大文件的出色性能。它解决了#272中提到的具体性能问题，同时保持与现有代码的兼容性。 
+`example/file_cache.cc`中提供了一个完整示例，演示了：
+
+- 设置具有缓存和非缓存路由的服务器
+- 对比性能差异
+- 管理缓存
+
+运行示例：
+
+```bash
+./file_cache 8080 /path/to/static/files
+```
+
+然后访问：
+- `http://localhost:8080/static/...` - 标准文件服务
+- `http://localhost:8080/cached/...` - 缓存文件服务
+- `http://localhost:8080/benchmark?file=example.css` - 性能比较
+- `http://localhost:8080/cache-info` - 缓存统计
+- `http://localhost:8080/clear-cache` - 清除缓存 

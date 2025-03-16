@@ -52,11 +52,11 @@ test_version() {
     # Build and start server (assuming there's a simple startup script)
     cd "$version_path"
     echo "Building..."
-    make -j$(nproc) benchmark_static_files
+    make -j$(nproc) 28_benchmark_static_files
     
     # Start server (run in background)
     echo "Starting server on port $port"
-    ./benchmark_static_files --port $port --dir $TEST_DIR &
+    ./28_benchmark_static_files --port $port --dir $TEST_DIR &
     server_pid=$!
     
     # Wait for server to start
