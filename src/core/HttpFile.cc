@@ -306,8 +306,6 @@ int HttpFile::send_cached_file(const std::string &path, size_t file_start, size_
     }
     resp->headers["Content-Type"] = ContentType::to_str(content_type);
 
-    size_t size = end - start;
-    
     // Set Content-Range header
     resp->headers["Content-Range"] = "bytes " + std::to_string(start)
                                             + "-" + std::to_string(end)

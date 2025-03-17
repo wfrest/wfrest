@@ -14,33 +14,30 @@ namespace wfrest
 bool FileCache::get_file(const std::string& path, std::string& content, size_t start, size_t end)
 {
     // First check if caching is enabled without locking
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (!enabled_)
+    if (!enabled_)
+        return false;
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!enabled_)
+        return false;
+
+    auto it = cache_.find(path);
+    if (it != cache_.end()) {
+        // Check if file has been modified
+        std::time_t current_mod_time = get_file_modification_time(path);
+        if (current_mod_time <= 0 || current_mod_time > it->second->last_modified) {
+            // File has been modified or doesn't exist anymore
             return false;
-    }
-
-    // Try to get from cache
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto it = cache_.find(path);
-        if (it != cache_.end()) {
-            // Check if file has been modified
-            std::time_t current_mod_time = get_file_modification_time(path);
-            if (current_mod_time <= 0 || current_mod_time > it->second->last_modified) {
-                // File has been modified or doesn't exist anymore
-                return false;
-            }
-
-            // File is in cache and up to date
-            if (end == (size_t)-1 || end >= it->second->content.size()) {
-                end = it->second->content.size();
-            }
-            
-            start = std::min(start, end);
-            content = it->second->content.substr(start, end - start);
-            return true;
         }
+
+        // File is in cache and up to date
+        if (end == (size_t)-1 || end >= it->second->content.size()) {
+            end = it->second->content.size();
+        }
+            
+        start = std::min(start, end);
+        content = it->second->content.substr(start, end - start);
+        return true;
     }
     
     return false;
