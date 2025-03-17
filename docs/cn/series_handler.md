@@ -1,6 +1,4 @@
-## Series Handler
-
-Series Handler接口暴露了SeriesWork, 这样能让用户使用workflow的一些更为高级的用法，去自己操作串联操作。
+## 系列处理器
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -13,7 +11,7 @@ int main()
     svr.GET("/series", [](const HttpReq *req, HttpResp *resp, SeriesWork* series)
     {
         auto *timer = WFTaskFactory::create_timer_task(5000000, [](WFTimerTask *) {
-            printf("timer task complete(5s).\n");
+            printf("定时器任务完成(5秒)。\n");
         });
 
         series->push_back(timer);
@@ -30,4 +28,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

@@ -66,6 +66,7 @@ build/debug/*
 build/run/*
 build/logs/&
 
+build.cmake/
 
 include/*
 lib/*
@@ -90,3 +91,4 @@ wfrest-config.cmake
 .xmake
 build.xmake
 .cache
+benchmark_files/

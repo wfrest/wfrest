@@ -1,7 +1,5 @@
 ## 保存文件
 
-保存文件只需要调用`resp->Save`即可异步写文件到服务器。
-
 ```cpp
 #include "wfrest/HttpServer.h"
 using namespace wfrest;
@@ -10,9 +8,10 @@ int main()
 {
     HttpServer svr;
 
+    // curl -v -X POST "ip:port/file_write1" -F "file=@filename" -H "Content-Type: multipart/form-data"
     svr.POST("/file_write1", [](const HttpReq *req, HttpResp *resp)
     {
-        std::string& body = req->body();   
+        std::string& body = req->body();   // multipart/form - body有边界
         resp->Save("test.txt", std::move(body));
     });
 
@@ -23,6 +22,15 @@ int main()
         resp->Save("test1.txt", std::move(content));
     });
 
+    // 您可以指定保存文件成功时返回给客户端的消息
+    // 默认是 "Save File success\n"
+    svr.GET("/file_write3", [](const HttpReq *req, HttpResp *resp)
+    {
+        std::string content = "1234567890987654321";
+
+        resp->Save("test2.txt", std::move(content), "测试通知测试成功");
+    });
+    
     if (svr.start(8888) == 0)
     {
         getchar();
@@ -34,4 +42,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

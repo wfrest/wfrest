@@ -1,19 +1,15 @@
-## 面向切面编程AOP
+## 面向切面编程
 
-AOP为Aspect Oriented Programming的缩写，意为：面向切面编程，通过预编译方式和运行期间动态代理实现程序功能的统一维护的一种技术。对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
+在计算机领域，面向切面编程（AOP）是一种旨在通过允许分离横切关注点来增加模块化的编程范式。
 
-限于C++语言的特性，wfrest没有提供像Spring那样灵活的AOP方案，而是一种简单的AOP，所有插入点都是内建于框架中的，提供了两个插入点，一个是`handler`之前的`before()`, 一个在server task执行结束后的`after()`中。
-
-## 示例1
-
-日志切面
+有关更多信息，您可以查看 [什么是AOP](https://en.wikipedia.org/wiki/Aspect-oriented_programming)，
 
 ```cpp
 #include "wfrest/HttpServer.h"
 #include "wfrest/Aspect.h"
 using namespace wfrest;
 
-// Logging aspect
+// 日志切面
 struct LogAop : public Aspect
 {
     bool before(const HttpReq *req, HttpResp *resp) override 
@@ -22,7 +18,7 @@ struct LogAop : public Aspect
         return true;
     }
 
-    // 'after()' should be called after reply
+    // 'after()' 应该在回复后被调用
     bool after(const HttpReq *req, HttpResp *resp) override
     {
         fprintf(stderr, "After log\n");
@@ -52,9 +48,7 @@ int main()
 }
 ```
 
-## 示例2
-
-从切片传输数据到http handler
+从切面传输数据到HTTP处理器：
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -70,7 +64,7 @@ struct TransferAop : public Aspect
         return true;
     }
 
-    // If resp's 'user_data' needs to be deleted, delete it in 'after()'.
+    // 如果需要删除resp的'user_data'，在'after()'中删除它。
     bool after(const HttpReq *req, HttpResp *resp) override
     { 
         fprintf(stderr, "state : %d\terror : %d\n", 
@@ -105,9 +99,9 @@ int main()
 
 ## 全局切面
 
-注册全局的切片:
+注册全局切面的方式如下：
 
 ```cpp
 svr.Use(FirstAop());
 svr.Use(SecondAop(), ThirdAop());
-```
+``` 

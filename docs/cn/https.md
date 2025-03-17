@@ -1,6 +1,8 @@
-## Https服务器
+## Https 服务器
 
-很容易去启动一个Https服务器，在start的时候，提供SSL key和SSL certificate的路径就行了。
+设置Https服务器非常简单。
+
+http和https之间的唯一区别是https需要您提供SSL密钥的路径和SSL证书的路径。
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -8,8 +10,8 @@ using namespace wfrest;
 
 int main(int argc, char **argv)
 {
-    // in cert file 
-    // sudo ./gen.sh to generate crt / key files
+    // 在cert文件中 
+    // 执行sudo ./gen.sh 生成crt / key文件
     if (argc != 3)
     {
         fprintf(stderr, "%s [cert file] [key file]\n",
@@ -21,7 +23,7 @@ int main(int argc, char **argv)
 
     svr.GET("/https", [](const HttpReq *req, HttpResp *resp)
     {
-        resp->String("Test Https\n");
+        resp->String("测试Https\n");
     });
 
     if (svr.start(8888, argv[1], argv[2]) == 0)
@@ -35,4 +37,4 @@ int main(int argc, char **argv)
     }
     return 0;
 }
-```
+``` 

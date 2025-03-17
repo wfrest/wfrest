@@ -1,6 +1,4 @@
-## 配置
-
-我们通过串式操作设置配置项:
+## 自定义服务器配置
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -34,19 +32,21 @@ int main()
 
 ## 配置项
 
+配置项如下：
+
 ```cpp
 struct WFServerParams
 {
 	size_t max_connections;
-	int peer_response_timeout;	/* 每一个读写操作的超时时间 */ 
-	int receive_timeout;	/* 接受整个消息的超时时间 */
+	int peer_response_timeout;	/* 每个读写操作的超时时间 */
+	int receive_timeout;	/* 接收整个消息的超时时间 */
 	int keep_alive_timeout;
 	size_t request_size_limit;
-	int ssl_accept_timeout;	/* 如果不是ssl，这个将会被忽略掉 */
+	int ssl_accept_timeout;	/* 如果不是ssl，这将被忽略 */
 };
 ```
 
-默认值为:
+默认值为：
 
 ```cpp
 static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
@@ -60,11 +60,11 @@ static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
 };
 ```
 
-## 日志跟踪的接口
+## 跟踪
 
-你可以在配置中打开track，`svr.track()`
+您可以打开跟踪日志。
 
-默认格式为 :
+格式：
 
 ```
 [WFREST] 2022-01-13 18:00:04 | 200 | 127.0.0.1 | GET | "/data" | -- 
@@ -72,7 +72,7 @@ static constexpr struct WFServerParams SERVER_PARAMS_DEFAULT =
 [WFREST] 2022-01-13 18:00:17 | 404 | 127.0.0.1 | GET | "/hello1" | -- 
 ```
 
-你也可以射中你自己的追踪日志，可以定义你自己的格式，用自己选择的日志:
+您还可以设置自己的跟踪记录器：
 
 ```cpp
 svr.track([](HttpTask *server_task){
@@ -81,4 +81,4 @@ svr.track([](HttpTask *server_task){
     // LOG(ERROR) << "time : " << time;
   ...
 });
-```
+``` 

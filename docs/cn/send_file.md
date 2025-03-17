@@ -1,7 +1,5 @@
 ## 发送文件
 
-发送文件的操作十分方便，只需要调用`resp->File`, 还可以加上range参数发送部分文件。
-
 ```cpp
 #include "wfrest/HttpServer.h"
 using namespace wfrest;
@@ -10,7 +8,7 @@ int main()
 {
     HttpServer svr;
 
-    // single files
+    // 单个文件
     svr.GET("/file1", [](const HttpReq *req, HttpResp *resp)
     {
         resp->File("todo.txt");
@@ -62,4 +60,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

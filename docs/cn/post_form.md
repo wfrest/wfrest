@@ -1,19 +1,4 @@
-## 表单数据
-
-表单数据比较常用的是 x-www-form-urlencoded 和 multipart/form-data
-
-如果是`x-www-form-urlencoded`，调用`req->form_kv()` 获取kv数据，数据结构为`std::map<std::string, std::string>`
-
-如果是`multipart/form-data`, req->form()
-
-数据结构为
-
-```cpp
-// <name ,<filename, body>>
-using Form = std::map<std::string, std::pair<std::string, std::string>>;
-```
-
-## 示例
+## 表单提交
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -23,6 +8,10 @@ int main()
 {
     HttpServer svr;
 
+    // URL编码表单
+    // curl -v http://ip:port/post \
+    // -H "body-type:application/x-www-form-urlencoded" \
+    // -d 'user=admin&pswd=123456'
     svr.POST("/post", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != APPLICATION_URLENCODED)
@@ -33,11 +22,13 @@ int main()
         std::map<std::string, std::string> &form_kv = req->form_kv();
         for (auto &kv: form_kv)
         {
-            fprintf(stderr, "key %s : vak %s\n", kv.first.c_str(), kv.second.c_str());
+            fprintf(stderr, "键 %s : 值 %s\n", kv.first.c_str(), kv.second.c_str());
         }
     });
 
-
+    // curl -X POST http://ip:port/form \
+    // -F "file=@/path/file" \
+    // -H "Content-Type: multipart/form-data"
     svr.POST("/form", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != MULTIPART_FORM_DATA)
@@ -45,6 +36,11 @@ int main()
             resp->set_status(HttpStatusBadRequest);
             return;
         }
+        /*
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+            // <name ,<filename, body>>
+            using Form = std::map<std::string, std::pair<std::string, std::string>>;
+        */
         const Form &form = req->form();
         for (auto &it: form)
         {
@@ -69,3 +65,18 @@ int main()
     return 0;
 }
 ```
+
+## 多部分表单编码器
+
+使用MultiPartEncoder来编码多部分数据格式内容并发送。
+
+```cpp
+svr.GET("/form_send", [](const HttpReq *req, HttpResp *resp)
+{
+    MultiPartEncoder encoder;
+    encoder.add_param("Filename", "1.jpg");
+    encoder.add_file("test_1.txt", "./www/test_1.txt");
+    encoder.add_file("test_2.txt", "./www/test_2.txt");
+    resp->String(std::move(encoder));
+});
+``` 

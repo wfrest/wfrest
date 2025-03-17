@@ -1,6 +1,4 @@
-## Http头部字段
-
-通过`req->header("xxx");` 获取相应的头部字段。
+## 请求头
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -16,7 +14,7 @@ int main()
         const std::string& content_type = req->header("Content-Type");
         if (req->has_header("User-Agent"))
         {
-            fprintf(stderr, "Has User-Agent...");
+            fprintf(stderr, "存在User-Agent...");
         }
         resp->String(host + " " + content_type + "\n");
     });
@@ -33,4 +31,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

@@ -1,6 +1,4 @@
-## 计算型Handler
-
-计算型Handler和普通的Handler之间就只差了一个参数(第二个参数)，就是需要输入计算型任务队列的id，其他都一样。
+## 计算处理器
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -27,8 +25,9 @@ void Fibonacci(int n, HttpResp *resp)
 int main()
 {
     HttpServer svr;
-
-    // 第二个参数为计算队列的id
+    // 第二个参数表示此计算队列ID为1
+    // 然后这个处理器成为一个计算任务
+    // curl -v http://ip:port/compute_task?num=20
     svr.GET("/compute_task", 1, [](const HttpReq *req, HttpResp *resp)
     {
         int num = std::stoi(req->query("num"));
@@ -48,9 +47,9 @@ int main()
 }
 ```
 
-## 计算任务的接口
+## 计算任务接口
 
-如果你想直接启动一个计算任务，直接调用`resp->Compute()`, 传入计算队列id，函数名和参数即可。
+如果您想启动一个计算任务，只需使用`resp->Compute()`
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -72,7 +71,7 @@ int main()
 
     svr.GET("/compute", [](const HttpReq *req, HttpResp *resp)
     {
-        // 第一个参数是计算队列id
+        // 第一个参数是队列ID
         resp->Compute(1, Factorial, 10, resp);
     });
 
@@ -88,4 +87,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

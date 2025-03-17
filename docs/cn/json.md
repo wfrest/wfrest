@@ -1,13 +1,13 @@
-## Json
+## 内置json (wfrest::Json) 用法
 
-json是Http中最常用的传输格式。
+我们提供内置的json，强烈推荐使用。
 
-接收json是`req->json()`
-
-发送json是`resp->Json()`
+如果您想了解更多json API用法，可以查看 [json api](json_api.md)
 
 ```cpp
 #include "wfrest/HttpServer.h"
+#include "wfrest/Json.h"
+
 using namespace wfrest;
 
 int main()
@@ -23,37 +23,15 @@ int main()
         resp->Json(json);
     });
 
-    // curl -v http://ip:port/json2
-    svr.GET("/json2", [](const HttpReq *req, HttpResp *resp)
-    {
-        std::string valid_text = R"(
-        {
-            "numbers": [1, 2, 3]
-        }
-        )";
-        resp->Json(valid_text);
-    });
-
-    // curl -v http://ip:port/json3
-    svr.GET("/json3", [](const HttpReq *req, HttpResp *resp)
-    {
-        std::string invalid_text = R"(
-        {
-            "strings": ["extra", "comma", ]
-        }
-        )";
-        resp->Json(invalid_text);
-    });
-
-    // recieve json
-    //   curl -X POST http://ip:port/json4
+    // 接收json
+    //   curl -X POST http://ip:port/json2
     //   -H 'Content-Type: application/json'
     //   -d '{"login":"my_login","password":"my_password"}'
-    svr.POST("/json4", [](const HttpReq *req, HttpResp *resp)
+    svr.POST("/json2", [](const HttpReq *req, HttpResp *resp)
     {
         if (req->content_type() != APPLICATION_JSON)
         {
-            resp->String("NOT APPLICATION_JSON");
+            resp->String("不是APPLICATION_JSON");
             return;
         }
         fprintf(stderr, "Json : %s", req->json().dump(4).c_str());
@@ -69,5 +47,4 @@ int main()
         exit(1);
     }
     return 0;
-}
-```
+} 

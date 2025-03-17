@@ -1,4 +1,4 @@
-## 静态文件服务
+## 提供静态文件
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -25,4 +25,4 @@ int main()
     }
     return 0;
 }
-```
+``` 

@@ -1,6 +1,4 @@
-## 代理服务器
-
-直接利用`resp->Http()`完成转发
+## 代理
 
 ```cpp
 #include "wfrest/HttpServer.h"
@@ -10,6 +8,7 @@ int main()
 {
     HttpServer svr;
 
+    // curl -v http://ip:port/proxy
     svr.GET("/proxy", [](const HttpReq *req, HttpResp *resp)
     {
         resp->Http("http://www.baidu.com");
@@ -26,4 +25,4 @@ int main()
     }
     return 0;
 }
-```
+``` 
