@@ -26,6 +26,7 @@ set(SRC_HEADERS
     src/core/VerbHandler.h
 	src/core/AopUtil.h
     src/core/Aspect.h
+    src/core/FileCache.h
 
     src/util/FileUtil.h
     src/util/MysqlUtil.h

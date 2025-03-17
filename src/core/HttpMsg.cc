@@ -900,6 +900,25 @@ void HttpResp::File(const std::string &path, size_t start, size_t end)
     }
 }
 
+void HttpResp::CachedFile(const std::string &path)
+{
+    this->CachedFile(path, 0, -1);
+}
+
+void HttpResp::CachedFile(const std::string &path, size_t start)
+{
+    this->CachedFile(path, start, -1);
+}
+
+void HttpResp::CachedFile(const std::string &path, size_t start, size_t end)
+{
+    int ret = HttpFile::send_cached_file(path, start, end, this);
+    if(ret != StatusOK)
+    {
+        this->Error(ret);
+    }
+}
+
 void HttpResp::set_status(int status_code)
 {
     protocol::HttpUtil::set_response_status(this, status_code);

@@ -16,6 +16,8 @@ public:
 public:
     static int send_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
 
+    static int send_cached_file(const std::string &path, size_t start, size_t end, HttpResp *resp);
+
     static void save_file(const std::string &dst_path, const std::string &content, HttpResp *resp);
 
     static void save_file(const std::string &dst_path, const std::string &content, 

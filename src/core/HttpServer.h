@@ -2,10 +2,12 @@
 #define WFREST_HTTPSERVER_H_
 
 #include "workflow/WFHttpServer.h"
+#include "workflow/WFTaskFactory.h"
 #include "workflow/HttpUtil.h"
 
 #include <unordered_map>
 #include <string>
+#include <functional>
 
 #include "HttpMsg.h"
 #include "BluePrint.h"
@@ -401,6 +403,8 @@ public:
     friend class HttpServerTask;
     void Static(const char *relative_path, const char *root);
 
+    void CachedStatic(const char *relative_path, const char *root);
+
     void list_routes();
 
     void set_default_route(const std::string& default_route)
@@ -481,6 +485,8 @@ private:
     void process(HttpTask *task);
 
     int serve_static(const char *path, BluePrint &bp);
+
+    int serve_static_cached(const char *path, BluePrint &bp);
 
     struct GlobalAspectFunc
     {

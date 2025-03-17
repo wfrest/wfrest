@@ -8,6 +8,7 @@
 #include "HttpServerTask.h"
 #include "FileUtil.h"
 #include "ErrorCode.h"
+#include "FileCache.h"
 
 namespace wfrest
 {
@@ -20,6 +21,13 @@ struct SaveFileContext
     std::string content;
     std::string notify_msg;
     HttpFile::FileIOArgsFunc fileio_args_func;
+};
+
+// Add a structure to hold both the response and path for cache callback
+struct CacheContext
+{
+    HttpResp *resp;
+    std::string path;
 };
 
 /*
@@ -68,7 +76,46 @@ void pwrite_callback(WFFileIOTask *pwrite_task)
     }
 }
 
+// Callback for asynchronous file reading in cached mode
+void pread_cache_callback(WFFileIOTask *pread_task)
+{
+    FileIOArgs *args = pread_task->get_args();
+    long ret = pread_task->get_retval();
+    auto *cache_ctx = static_cast<CacheContext *>(pread_task->user_data);
+    HttpResp *resp = cache_ctx->resp;
+    HttpServerTask *server_task = task_of(resp);
+    
+    // Check if the task was successful
+    if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
+    {
+        resp->Error(StatusFileReadError);
+        delete cache_ctx; // Clean up
+        return;
+    }
+    
+    // Get path from the context
+    const std::string &path = cache_ctx->path;
+    size_t size = ret;
+    
+    // Create a string to store the file content
+    std::string *content = new std::string(static_cast<char*>(args->buf), size);
+    
+    // Add to cache before sending response
+    struct stat file_stat;
+    if (stat(path.c_str(), &file_stat) == 0) {
+        FileCache::instance().add_file(path, *content, file_stat.st_mtime);
+    }
+    
+    // Add the content to the response body and set up cleanup
+    resp->append_output_body_nocopy(content->c_str(), content->size());
+    server_task->add_callback([content, cache_ctx](HttpTask *) {
+        delete content;
+        delete cache_ctx;
+    });
+}
+
 }  // namespace
+
 
 // note : [start, end)
 int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_end, HttpResp *resp)
@@ -77,21 +124,20 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     {
         return StatusNotFound;
     }
-    
-    size_t file_size;
-    int ret = FileUtil::size(path, &file_size);
-    if (ret != StatusOK)
-    {
-        return ret;
-    }
-    
     int start = file_start;
     int end = file_end;
-    
-    if (end == -1)
-        end = file_size;
-    if (start < 0)
-        start = file_size + start;
+    if (end == -1 || start < 0)
+    {
+        size_t file_size;
+        int ret = FileUtil::size(path, &file_size);
+
+        if (ret != StatusOK)
+        {
+            return ret;
+        }
+        if (end == -1) end = file_size;
+        if (start < 0) start = file_size + start;
+    }
 
     if (end <= start)
     {
@@ -110,58 +156,6 @@ int HttpFile::send_file(const std::string &path, size_t file_start, size_t file_
     resp->headers["Content-Type"] = ContentType::to_str(content_type);
 
     size_t size = end - start;
-    
-    // 优化：小文件使用同步读取（小于50KB）
-    const size_t SMALL_FILE_THRESHOLD = 50 * 1024; // 50KB
-    
-    if (size <= SMALL_FILE_THRESHOLD)
-    {
-        // 使用同步读取小文件
-        FILE *fp = fopen(path.c_str(), "rb");
-        if (!fp)
-        {
-            return StatusFileReadError;
-        }
-        
-        void *buf = malloc(size);
-        if (!buf)
-        {
-            fclose(fp);
-            return StatusFileReadError;
-        }
-        
-        if (fseek(fp, start, SEEK_SET) != 0)
-        {
-            free(buf);
-            fclose(fp);
-            return StatusFileReadError;
-        }
-        
-        size_t read_size = fread(buf, 1, size, fp);
-        fclose(fp);
-        
-        if (read_size != size)
-        {
-            free(buf);
-            return StatusFileReadError;
-        }
-        
-        HttpServerTask *server_task = task_of(resp);
-        server_task->add_callback([buf](HttpTask *) {
-            free(buf);
-        });
-        
-        // https://datatracker.ietf.org/doc/html/rfc7233#section-4.2
-        // Content-Range: bytes 42-1233/1234
-        resp->headers["Content-Range"] = "bytes " + std::to_string(start)
-                                                + "-" + std::to_string(end)
-                                                + "/" + std::to_string(size);
-        
-        resp->append_output_body_nocopy(buf, size);
-        return StatusOK;
-    }
-    
-    // 大文件仍使用异步方式
     void *buf = malloc(size);
 
     HttpServerTask *server_task = task_of(resp);
@@ -269,6 +263,90 @@ void HttpFile::save_file(const std::string &dst_path, std::string &&content,
                     HttpResp *resp, const FileIOArgsFunc &func)
 {
     return save_file(dst_path, std::move(content), resp, "", func);
+}
+
+int HttpFile::send_cached_file(const std::string &path, size_t file_start, size_t file_end, HttpResp *resp)
+{
+    FileCache& cache = FileCache::instance();
+    
+    if(!PathUtil::is_file(path))
+    {
+        return StatusNotFound;
+    }
+    
+    // Check file size and other metadata
+    size_t file_size;
+    int ret = FileUtil::size(path, &file_size);
+    if (ret != StatusOK)
+    {
+        return ret;
+    }
+    
+    int start = file_start;
+    int end = file_end;
+    
+    if (end == -1)
+        end = file_size;
+    if (start < 0)
+        start = file_size + start;
+
+    if (end <= start)
+    {
+        return StatusFileRangeInvalid;
+    }
+
+    http_content_type content_type = CONTENT_TYPE_NONE;
+    std::string suffix = PathUtil::suffix(path);
+    if(!suffix.empty())
+    {
+        content_type = ContentType::to_enum_by_suffix(suffix);
+    }
+    if (content_type == CONTENT_TYPE_NONE || content_type == CONTENT_TYPE_UNDEFINED) {
+        content_type = APPLICATION_OCTET_STREAM;
+    }
+    resp->headers["Content-Type"] = ContentType::to_str(content_type);
+
+    size_t size = end - start;
+    
+    // Set Content-Range header
+    resp->headers["Content-Range"] = "bytes " + std::to_string(start)
+                                            + "-" + std::to_string(end)
+                                            + "/" + std::to_string(file_size);
+    
+    // Try to get the file from cache
+    std::string file_content;
+    if (cache.get_file(path, file_content, start, end))
+    {
+        // File is in cache
+        resp->String(std::move(file_content));
+        return StatusOK;
+    }
+    
+    // File not in cache - use async approach just like send_file
+    HttpServerTask *server_task = task_of(resp);
+    void *buf = malloc(file_size); // Allocate for whole file
+    if (!buf) {
+        return StatusFileReadError;
+    }
+    
+    server_task->add_callback([buf](HttpTask *) {
+        free(buf);
+    });
+    
+    // Create a context to hold both the response and path
+    auto *cache_ctx = new CacheContext;
+    cache_ctx->resp = resp;
+    cache_ctx->path = path;
+    
+    // Create async read task
+    WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(path,
+                                                                buf,
+                                                                file_size, // Read the whole file
+                                                                0, // Always start from beginning
+                                                                pread_cache_callback);
+    pread_task->user_data = cache_ctx;
+    **server_task << pread_task;
+    return StatusOK;
 }
 
 }  // namespace wfrest

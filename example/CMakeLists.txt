@@ -76,7 +76,9 @@ set(EXAMPLE_LIST
     25_cn_url_client
     26_timer
     27_sse
-    benchmark_static_files
+    28_benchmark_static_files
+    29_file_cache
+    30_cache_benchmark
 )
 
 foreach(src ${EXAMPLE_LIST})

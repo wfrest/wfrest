@@ -91,3 +91,4 @@ wfrest-config.cmake
 .xmake
 build.xmake
 .cache
+benchmark_files/
