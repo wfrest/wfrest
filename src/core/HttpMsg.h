@@ -295,7 +295,6 @@ public:
         headers[key] = val;
     }
 
-    // Add new CachedFile methods
     void CachedFile(const std::string &path);
 
     void CachedFile(const std::string &path, size_t start);
