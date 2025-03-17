@@ -159,8 +159,20 @@ wfrest::Json mysql_concat_json_res(WFMySQLTask *mysql_task)
                 fields_name.push_back(fields[i]->get_name());
                 fields_type.push_back(datatype2str(fields[i]->get_data_type()));
             }
-            result_set["fields_name"] = fields_name;
-            result_set["fields_type"] = fields_type;
+            
+            // Create Json arrays from vectors
+            wfrest::Json fields_name_json = wfrest::Json::Array();
+            for (const auto& name : fields_name) {
+                fields_name_json.push_back(name);
+            }
+            
+            wfrest::Json fields_type_json = wfrest::Json::Array();
+            for (const auto& type : fields_type) {
+                fields_type_json.push_back(type);
+            }
+            
+            result_set["fields_name"] = fields_name_json;
+            result_set["fields_type"] = fields_type_json;
 
             while (cursor.fetch_row(arr))
             {
