@@ -6,6 +6,10 @@
 
 #include <unistd.h>
 #include <algorithm>
+#include <sstream>
+#include <queue>
+#include <mutex>
+#include <map>
 
 #include "HttpMsg.h"
 #include "UriUtil.h"
@@ -15,6 +19,8 @@
 #include "FileUtil.h"
 #include "HttpServerTask.h"
 #include "CodeUtil.h"
+#include "Json.h"
+#include "Compress.h"
 
 using namespace protocol;
 
@@ -765,6 +771,10 @@ struct PushTaskCtx
     std::string cond_name;
     HttpResp::PushFunc push_cb;
     HttpResp::PushErrorFunc push_err_cb;
+    std::mutex queue_mutex;
+    std::queue<bool> message_queue;
+    bool processing = false;
+    
     std::string body()
     {
         std::string data;
@@ -784,6 +794,40 @@ struct PushTaskCtx
     }
 };
 
+// Global map to store PushTaskCtx by condition name
+static std::map<std::string, PushTaskCtx*> g_push_ctx_map;
+static std::mutex g_push_ctx_mutex;
+
+// Implementation of sse_signal that uses the message queue
+void sse_signal_impl(const std::string& cond_name)
+{
+    // First check if we have a PushTaskCtx for this condition name
+    {
+        std::lock_guard<std::mutex> lock(g_push_ctx_mutex);
+        auto it = g_push_ctx_map.find(cond_name);
+        if (it != g_push_ctx_map.end()) {
+            PushTaskCtx* ctx = it->second;
+            std::lock_guard<std::mutex> ctx_lock(ctx->queue_mutex);
+            // Add a message to the queue
+            ctx->message_queue.push(true);
+            
+            // If not currently processing, signal to start
+            if (!ctx->processing) {
+                ctx->processing = true;
+                // Signal to start processing
+                WFTaskFactory::signal_by_name(cond_name, NULL);
+                return;
+            } else {
+                // Already processing, no need to signal
+                return;
+            }
+        }
+    }
+    
+    // If we didn't find a context, signal to create a new connection
+    WFTaskFactory::signal_by_name(cond_name, NULL);
+}
+
 void push_func(WFTimerTask *push_task)
 {
     auto *push_task_ctx = static_cast<PushTaskCtx *>(push_task->user_data);
@@ -794,7 +838,8 @@ void push_func(WFTimerTask *push_task)
         fprintf(stderr, "Close the connection\n");
         return;
     }
-    // construct response
+    
+    // Process the current message
     std::string resp_body = push_task_ctx->body();
     size_t nleft = resp_body.size();
     size_t nwritten = server_task->push(resp_body.c_str(), resp_body.size());
@@ -809,6 +854,7 @@ void push_func(WFTimerTask *push_task)
             return;
         }
     }
+    
     if (nleft > 0)
     {
         auto* push_chunk_data = new PushChunkData;
@@ -819,10 +865,30 @@ void push_func(WFTimerTask *push_task)
         timer_task->user_data = push_chunk_data;
         series_of(server_task)->push_front(timer_task);
     }
-    push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
-    push_task->user_data = push_task_ctx;
-    auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
-    **server_task << cond;
+    
+    // Check if there are more messages in the queue
+    bool has_more = false;
+    {
+        std::lock_guard<std::mutex> lock(push_task_ctx->queue_mutex);
+        if (!push_task_ctx->message_queue.empty()) {
+            push_task_ctx->message_queue.pop(); // Remove the message we just processed
+            has_more = !push_task_ctx->message_queue.empty();
+        }
+        push_task_ctx->processing = has_more;
+    }
+    
+    if (has_more) {
+        // Process the next message immediately
+        push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+        push_task->user_data = push_task_ctx;
+        series_of(server_task)->push_front(push_task);
+    } else {
+        // Wait for the next signal
+        push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+        push_task->user_data = push_task_ctx;
+        auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
+        **server_task << cond;
+    }
 }
 
 std::string HttpResp::construct_push_header()
@@ -871,9 +937,19 @@ void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb, const
     push_task_ctx->cond_name = cond_name;
     push_task_ctx->push_cb = push_cb;
     push_task_ctx->push_err_cb = err_cb;
-    server_task->add_callback([push_task_ctx](HttpTask *server_task) {
+    
+    // Store the context in the global map
+    {
+        std::lock_guard<std::mutex> lock(g_push_ctx_mutex);
+        g_push_ctx_map[cond_name] = push_task_ctx;
+    }
+    
+    server_task->add_callback([push_task_ctx, cond_name](HttpTask *server_task) {
+        std::lock_guard<std::mutex> lock(g_push_ctx_mutex);
+        g_push_ctx_map.erase(cond_name);
         delete push_task_ctx;
     });
+    
     auto* push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
     push_task->user_data = push_task_ctx;
     auto* cond = WFTaskFactory::create_conditional(cond_name, push_task);
@@ -1132,6 +1208,12 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
     other.user_data = nullptr;
     cookies_ = std::move(other.cookies_);
     return *this;
+}
+
+// Override the inline sse_signal function from the header
+void sse_signal(const std::string& cond_name)
+{
+    sse_signal_impl(cond_name);
 }
 
 } // namespace wfrest

@@ -55,6 +55,21 @@ int main()
         }
     });
 
+    // New endpoint to test rapid signals without sleep
+    svr.GET("/rapid", [](const HttpReq *req, HttpResp *resp)
+    {
+        int cnt = 0;
+        while (cnt < 10)
+        {
+            // This now works correctly without sleep because of our message queue implementation
+            // The previous implementation would lose messages when sent too quickly
+            sse_signal("test");
+            cnt++;
+            // No sleep here - signals sent as fast as possible
+        }
+        resp->String("Sent 10 rapid signals");
+    });
+
     svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
     {
         // sse header required
