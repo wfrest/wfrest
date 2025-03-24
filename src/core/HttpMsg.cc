@@ -804,7 +804,7 @@ struct PushTaskCtx
     }
 };
 
-void push_func(WFTimerTask *push_task)
+void push_func(WFCounterTask *push_task)
 {
     auto *push_task_ctx = static_cast<PushTaskCtx *>(push_task->user_data);
     auto *server_task = push_task_ctx->server_task;
@@ -839,7 +839,7 @@ void push_func(WFTimerTask *push_task)
         timer_task->user_data = push_chunk_data;
         series_of(server_task)->push_front(timer_task);
     }
-    push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    push_task = WFTaskFactory::create_counter_task(0, push_func);
     push_task->user_data = push_task_ctx;
     auto *cond = WFTaskFactory::create_conditional(push_task_ctx->cond_name, push_task);
     **server_task << cond;
@@ -894,7 +894,7 @@ void HttpResp::Push(const std::string &cond_name, const PushFunc &push_cb, const
     server_task->add_callback([push_task_ctx](HttpTask *server_task) {
         delete push_task_ctx;
     });
-    auto* push_task = WFTaskFactory::create_timer_task(0, 0, push_func);
+    auto* push_task = WFTaskFactory::create_counter_task(0, push_func);
     push_task->user_data = push_task_ctx;
     auto* cond = WFTaskFactory::create_conditional(cond_name, push_task);
     server_task->noreply();  // no need to send original response
