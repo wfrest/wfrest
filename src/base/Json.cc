@@ -889,14 +889,9 @@ void Json::string_convert(const char* str, std::string* out_str)
 
 void Json::number_convert(double number, std::string* out_str)
 {
-    std::ostringstream oss;
-    long long integer = number;
-    if (integer == number)
-        oss << integer;
-    else
-        oss << number;
-
-    out_str->append(oss.str());
+	char buf[32];
+	snprintf(buf, 32, "%.15lg", number);
+	out_str->append(buf);
 }
 
 void Json::array_convert_not_format(const json_array_t* arr,
