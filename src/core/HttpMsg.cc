@@ -194,7 +194,9 @@ wfrest::Json mysql_concat_json_res(WFMySQLTask *mysql_task)
                     else if(arr[i].is_ulonglong())
                     {
                         row.push_back(arr[i].as_ulonglong());
-                    }else{
+                    }
+                    else
+                    {
                         row.push_back(arr[i].as_binary_string());
                     }
                 }
