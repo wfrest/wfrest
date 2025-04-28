@@ -264,7 +264,7 @@ void Json::erase(const std::string& key)
 
 Json Json::operator[](int index)
 {
-    if (!is_array() || index < 0 || index > this->size())
+    if (!is_array() || index < 0 || index > (int)this->size())
     {
         return Json();
     }
@@ -299,7 +299,7 @@ void Json::erase(int index)
 
 Json Json::operator[](int index) const
 {
-    if (!is_array() || index < 0 || index > this->size())
+    if (!is_array() || index < 0 || index > (int)this->size())
     {
         return Json();
     }
@@ -729,7 +729,7 @@ std::string Json::type_str() const
     return "unknown";
 }
 
-int Json::size() const
+size_t Json::size() const
 {
     if (type() == JSON_VALUE_ARRAY)
     {
