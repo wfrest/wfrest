@@ -1,11 +1,9 @@
 set_group("test")
-set_default(false)
-
-add_requires("gtest")
-
-add_deps("wfrest")
-add_packages("workflow", "zlib")
-add_packages("gtest")
+set_default(false)  -- 默认关闭
+add_repositories("local-repo build.xmake")
+add_requires("wfrest")
+add_requires("gtest", { configs = { main = true } })
+add_packages("workflow", "zlib",'wfrest','gtest')
 add_links("gtest_main")
 
 function all_tests()
@@ -24,6 +22,7 @@ for _, test in ipairs(all_tests()) do
 target(test[1])
     set_kind("binary")
     add_files(test[2])
+    set_languages("cxx14")
     if has_config("memcheck") then
         on_run(function (target)
             local argv = {}
