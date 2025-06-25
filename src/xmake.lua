@@ -1,5 +1,5 @@
+add_packages("zlib")
 includes("**/xmake.lua")
-
 target("wfrest")
     add_deps("base", "core", "util")
     add_packages("workflow")
@@ -25,9 +25,9 @@ target("wfrest")
             shared_suffix = "*.dylib"
         end
         if target:is_static() then
-            os.mv(path.join("$(projectdir)", target:targetdir(), "*.a"), lib_dir)
+            os.cp(path.join("$(projectdir)", target:targetdir(), "*.a"), lib_dir)
         else
-            os.mv(path.join("$(projectdir)", target:targetdir(), shared_suffix), lib_dir)
+            os.cp(path.join("$(projectdir)", target:targetdir(), shared_suffix), lib_dir)
         end
     end)
 
@@ -46,3 +46,8 @@ target("wfrest")
         end
     end)
 
+    after_package(function (target)
+        os.mkdir(path.join(target:packagedir(),target:plat(), target:arch(),"$(mode)"))
+        os.cp(path.join(get_config("wfrest_inc"), "wfrest"), path.join(target:packagedir(),target:plat(), target:arch(),"$(mode)", "include"))
+
+    end)
