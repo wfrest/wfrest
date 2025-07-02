@@ -22,8 +22,11 @@ else ()
 	endif ()
 endif()
 
+find_package(ZLIB REQUIRED)
+
 include_directories(
 	${OPENSSL_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${WORKFLOW_INCLUDE_DIR}
 	${INC_DIR}/wfrest
