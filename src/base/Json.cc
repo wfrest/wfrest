@@ -96,6 +96,11 @@ Json& Json::operator=(const Json& other)
     {
         return *this;
     }
+    if (parent_ != nullptr)
+    {
+        assign(other);
+        return *this;
+    }
     destroy_node(&node_);
     node_ = json_value_copy(other.node_);
     parent_ = nullptr;
@@ -118,6 +123,11 @@ Json& Json::operator=(Json&& other)
 {
     if (this == &other)
     {
+        return *this;
+    }
+    if (parent_ != nullptr)
+    {
+        assign(other);
         return *this;
     }
     destroy_node(&node_);
