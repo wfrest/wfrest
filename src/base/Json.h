@@ -82,7 +82,7 @@ public:
     Json operator[](int index) const;
 
     template <typename T>
-    void operator=(const T& val)
+    void assign(const T& val)
     {
         if (parent_ == nullptr)
             return;
@@ -94,6 +94,12 @@ public:
         {
             push_back_obj(parent_key_, val);
         }
+    }
+
+    template <typename T>
+    void operator=(const T& val)
+    {
+        assign(val);
     }
 
     bool has(const std::string& key) const;
