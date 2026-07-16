@@ -50,6 +50,7 @@ TEST_F(RouterRegisterTest, reg_route)
     // Becareful : /hello -> hello, we won't store the '/' at the front
     RegRoutes reg_list_exp = {
         {"GET", "api/action*"},
+        {"GET", "api/v1"},
         {"GET", "api/v1/v2"},
         {"GET", "api/v1/v3/v4"},
         {"POST", "api/{name}"},
@@ -59,7 +60,7 @@ TEST_F(RouterRegisterTest, reg_route)
 
     RegRoutes reg_list = router_.all_routes();
     EXPECT_EQ(reg_list_exp.size(), reg_list.size());
-    for(int i = 0; i < reg_list.size(); i++)
+    for(size_t i = 0; i < reg_list.size(); i++)
     {
         EXPECT_EQ(reg_list_exp[i].first, reg_list[i].first);
         EXPECT_EQ(reg_list_exp[i].second, reg_list[i].second);
@@ -84,7 +85,7 @@ TEST_F(RouterRegisterTest, root_route)
 
     RegRoutes reg_list = router_.all_routes();
     EXPECT_EQ(reg_list_exp.size(), reg_list.size());
-    for(int i = 0; i < reg_list.size(); i++)
+    for(size_t i = 0; i < reg_list.size(); i++)
     {
         EXPECT_EQ(reg_list_exp[i].first, reg_list[i].first);
         EXPECT_EQ(reg_list_exp[i].second, reg_list[i].second);
