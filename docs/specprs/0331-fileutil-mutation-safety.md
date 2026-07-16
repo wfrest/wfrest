@@ -83,16 +83,24 @@ to a directory. New-directory mode remains `0755` subject to umask.
 
 ## Descriptor-based recursive removal
 
-The root is opened with:
+Root traversal starts from an opened `/` descriptor for absolute input or an
+opened `.` descriptor for relative input. Each non-empty component other than
+`.` is then opened relative to the previous descriptor with:
 
 ```text
 O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
 ```
 
-Open failure returns false. `fstat` records the root device and directory
-identity. The opened root is compared with separately opened `/` and `.`
-descriptors; matching filesystem root or current directory returns false before
-enumerating any entry.
+This component walk applies `O_NOFOLLOW` to every user-supplied component, not
+only the final name. A root path such as `directory-link/.` therefore cannot
+bypass symlink rejection. `..` retains its normal filesystem meaning but is
+also opened relative to the current descriptor without following a symlink.
+
+Any component-open or prior-descriptor close failure returns false. `fstat`
+records the final root device and directory identity. The opened root is
+compared with separately component-opened `/` and `.` descriptors; matching
+filesystem root or current directory returns false before enumerating any
+entry.
 
 The recursive walker transfers each owned fd to `fdopendir`. For each entry
 other than `.` and `..`, it calls:
@@ -117,8 +125,11 @@ checked. Every descriptor is consumed by `fdopendir`, explicitly closed after
 setup failure, or closed by a small identity-check helper.
 
 Only after the root contents are completely removed and its stream is closed
-does `remove_directory` call `rmdir(path)`. It returns true only if that final
-operation succeeds.
+does `remove_directory` call `rmdir`. The already-verified path is normalized
+lexically for that final call by collapsing repeated separators and `.` and by
+resolving `..` components without filesystem lookup. This lets ordinary forms
+such as `target/./` remove the intended root instead of failing after it was
+emptied. It returns true only if the final `rmdir` succeeds.
 
 ## Generated file completion
 
@@ -166,7 +177,8 @@ Intentional changes affect unsafe or false-success cases:
 ## Implementation plan
 
 1. Add local helpers for directory verification and component-wise mkdir.
-2. Add fd identity and recursive descriptor-walk helpers.
+2. Add nofollow root-component, fd identity, and recursive descriptor-walk
+   helpers.
 3. Replace path-based recursive removal with `openat`/`unlinkat` traversal.
 4. Check generated stream state after every write and close.
 5. Harden the size query before `stat` conversion.
