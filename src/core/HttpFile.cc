@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
+#include <fcntl.h>
 #include <limits>
 #include <sys/stat.h>
 #include <type_traits>
+#include <unistd.h>
 
 #include "HttpFile.h"
 #include "HttpMsg.h"
@@ -25,6 +27,8 @@ struct SaveFileContext
     std::string content;
     std::string notify_msg;
     HttpFile::FileIOArgsFunc fileio_args_func;
+    int fd = -1;
+    size_t expected_size = 0;
 };
 
 struct FileRange
@@ -188,24 +192,65 @@ void pread_callback(WFFileIOTask *pread_task)
 
 void pwrite_callback(WFFileIOTask *pwrite_task)
 {
-    long ret = pwrite_task->get_retval();
+    const long ret = pwrite_task->get_retval();
     HttpServerTask *server_task = task_of(pwrite_task);
     HttpResp *resp = server_task->get_resp();
     auto *save_context = static_cast<SaveFileContext *>(pwrite_task->user_data);
-    if(save_context->fileio_args_func)
+    FileIOArgs *args = pwrite_task->get_args();
+
+    int close_result = -1;
+    if (save_context->fd >= 0)
     {
-        save_context->fileio_args_func(pwrite_task->get_args());
+        close_result = close(save_context->fd);
+        save_context->fd = -1;
     }
-    if (pwrite_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
+    args->fd = -1;
+
+    if (save_context->fileio_args_func)
+        save_context->fileio_args_func(args);
+
+    const bool complete =
+        pwrite_task->get_state() == WFT_STATE_SUCCESS && ret >= 0 &&
+        static_cast<uintmax_t>(ret) ==
+            static_cast<uintmax_t>(save_context->expected_size) &&
+        close_result == 0;
+    if (!complete)
     {
         resp->Error(StatusFileWriteError);
-    } else
-    {
-        if(!save_context->notify_msg.empty())
-        {
-            resp->append_output_body_nocopy(save_context->notify_msg.c_str(), save_context->notify_msg.size());
-        }
     }
+    else if (!save_context->notify_msg.empty())
+    {
+        resp->append_output_body_nocopy(save_context->notify_msg.c_str(),
+                                        save_context->notify_msg.size());
+    }
+}
+
+void enqueue_save_file(const std::string &dst_path,
+                       HttpResp *resp,
+                       SaveFileContext *save_context)
+{
+    HttpServerTask *server_task = task_of(resp);
+    save_context->expected_size = save_context->content.size();
+    save_context->fd = open(dst_path.c_str(),
+                            O_WRONLY | O_CREAT | O_TRUNC,
+                            0644);
+
+    // An invalid fd keeps open failures on the normal asynchronous callback.
+    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(
+        save_context->fd,
+        static_cast<const void *>(save_context->content.c_str()),
+        save_context->expected_size,
+        0,
+        pwrite_callback);
+    pwrite_task->user_data = save_context;
+
+    server_task->add_callback([save_context](HttpTask *)
+    {
+        if (save_context->fd >= 0)
+            close(save_context->fd);
+        delete save_context;
+    });
+    **server_task << pwrite_task;
 }
 
 // Callback for asynchronous file reading in cached mode
@@ -278,50 +323,22 @@ void HttpFile::save_file(const std::string &dst_path, const std::string &content
                         HttpResp *resp, const std::string &notify_msg,
                         const FileIOArgsFunc &func)
 {
-    HttpServerTask *server_task = task_of(resp);
-
     auto *save_context = new SaveFileContext;
     save_context->content = content;    // copy
     save_context->notify_msg = notify_msg;  // copy
-    if (func)
-    {
-        save_context->fileio_args_func = func;
-    }
-    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
-                                                                  static_cast<const void *>(save_context->content.c_str()),
-                                                                  save_context->content.size(),
-                                                                  0,
-                                                                  pwrite_callback);
-    **server_task << pwrite_task;
-    server_task->add_callback([save_context](HttpTask *) {
-        delete save_context;
-    });
-    pwrite_task->user_data = save_context;
+    save_context->fileio_args_func = func;
+    enqueue_save_file(dst_path, resp, save_context);
 }
 
 void HttpFile::save_file(const std::string &dst_path, std::string &&content,
                         HttpResp *resp, const std::string &notify_msg,
                         const FileIOArgsFunc &func)
 {
-    HttpServerTask *server_task = task_of(resp);
-
     auto *save_context = new SaveFileContext;
     save_context->content = std::move(content);
-    save_context->notify_msg = std::move(notify_msg);
-    if (func)
-    {
-        save_context->fileio_args_func = func;
-    }
-    WFFileIOTask *pwrite_task = WFTaskFactory::create_pwrite_task(dst_path,
-                                                                  static_cast<const void *>(save_context->content.c_str()),
-                                                                  save_context->content.size(),
-                                                                  0,
-                                                                  pwrite_callback);
-    **server_task << pwrite_task;
-    server_task->add_callback([save_context](HttpTask *) {
-        delete save_context;
-    });
-    pwrite_task->user_data = save_context;
+    save_context->notify_msg = notify_msg;
+    save_context->fileio_args_func = func;
+    enqueue_save_file(dst_path, resp, save_context);
 }
 
 
