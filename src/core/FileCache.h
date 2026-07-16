@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <atomic>
 #include <mutex>
 #include <memory>
 #include <ctime>
@@ -36,7 +37,7 @@ public:
     void clear();
     
     // Set maximum cache size
-    void set_max_size(size_t max_size) { max_cache_size_ = max_size; }
+    void set_max_size(size_t max_size);
     
     // Get current cache size
     size_t size() const { 
@@ -47,17 +48,16 @@ public:
     // Enable/Disable caching
     void enable() { 
         std::lock_guard<std::mutex> lock(mutex_);
-        enabled_ = true; 
+        enabled_.store(true, std::memory_order_release);
     }
     
     void disable() { 
         std::lock_guard<std::mutex> lock(mutex_);
-        enabled_ = false; 
+        enabled_.store(false, std::memory_order_release);
     }
     
-    bool is_enabled() const { 
-        std::lock_guard<std::mutex> lock(mutex_);
-        return enabled_; 
+    bool is_enabled() const {
+        return enabled_.load(std::memory_order_acquire);
     }
 
 private:
@@ -68,20 +68,20 @@ private:
     FileCache(const FileCache&) = delete;
     FileCache& operator=(const FileCache&) = delete;
     
-    // Check file modification time
-    std::time_t get_file_modification_time(const std::string& path);
-    
-    // Remove least recently used items when cache is full
-    void manage_cache_size();
+    void evict_if_same(const std::string& path,
+                       const std::shared_ptr<CachedFile>& snapshot);
+
+    // Remove entries until an incoming object can fit within the size bound.
+    void manage_cache_size(size_t incoming_size);
 
 private:
     std::unordered_map<std::string, std::shared_ptr<CachedFile>> cache_;
     mutable std::mutex mutex_; // mutex for thread safety
     size_t max_cache_size_;
     size_t current_size_;
-    bool enabled_;
+    std::atomic<bool> enabled_;
 };
 
 } // namespace wfrest
 
-#endif // WFREST_FILECACHE_H_ 
+#endif // WFREST_FILECACHE_H_

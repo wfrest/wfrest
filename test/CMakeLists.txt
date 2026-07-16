@@ -66,6 +66,7 @@ set(UNIT_TEST_LIST
 	RouteTable_unittest
 	HttpDef_unittest
 	FileUtil_unittest
+	FileCache_unittest
 	PathUtil_unittest
 )
 
