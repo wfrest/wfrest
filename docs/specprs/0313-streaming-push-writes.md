@@ -80,11 +80,10 @@ millisecond timer is pushed to the front of the same server series.
 
 ## Ordering
 
-For a non-terminal write, the next named conditional is registered immediately
-after the first write attempt. This retains existing signal behavior. When a
-partial or would-block result also creates a retry timer, that timer is inserted
-at the front of the server series; the already registered conditional cannot
-execute until the current bytes finish or fail.
+For a non-terminal write, the next named conditional is registered only after
+the current bytes have been written completely. A partial or would-block result
+creates a retry timer at the front of the server series, and completion of the
+last retry registers the condition.
 
 The sequence is therefore:
 
@@ -92,15 +91,18 @@ The sequence is therefore:
 current condition -> zero or more front retries -> next condition
 ```
 
-No later chunk can overtake an earlier partial chunk.
+No later chunk can overtake an earlier partial chunk, and a fatal retry cannot
+leave the server series waiting on a condition that will never be used. Signals
+that arrive while a write is still retrying are not buffered; event replay is
+explicitly outside this API's contract.
 
 ## Header writes
 
 The serialized HTTP response header is passed to the same owned write path as
 chunk data. A complete header registers the first named conditional. A partial
-or would-block header owns and retries the unsent suffix, with the first
-condition ordered behind those retries. A fatal header write reports the error
-and registers no condition.
+or would-block header owns and retries the unsent suffix, then registers the
+first condition after completion. A fatal header write reports the error and
+registers no condition.
 
 The response is switched to `noreply` before this path so the normal Workflow
 reply machinery cannot send a second header.
@@ -121,9 +123,8 @@ The operation covers:
 - timer-retry failure;
 - invalid offset, zero progress, or an impossible over-reported byte count.
 
-A conditional that was already registered behind a retry may wake after that
-retry fails. It observes `failed`, returns immediately, and does not invoke the
-callback or register another condition.
+Any callback task that observes an already failed context returns immediately,
+without invoking the error callback or registering another condition.
 
 ## Terminal chunk
 
