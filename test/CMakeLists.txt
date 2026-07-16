@@ -33,9 +33,17 @@ include_directories(
 link_directories(${WFREST_LIB_DIR} ${WORKFLOW_LIB_DIR})
 
 find_program(CMAKE_MEMORYCHECK_COMMAND valgrind)
-set(memcheck_command ${CMAKE_MEMORYCHECK_COMMAND} ${CMAKE_MEMORYCHECK_COMMAND_OPTIONS} --error-exitcode=1 --leak-check=full --show-leak-kinds=all)
+if (CMAKE_MEMORYCHECK_COMMAND)
+	set(memcheck_command
+		${CMAKE_MEMORYCHECK_COMMAND}
+		${CMAKE_MEMORYCHECK_COMMAND_OPTIONS}
+		--error-exitcode=1
+		--leak-check=full
+		--show-leak-kinds=all
+	)
+endif ()
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)
 
 enable_testing()
 find_package(GTest REQUIRED)
@@ -65,12 +73,16 @@ foreach(src ${UNIT_TEST_LIST})
 	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
 	target_link_libraries(${src} ${WFREST_LIB} ${GTEST_LIB})
 	add_test(${src} ${src})
+	set_tests_properties(${src} PROPERTIES TIMEOUT 30)
 	add_dependencies(check ${src})
 endforeach()
 
-foreach(src ${UNIT_TEST_LIST})
-    add_test(${src}-memory-check ${memcheck_command} ./${src})
-endforeach()
+if (CMAKE_MEMORYCHECK_COMMAND)
+	foreach(src ${UNIT_TEST_LIST})
+		add_test(${src}-memory-check ${memcheck_command} ./${src})
+		set_tests_properties(${src}-memory-check PROPERTIES TIMEOUT 300)
+	endforeach()
+endif ()
 
 set(SERVER_UNIT_TEST_LIST
 	send_test
@@ -89,26 +101,44 @@ foreach(src ${SERVER_UNIT_TEST_LIST})
 	add_executable(server_${src} EXCLUDE_FROM_ALL ./HttpServer/${src}.cc)
 	target_link_libraries(server_${src} ${WFREST_LIB} ${GTEST_LIB})
 	add_test(server_${src} server_${src})
+	set_tests_properties(server_${src} PROPERTIES
+		RESOURCE_LOCK wfrest_test_server_ports
+		TIMEOUT 60
+	)
 	add_dependencies(check server_${src})
 endforeach()
 
+if (CMAKE_MEMORYCHECK_COMMAND)
+	foreach(src ${SERVER_UNIT_TEST_LIST})
+		add_test(server_${src}-memory-check ${memcheck_command} ./server_${src})
+		set_tests_properties(server_${src}-memory-check PROPERTIES
+			RESOURCE_LOCK wfrest_test_server_ports
+			TIMEOUT 300
+		)
+	endforeach()
+endif ()
 
-foreach(src ${SERVER_UNIT_TEST_LIST})
-    add_test(server_${src}-memory-check ${memcheck_command} ./server_${src})
-endforeach()
-
-set(TEST_LIST
+set(SMOKE_TEST_LIST
 	router_test
 	multi_part_test
 	StringPiece_feature
 	RouteTableNode_test
+)
+
+set(MANUAL_TEST_LIST
 	multi_verb_test
 )
 
-foreach(src ${TEST_LIST})
+foreach(src ${SMOKE_TEST_LIST})
+	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
+	target_link_libraries(${src} ${WFREST_LIB})
+	add_test(${src} ${src})
+	set_tests_properties(${src} PROPERTIES TIMEOUT 30)
+	add_dependencies(check ${src})
+endforeach()
+
+foreach(src ${MANUAL_TEST_LIST})
 	add_executable(${src} EXCLUDE_FROM_ALL ${src}.cc)
 	target_link_libraries(${src} ${WFREST_LIB})
 	add_dependencies(check ${src})
 endforeach()
-
-
