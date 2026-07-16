@@ -13,6 +13,8 @@ static void multipart_log(const char *format, ...)
     fprintf(stderr, "[HTTP_MULTIPART_PARSER] %s:%d: ", __FILE__, __LINE__);
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
+#else
+    (void) format;
 #endif
 }
 
@@ -77,16 +79,31 @@ enum state
 multipart_parser *multipart_parser_init
         (const char *boundary, const multipart_parser_settings *settings)
 {
+    size_t boundary_length;
+    size_t allocation_size;
+    multipart_parser *p;
 
-    multipart_parser *p = (multipart_parser *) malloc(sizeof(multipart_parser) +
-                                                      strlen(boundary) +
-                                                      strlen(boundary) + 9);
+    if (boundary == NULL || settings == NULL)
+        return NULL;
 
-    strcpy(p->multipart_boundary, boundary);
-    p->boundary_length = strlen(boundary);
+    boundary_length = strlen(boundary);
+    if (boundary_length == 0 ||
+        boundary_length > (((size_t) -1) - sizeof(multipart_parser) - 9) / 2)
+    {
+        return NULL;
+    }
+
+    allocation_size = sizeof(multipart_parser) + boundary_length * 2 + 9;
+    p = (multipart_parser *) malloc(allocation_size);
+    if (p == NULL)
+        return NULL;
+
+    memcpy(p->multipart_boundary, boundary, boundary_length + 1);
+    p->boundary_length = boundary_length;
 
     p->lookbehind = (p->multipart_boundary + p->boundary_length + 1);
 
+    p->data = NULL;
     p->index = 0;
     p->state = s_start;
     p->settings = settings;
@@ -101,12 +118,13 @@ void multipart_parser_free(multipart_parser *p)
 
 void multipart_parser_set_data(multipart_parser *p, void *data)
 {
-    p->data = data;
+    if (p != NULL)
+        p->data = data;
 }
 
 void *multipart_parser_get_data(multipart_parser *p)
 {
-    return p->data;
+    return p == NULL ? NULL : p->data;
 }
 
 size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len)
@@ -115,6 +133,9 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
     size_t mark = 0;
     char c, cl;
     int is_last = 0;
+
+    if (p == NULL || (buf == NULL && len != 0))
+        return 0;
 
     while (i < len)
     {
@@ -177,7 +198,7 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
                     break;
                 }
 
-                cl = tolower(c);
+                cl = (char) tolower((unsigned char) c);
                 if ((c != '-') && (cl < 'a' || cl > 'z'))
                 {
                     multipart_log("invalid character in header name");

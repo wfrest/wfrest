@@ -66,6 +66,14 @@ int main()
 }
 ```
 
+Content-Type media names and multipart parameter names are matched
+case-insensitively. A multipart request must provide exactly one valid
+`boundary` parameter; quoted boundaries, optional whitespace, and unrelated
+parameters before or after it are supported. `req->form()` returns an empty
+form when the boundary is missing or invalid, or when the body does not reach a
+complete closing boundary. This prevents handlers from observing partial data
+from a malformed upload.
+
 ## MultiPartEncoder
 
 URL-encoded form names and values follow the same decoding rules as query

@@ -28,11 +28,9 @@ class MultiPartForm
 public:
     Form parse_multipart(const StringPiece &body) const;
 
-    void set_boundary(std::string &&boundary)
-    { boundary_ = std::move(boundary); }
+    void set_boundary(std::string &&boundary);
 
-    void set_boundary(const std::string &boundary)
-    { boundary_ = boundary; }
+    void set_boundary(const std::string &boundary);
 
 public:
     static const std::string k_default_boundary;

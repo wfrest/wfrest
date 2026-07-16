@@ -5,6 +5,24 @@
 
 using namespace wfrest;
 
+namespace
+{
+
+std::string multipart_body(const std::string &boundary,
+                           const std::string &name,
+                           const std::string &value,
+                           const std::string &closing = "--\r\n")
+{
+    std::string body = "--" + boundary;
+    body += "\r\nContent-Disposition: form-data; name=\"" + name;
+    body += "\"\r\n\r\n";
+    body += value;
+    body += "\r\n--" + boundary + closing;
+    return body;
+}
+
+} // namespace
+
 TEST(Urlencode, parse_post_kv)
 {
     const std::string payload =
@@ -26,4 +44,76 @@ TEST(Urlencode, parse_post_kv)
     ASSERT_EQ(form.at("nul").size(), 1U);
     EXPECT_EQ(form.at("nul")[0], '\0');
 
+}
+
+TEST(MultiPartForm, parses_only_complete_bodies)
+{
+    MultiPartForm parser;
+    parser.set_boundary("abc");
+
+    const std::string value("binary\0data\r\n--abx", 18);
+    const Form valid = parser.parse_multipart(
+        StringPiece(multipart_body("abc", "field", value)));
+    ASSERT_EQ(valid.size(), 1U);
+    EXPECT_EQ(valid.at("field").first, "");
+    EXPECT_EQ(valid.at("field").second, value);
+
+    const std::string multiple =
+        "--abc\r\nContent-Disposition: form-data; name=\"first\"\r\n"
+        "\r\none\r\n--abc\r\n"
+        "Content-Disposition: form-data; name=\"second\"\r\n"
+        "\r\ntwo\r\n--abc--\r\n";
+    const Form fields = parser.parse_multipart(StringPiece(multiple));
+    ASSERT_EQ(fields.size(), 2U);
+    EXPECT_EQ(fields.at("first").second, "one");
+    EXPECT_EQ(fields.at("second").second, "two");
+
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(
+        multipart_body("abc", "field", "value", "X\r\n"))).empty());
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(
+        multipart_body("abc", "field", "value", "\r\n"))).empty());
+
+    const std::string truncated =
+        "--abc\r\nContent-Disposition: form-data; name=\"field\"\r\n"
+        "\r\nvalue";
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(truncated)).empty());
+}
+
+TEST(MultiPartForm, rejects_invalid_boundaries)
+{
+    const std::string valid_body = multipart_body("abc", "field", "value");
+    MultiPartForm parser;
+
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
+
+    parser.set_boundary("");
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
+
+    parser.set_boundary("abc");
+    parser.set_boundary("abc;");
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
+
+    parser.set_boundary("abc ");
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
+
+    parser.set_boundary(std::string(71, 'a'));
+    EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
+}
+
+TEST(MultiPartParser, rejects_invalid_initialization)
+{
+    multipart_parser_settings settings = {};
+    EXPECT_EQ(multipart_parser_init(nullptr, &settings), nullptr);
+    EXPECT_EQ(multipart_parser_init("", &settings), nullptr);
+    EXPECT_EQ(multipart_parser_init("abc", nullptr), nullptr);
+    EXPECT_EQ(multipart_parser_execute(nullptr, "body", 4), 0U);
+    EXPECT_EQ(multipart_parser_get_data(nullptr), nullptr);
+    multipart_parser_set_data(nullptr, nullptr);
+    multipart_parser_free(nullptr);
+
+    multipart_parser *parser = multipart_parser_init("abc", &settings);
+    ASSERT_NE(parser, nullptr);
+    EXPECT_EQ(multipart_parser_get_data(parser), nullptr);
+    EXPECT_EQ(multipart_parser_execute(parser, nullptr, 1), 0U);
+    multipart_parser_free(parser);
 }
