@@ -6,6 +6,10 @@
 
 #include <unistd.h>
 #include <algorithm>
+#include <cstdlib>
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "HttpMsg.h"
 #include "UriUtil.h"
@@ -16,6 +20,7 @@
 #include "HttpServerTask.h"
 #include "CodeUtil.h"
 #include "HttpHeaderUtil.h"
+#include "MultipartUtil.h"
 #include "PushWriteUtil.h"
 
 using namespace protocol;
@@ -198,6 +203,89 @@ bool extract_multipart_boundary(const std::string &content_type,
     }
 
     return found;
+}
+
+struct MultipartResponseContext
+{
+    HttpResp *resp;
+    std::string boundary;
+    std::string content;
+    bool failed;
+};
+
+struct MultipartFileContext
+{
+    MultipartResponseContext *response;
+    std::string path;
+    std::string field_name;
+    std::string filename;
+    std::string content_type;
+    void *buffer;
+    size_t expected_size;
+    bool final_task;
+};
+
+void append_multipart_part_prefix(MultipartResponseContext *context)
+{
+    if (!context->content.empty())
+        context->content.append("\r\n");
+
+    context->content.append("--");
+    context->content.append(context->boundary);
+    context->content.append("\r\n");
+}
+
+void append_multipart_closing_delimiter(MultipartResponseContext *context)
+{
+    if (!context->content.empty())
+        context->content.append("\r\n");
+
+    context->content.append("--");
+    context->content.append(context->boundary);
+    context->content.append("--\r\n");
+}
+
+void append_multipart_param(MultipartResponseContext *context,
+                            const std::string& field_name,
+                            const std::string& value)
+{
+    std::string encoded_name;
+    if (!detail::encode_multipart_quoted_value(field_name, &encoded_name))
+        return;
+
+    append_multipart_part_prefix(context);
+    context->content.append("Content-Disposition: form-data; name=\"");
+    context->content.append(encoded_name);
+    context->content.append("\"\r\n\r\n");
+    context->content.append(value);
+}
+
+void append_multipart_file(MultipartFileContext *file)
+{
+    MultipartResponseContext *context = file->response;
+    append_multipart_part_prefix(context);
+    context->content.append("Content-Disposition: form-data; name=\"");
+    context->content.append(file->field_name);
+    context->content.append("\"; filename=\"");
+    context->content.append(file->filename);
+    context->content.append("\"\r\nContent-Type: ");
+    context->content.append(file->content_type);
+    context->content.append("\r\n\r\n");
+    context->content.append(static_cast<const char *>(file->buffer),
+                            file->expected_size);
+}
+
+void finish_multipart_response(MultipartResponseContext *context)
+{
+    if (context->failed)
+    {
+        context->resp->Error(StatusFileReadError);
+        return;
+    }
+
+    append_multipart_closing_delimiter(context);
+    context->resp->append_output_body_nocopy(context->content.c_str(),
+                                             context->content.size());
 }
 
 } // namespace
@@ -734,111 +822,123 @@ void HttpResp::String(MultiPartEncoder &&multi_part_encoder)
 
 void HttpResp::String(MultiPartEncoder *encoder)
 {
-    const std::string &boudary = encoder->boundary();
-    this->headers["Content-Type"] = "multipart/form-data; boundary=" + boudary;
-
+    std::unique_ptr<MultiPartEncoder> encoder_owner(encoder);
     HttpServerTask *server_task = task_of(this);
     SeriesWork *series = series_of(server_task);
+    MultipartResponseContext *response = new MultipartResponseContext{
+        this, encoder_owner->boundary(), std::string(), false
+    };
+    this->headers["Content-Type"] =
+        "multipart/form-data; boundary=\"" + response->boundary + "\"";
 
-    std::string *content = new std::string;
-    series->set_context(content);
-    series->set_callback([encoder](const SeriesWork *series)
-    {
-        delete encoder;
-        delete static_cast<std::string *>(series->get_context());
-    });
+    for (const auto& param : encoder_owner->params())
+        append_multipart_param(response, param.first, param.second);
 
-    const MultiPartEncoder::ParamList &param_list = encoder->params();
-    int param_idx = 0;
-    for(const auto &param : param_list)
+    std::vector<MultipartFileContext *> files;
+    bool allocation_failed = false;
+    for (const auto& file : encoder_owner->files())
     {
-        if (param_idx != 0)
-        {
-            content->append("\r\n");
-        }
-        param_idx++;
-        content->append("--");
-        content->append(boudary);
-        content->append("\r\nContent-Disposition: form-data; name=\"");
-        content->append(param.first);
-        content->append("\"\r\n\r\n");
-        content->append(param.second);
-    }
-    const MultiPartEncoder::FileList &file_list = encoder->files();
-    size_t file_cnt = file_list.size();
-    if (file_cnt == 0)
-    {
-        content->append("\r\n--");
-        content->append(boudary);
-        content->append("--\r\n");
-        this->append_output_body_nocopy(content->c_str(), content->size());
-    }
-    size_t file_idx = 0;
-    for(const auto &file : file_list)
-    {
-        if(!PathUtil::is_file(file.second))
+        if (!PathUtil::is_file(file.second))
         {
             fprintf(stderr, "[Error] Not a File : %s\n", file.second.c_str());
             continue;
         }
-        size_t file_size;
-        int ret = FileUtil::size(file.second, &file_size);
-        if (ret != StatusOK)
+
+        size_t file_size = 0;
+        if (FileUtil::size(file.second, &file_size) != StatusOK)
         {
             fprintf(stderr, "[Error] Invalid File : %s\n", file.second.c_str());
             continue;
         }
-        void *buf = malloc(file_size);
-        server_task->add_callback([buf](const HttpTask *)
-                                {
-                                    free(buf);
-                                });
-        WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(file.second,
-                buf, file_size, 0,
-                [&file, &boudary, param_idx, file_idx](WFFileIOTask *pread_task)
-                {
-                    FileIOArgs *args = pread_task->get_args();
-                    long ret = pread_task->get_retval();
 
-                    SeriesWork *series = series_of(pread_task);
-                    std::string *content = static_cast<std::string *>(series->get_context());
-                    if (pread_task->get_state() != WFT_STATE_SUCCESS || ret < 0)
-                    {
-                        fprintf(stderr, "Read %s Error\n", file.second.c_str());
-                    } else
-                    {
-                        std::string file_suffix = PathUtil::suffix(file.second);
-                        std::string file_type = ContentType::to_str_by_suffix(file_suffix);
-                        if (param_idx != 0 || file_idx != 0)
-                        {
-                            content->append("\r\n");
-                        }
-                        content->append("--");
-                        content->append(boudary);
-                        content->append("\r\nContent-Disposition: form-data; name=\"");
-                        content->append(file.first);
-                        content->append("\"; filename=\"");
-                        content->append(PathUtil::base(file.second));
-                        content->append("\"\r\nContent-Type: ");
-                        content->append(file_type);
-                        content->append("\r\n\r\n");
-                        content->append(static_cast<char *>(args->buf), ret);
-                    }
-                    // last one, send the content
-                    if(pread_task->user_data) {
-                        content->append("\r\n--");
-                        content->append(boudary);
-                        content->append("--\r\n");
-                        HttpResp *resp = static_cast<HttpResp *>(pread_task->user_data);
-                        resp->append_output_body_nocopy(content->c_str(), content->size());
-                    }
-                });
-        if(file_idx == file_cnt - 1)
+        std::string field_name;
+        std::string filename;
+        if (!detail::encode_multipart_quoted_value(file.first, &field_name) ||
+            !detail::encode_multipart_quoted_value(
+                PathUtil::base(file.second), &filename))
         {
-            pread_task->user_data = this;
+            fprintf(stderr, "[Error] Invalid Multipart Metadata : %s\n",
+                    file.second.c_str());
+            continue;
         }
+
+        void *buffer = std::malloc(file_size == 0 ? 1 : file_size);
+        if (buffer == nullptr)
+        {
+            allocation_failed = true;
+            break;
+        }
+
+        MultipartFileContext *file_context = new MultipartFileContext{
+            response,
+            file.second,
+            std::move(field_name),
+            std::move(filename),
+            ContentType::to_str_by_suffix(PathUtil::suffix(file.second)),
+            buffer,
+            file_size,
+            false
+        };
+        files.push_back(file_context);
+    }
+
+    if (allocation_failed)
+    {
+        for (MultipartFileContext *file : files)
+        {
+            std::free(file->buffer);
+            delete file;
+        }
+        delete response;
+        this->Error(StatusFileReadError);
+        return;
+    }
+
+    server_task->add_callback([response](const HttpTask *) {
+        delete response;
+    });
+
+    if (files.empty())
+    {
+        finish_multipart_response(response);
+        return;
+    }
+
+    files.back()->final_task = true;
+    for (MultipartFileContext *file : files)
+    {
+        server_task->add_callback([file](const HttpTask *) {
+            std::free(file->buffer);
+            delete file;
+        });
+
+        WFFileIOTask *pread_task = WFTaskFactory::create_pread_task(
+            file->path, file->buffer, file->expected_size, 0,
+            [](WFFileIOTask *task)
+            {
+                MultipartFileContext *file =
+                    static_cast<MultipartFileContext *>(task->user_data);
+                const long retval = task->get_retval();
+                const bool exact_read =
+                    task->get_state() == WFT_STATE_SUCCESS && retval >= 0 &&
+                    static_cast<std::uintmax_t>(retval) ==
+                        static_cast<std::uintmax_t>(file->expected_size);
+
+                if (!exact_read)
+                {
+                    fprintf(stderr, "Read %s Error\n", file->path.c_str());
+                    file->response->failed = true;
+                }
+                else
+                {
+                    append_multipart_file(file);
+                }
+
+                if (file->final_task)
+                    finish_multipart_response(file->response);
+            });
+        pread_task->user_data = file;
         series->push_back(pread_task);
-        file_idx++;
     }
 }
 
