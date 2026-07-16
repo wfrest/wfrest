@@ -68,9 +68,9 @@ quotes are data, not separators. A backslash followed by a printable byte,
 space, or horizontal tab removes the backslash and retains the following byte.
 This includes escaped quote and backslash bytes.
 
-An unescaped quote, carriage return, line feed, NUL, DEL, other control byte,
-trailing backslash, or missing closing quote makes the disposition invalid.
-After a closing quote, only OWS, a semicolon, or end of input is allowed.
+Carriage return, line feed, NUL, DEL, another control byte, a trailing
+backslash, or a missing closing quote makes the disposition invalid. After the
+closing quote, only OWS, a semicolon, or end of input is allowed.
 
 Unquoted values must be non-empty tokens. Values that require separators,
 spaces, or non-ASCII bytes must use the quoted form.
