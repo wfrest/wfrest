@@ -2,7 +2,7 @@
 #define WFREST_URIUTIL_H_
 
 #include "workflow/URIParser.h"
-#include <unordered_map>
+#include <map>
 
 namespace wfrest
 {

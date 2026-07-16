@@ -68,6 +68,10 @@ int main()
 
 ## 多部分表单编码器
 
+URL 编码表单的字段名和值与查询参数使用相同规则：`+` 转换为空格；字段切分后
+再解码有效的 `%xx`；值中的 `=` 会保留；错误的转义保持原样；解码后字段名
+重复时保留第一个值。
+
 使用MultiPartEncoder来编码多部分数据格式内容并发送。
 
 ```cpp
@@ -79,4 +83,4 @@ svr.GET("/form_send", [](const HttpReq *req, HttpResp *resp)
     encoder.add_file("test_2.txt", "./www/test_2.txt");
     resp->String(std::move(encoder));
 });
-``` 
+```

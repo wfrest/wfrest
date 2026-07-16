@@ -22,7 +22,7 @@ WFHttpTask *create_http_task(const std::string &path)
 TEST(HttpServer, param)
 {
     HttpServer svr;
-    WFFacilities::WaitGroup wait_group(2);
+    WFFacilities::WaitGroup wait_group(3);
 
     svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
@@ -31,6 +31,15 @@ TEST(HttpServer, param)
         Json json;
         json["full_path"] = full_path;
         json["current_path"] = current_path;
+        resp->Json(json);
+    });
+    svr.GET("/query", [](const HttpReq *req, HttpResp *resp)
+    {
+        Json json;
+        json["token"] = req->query("token");
+        json["message"] = req->query("message");
+        json["expr"] = req->query("expr");
+        json["bad"] = req->query("bad");
         resp->Json(json);
     });
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
@@ -63,6 +72,22 @@ TEST(HttpServer, param)
         Json json = Json::parse(static_cast<const char *>(body));
         EXPECT_EQ(json["full_path"].get<std::string>(), "/user/{name}/match*");
         EXPECT_EQ(json["current_path"].get<std::string>(), "/user/{name}/match");
+        wait_group.done();
+    });
+
+    WFHttpTask *client_task_3 = create_http_task(
+        "/query?token=a=b=c&message=hello+world&expr=a%26b%3Dc&bad=%ZZ");
+    series->push_back(client_task_3);
+    client_task_3->set_callback([&wait_group](WFHttpTask *task)
+    {
+        const void *body = nullptr;
+        size_t body_len = 0;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        Json json = Json::parse(std::string(static_cast<const char *>(body), body_len));
+        EXPECT_EQ(json["token"].get<std::string>(), "a=b=c");
+        EXPECT_EQ(json["message"].get<std::string>(), "hello world");
+        EXPECT_EQ(json["expr"].get<std::string>(), "a&b=c");
+        EXPECT_EQ(json["bad"].get<std::string>(), "%ZZ");
         wait_group.done();
     });
     series->start();
