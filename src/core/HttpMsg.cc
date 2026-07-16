@@ -691,6 +691,9 @@ void HttpResp::Error(int error_code, const std::string &errmsg)
     case StatusRouteNotFound:
         status_code = 404;
         break;
+    case StatusFileRangeInvalid:
+        status_code = 416;
+        break;
     default:
         break;
     }
@@ -1159,4 +1162,3 @@ HttpResp &HttpResp::operator=(HttpResp&& other)
 }
 
 } // namespace wfrest
-
