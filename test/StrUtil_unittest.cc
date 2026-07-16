@@ -63,10 +63,29 @@ TEST(StrUtil, trim)
 
 TEST(StrUtil, trim_pairs)
 {
+    StringPiece empty;
+    EXPECT_TRUE(StrUtil::trim_pairs(empty).empty());
+
+    StringPiece one_byte("\"");
+    EXPECT_EQ("\"", StrUtil::trim_pairs(one_byte, R"(""'')").as_string());
+
+    StringPiece identical_pair("a");
+    EXPECT_EQ("a", StrUtil::trim_pairs(identical_pair, "aa").as_string());
+
     StringPiece str1("\"name  name  address password\"");
     EXPECT_EQ("name  name  address password", StrUtil::trim_pairs(str1, R"(""'')").as_string());
     StringPiece str2("[name {} name  address password]");
     EXPECT_EQ("name {} name  address password", StrUtil::trim_pairs(str2).as_string());
+}
+
+TEST(StrUtil, trim_non_ascii_bytes)
+{
+    const std::string high_byte_prefix("\xff value", 7);
+    EXPECT_EQ(high_byte_prefix, StrUtil::ltrim(high_byte_prefix).as_string());
+
+    const std::string high_byte_suffix("value \xff", 7);
+    EXPECT_EQ(high_byte_suffix, StrUtil::rtrim(high_byte_suffix).as_string());
+    EXPECT_EQ(high_byte_suffix, StrUtil::trim(high_byte_suffix).as_string());
 }
 
 TEST(StrUtil, split_piece)

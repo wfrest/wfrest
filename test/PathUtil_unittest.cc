@@ -61,6 +61,11 @@ TEST(PathUtil, path_is_file)
 
 TEST(PathUtil, concat_path)
 {
+    EXPECT_EQ(PathUtil::concat_path("", ""), "");
+    EXPECT_EQ(PathUtil::concat_path("", "v3"), "v3");
+    EXPECT_EQ(PathUtil::concat_path("", "/v3"), "/v3");
+    EXPECT_EQ(PathUtil::concat_path("/v1/v2", ""), "/v1/v2");
+
     std::string concat1 = PathUtil::concat_path("/v1/v2", "v3");
     EXPECT_EQ(concat1, "/v1/v2/v3");
 
