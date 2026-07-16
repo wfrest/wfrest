@@ -1,9 +1,14 @@
 #include "workflow/WFFacilities.h"
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <atomic>
+#include <csignal>
 #include <fcntl.h>
 #include <fstream>
+#include <iterator>
 #include <limits>
+#include <sys/resource.h>
+#include <sys/stat.h>
 #include <type_traits>
 #include <unistd.h>
 #include "wfrest/HttpServer.h"
@@ -50,6 +55,34 @@ public:
         EXPECT_FALSE(PathUtil::is_dir(path));
     }
 
+    static std::string read_file(const std::string &path)
+    {
+        std::ifstream file(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(file),
+                           std::istreambuf_iterator<char>());
+    }
+
+    static std::string response_body(WFHttpTask *task)
+    {
+        const void *body = nullptr;
+        size_t body_len = 0;
+        if (!task->get_resp()->get_parsed_body(&body, &body_len) ||
+            body_len == 0)
+        {
+            return "";
+        }
+        return std::string(static_cast<const char *>(body), body_len);
+    }
+
+    static void expect_file_write_error(WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        EXPECT_STREQ(task->get_resp()->get_status_code(), "503");
+        const Json error = Json::parse(response_body(task));
+        ASSERT_TRUE(error.is_valid());
+        EXPECT_EQ(error["errmsg"].get<std::string>(), "File Write Error");
+    }
+
     static void process(const std::string &path,
                         size_t start,
                         size_t end,
@@ -58,7 +91,7 @@ public:
         HttpServer svr;
         WFFacilities::WaitGroup wait_group(1);
 
-        svr.GET("/file", [&path, start, end](const HttpReq *req, HttpResp *resp)
+        svr.GET("/file", [&path, start, end](const HttpReq *, HttpResp *resp)
         {
             resp->File(path, start, end);
         });
@@ -457,10 +490,11 @@ TEST(HttpServer, save_file)
     std::string path = "test.txt";
     EXPECT_FALSE(FileUtil::file_exists(path));
     std::string file_body = FileTest::generate_file_content();
-    svr.GET("/file", [&path, &file_body](const HttpReq *req, HttpResp *resp, SeriesWork *series)
+    svr.GET("/file", [&path, &file_body](const HttpReq *, HttpResp *resp,
+                                         SeriesWork *series)
     {
         resp->Save(path, file_body);
-        series->set_callback([&path, &file_body](const SeriesWork *sereis) {
+        series->set_callback([&path, &file_body](const SeriesWork *) {
             EXPECT_TRUE(FileUtil::file_exists(path));
             std::ifstream file(path);
             std::string str;
@@ -480,7 +514,7 @@ TEST(HttpServer, save_file)
 
     WFHttpTask *client_task = FileTest::create_http_task("file");
 
-    client_task->set_callback([&wait_group](WFHttpTask *task)
+    client_task->set_callback([&wait_group](WFHttpTask *)
     {
         wait_group.done();
     });
@@ -488,4 +522,193 @@ TEST(HttpServer, save_file)
     client_task->start();
     wait_group.wait();
     svr.stop();
+}
+
+TEST(HttpServer, save_file_replaces_existing_contents)
+{
+    const std::string short_path = "./wfrest-save-short.tmp";
+    const std::string empty_path = "./wfrest-save-empty.tmp";
+    const std::string moved_path = "./wfrest-save-moved.tmp";
+    std::remove(moved_path.c_str());
+    FileTest::create_file(short_path, "new-old-tail");
+    FileTest::create_file(empty_path, "must-disappear");
+    std::atomic<int> moved_callback_count{0};
+    std::atomic<int> moved_callback_fd{0};
+    std::atomic<bool> moved_callback_buffer_ok{false};
+
+    HttpServer server;
+    WFFacilities::WaitGroup wait_group(3);
+    server.GET("/short", [&short_path](const HttpReq *, HttpResp *resp)
+    {
+        const std::string content = "new";
+        resp->Save(short_path, content, "saved");
+    });
+    server.GET("/empty", [&empty_path](const HttpReq *, HttpResp *resp)
+    {
+        resp->Save(empty_path, std::string(), "saved");
+    });
+    server.GET("/moved", [&](const HttpReq *, HttpResp *resp)
+    {
+        std::string content = "moved-content";
+        resp->Save(moved_path, std::move(content),
+                   [&](const FileIOArgs *args)
+        {
+            moved_callback_fd.store(args->fd);
+            moved_callback_buffer_ok.store(
+                args->count == 13 &&
+                std::string(static_cast<const char *>(args->buf),
+                            args->count) == "moved-content");
+            moved_callback_count.fetch_add(1);
+        });
+    });
+    ASSERT_EQ(server.start("127.0.0.1", 8888), 0);
+
+    for (const char *route : {"short", "empty"})
+    {
+        WFHttpTask *task = FileTest::create_http_task(route);
+        task->set_callback([&wait_group](WFHttpTask *current)
+        {
+            EXPECT_EQ(current->get_state(), WFT_STATE_SUCCESS);
+            EXPECT_STREQ(current->get_resp()->get_status_code(), "200");
+            EXPECT_EQ(FileTest::response_body(current), "saved");
+            wait_group.done();
+        });
+        task->start();
+    }
+
+    WFHttpTask *moved_task = FileTest::create_http_task("moved");
+    moved_task->set_callback([&wait_group](WFHttpTask *current)
+    {
+        EXPECT_EQ(current->get_state(), WFT_STATE_SUCCESS);
+        EXPECT_STREQ(current->get_resp()->get_status_code(), "200");
+        EXPECT_TRUE(FileTest::response_body(current).empty());
+        wait_group.done();
+    });
+    moved_task->start();
+
+    wait_group.wait();
+    server.stop();
+    EXPECT_EQ(FileTest::read_file(short_path), "new");
+    EXPECT_TRUE(FileTest::read_file(empty_path).empty());
+    EXPECT_EQ(FileTest::read_file(moved_path), "moved-content");
+    EXPECT_EQ(moved_callback_count.load(), 1);
+    EXPECT_EQ(moved_callback_fd.load(), -1);
+    EXPECT_TRUE(moved_callback_buffer_ok.load());
+    FileTest::delete_file(short_path);
+    FileTest::delete_file(empty_path);
+    FileTest::delete_file(moved_path);
+}
+
+TEST(HttpServer, save_file_reports_open_and_device_failures)
+{
+    const std::string missing_parent =
+        "./wfrest-missing-save-parent-" + std::to_string(getpid());
+    const std::string missing_path = missing_parent + "/output.tmp";
+    rmdir(missing_parent.c_str());
+    const bool has_dev_full = access("/dev/full", W_OK) == 0;
+    std::atomic<int> callback_count{0};
+    std::atomic<int> callback_fd{0};
+    std::atomic<size_t> callback_count_arg{0};
+    std::atomic<bool> callback_buffer_ok{false};
+
+    HttpServer server;
+    WFFacilities::WaitGroup wait_group(has_dev_full ? 2 : 1);
+    server.GET("/missing", [&](const HttpReq *, HttpResp *resp)
+    {
+        resp->Save(missing_path, std::string("data"),
+                   [&](const FileIOArgs *args)
+        {
+            callback_fd.store(args->fd);
+            callback_count_arg.store(args->count);
+            callback_buffer_ok.store(
+                std::string(static_cast<const char *>(args->buf),
+                            args->count) == "data");
+            callback_count.fetch_add(1);
+        });
+    });
+    server.GET("/full", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->Save("/dev/full", std::string("data"), "must-not-appear");
+    });
+    ASSERT_EQ(server.start("127.0.0.1", 8888), 0);
+
+    WFHttpTask *missing_task = FileTest::create_http_task("missing");
+    missing_task->set_callback([&wait_group](WFHttpTask *current)
+    {
+        FileTest::expect_file_write_error(current);
+        wait_group.done();
+    });
+    missing_task->start();
+
+    if (has_dev_full)
+    {
+        WFHttpTask *full_task = FileTest::create_http_task("full");
+        full_task->set_callback([&wait_group](WFHttpTask *current)
+        {
+            FileTest::expect_file_write_error(current);
+            EXPECT_EQ(FileTest::response_body(current).find("must-not-appear"),
+                      std::string::npos);
+            wait_group.done();
+        });
+        full_task->start();
+    }
+
+    wait_group.wait();
+    server.stop();
+    EXPECT_EQ(callback_count.load(), 1);
+    EXPECT_EQ(callback_fd.load(), -1);
+    EXPECT_EQ(callback_count_arg.load(), 4U);
+    EXPECT_TRUE(callback_buffer_ok.load());
+    EXPECT_FALSE(FileUtil::file_exists(missing_path));
+}
+
+TEST(HttpServer, save_file_rejects_short_writes)
+{
+    struct rlimit original_limit;
+    if (getrlimit(RLIMIT_FSIZE, &original_limit) != 0 ||
+        original_limit.rlim_max < 5)
+    {
+        GTEST_SKIP() << "RLIMIT_FSIZE cannot be set to five bytes";
+    }
+
+    const std::string path = "./wfrest-save-short-write.tmp";
+    std::remove(path.c_str());
+    HttpServer server;
+    WFFacilities::WaitGroup wait_group(1);
+    server.GET("/short-write", [&path](const HttpReq *, HttpResp *resp)
+    {
+        resp->Save(path, std::string("0123456789"), "must-not-appear");
+    });
+    ASSERT_EQ(server.start("127.0.0.1", 8888), 0);
+
+    const auto original_handler = std::signal(SIGXFSZ, SIG_IGN);
+    struct rlimit limited = original_limit;
+    limited.rlim_cur = 5;
+    if (setrlimit(RLIMIT_FSIZE, &limited) != 0)
+    {
+        std::signal(SIGXFSZ, original_handler);
+        server.stop();
+        GTEST_SKIP() << "RLIMIT_FSIZE update failed";
+    }
+
+    WFHttpTask *task = FileTest::create_http_task("short-write");
+    task->set_callback([&wait_group](WFHttpTask *current)
+    {
+        FileTest::expect_file_write_error(current);
+        EXPECT_EQ(FileTest::response_body(current).find("must-not-appear"),
+                  std::string::npos);
+        wait_group.done();
+    });
+    task->start();
+    wait_group.wait();
+
+    const int restore_limit = setrlimit(RLIMIT_FSIZE, &original_limit);
+    std::signal(SIGXFSZ, original_handler);
+    server.stop();
+    EXPECT_EQ(restore_limit, 0);
+
+    struct stat file_stat;
+    ASSERT_EQ(stat(path.c_str(), &file_stat), 0);
+    EXPECT_EQ(file_stat.st_size, 5);
+    FileTest::delete_file(path);
 }
