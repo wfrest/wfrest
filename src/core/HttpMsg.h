@@ -108,9 +108,7 @@ public:
 public:
     HttpReq();
 
-    HttpReq(HttpRequest &&base_req)
-        : HttpRequest(std::move(base_req))
-    {}
+    HttpReq(HttpRequest &&base_req);
 
     ~HttpReq();
 
@@ -121,8 +119,8 @@ public:
 private:
     using HeaderMap = std::map<std::string, std::vector<std::string>, MapStringCaseLess>;
 
-    http_content_type content_type_;
-    ReqData *req_data_;
+    http_content_type content_type_ = CONTENT_TYPE_NONE;
+    std::unique_ptr<ReqData> req_data_;
 
     std::string route_match_path_;
     std::string route_full_path_;
@@ -324,7 +322,7 @@ public:
 
 public:
     std::map<std::string, std::string, MapStringCaseLess> headers;
-    void *user_data;
+    void *user_data = nullptr;
 
 private:
     std::vector<HttpCookie> cookies_;

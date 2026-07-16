@@ -70,6 +70,7 @@ set(UNIT_TEST_LIST
 	PathUtil_unittest
 	UriUtil_unittest
 	HttpContent_unittest
+	HttpMsg_unittest
 	PushWriteUtil_unittest
 )
 

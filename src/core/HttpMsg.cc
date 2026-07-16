@@ -473,10 +473,11 @@ void mysql_callback(WFMySQLTask *mysql_task)
 HttpReq::HttpReq() : req_data_(new ReqData)
 {}
 
-HttpReq::~HttpReq()
-{
-    delete req_data_;
-}
+HttpReq::HttpReq(HttpRequest &&base_req)
+    : HttpRequest(std::move(base_req)), req_data_(new ReqData)
+{}
+
+HttpReq::~HttpReq() = default;
 
 std::string &HttpReq::body() const
 {
@@ -658,6 +659,7 @@ const std::string &HttpReq::cookie(const std::string &key) const
 HttpReq::HttpReq(HttpReq&& other)
     : HttpRequest(std::move(other)),
     content_type_(other.content_type_),
+    req_data_(std::move(other.req_data_)),
     route_match_path_(std::move(other.route_match_path_)),
     route_full_path_(std::move(other.route_full_path_)),
     route_params_(std::move(other.route_params_)),
@@ -667,18 +669,16 @@ HttpReq::HttpReq(HttpReq&& other)
     multi_part_(std::move(other.multi_part_)),
     headers_(std::move(other.headers_)),
     parsed_uri_(std::move(other.parsed_uri_))
-{
-    req_data_ = other.req_data_;
-    other.req_data_ = nullptr;
-}
+{}
 
 HttpReq &HttpReq::operator=(HttpReq&& other)
 {
+    if (this == &other)
+        return *this;
+
     HttpRequest::operator=(std::move(other));
     content_type_ = other.content_type_;
-
-    req_data_ = other.req_data_;
-    other.req_data_ = nullptr;
+    req_data_ = std::move(other.req_data_);
 
     route_match_path_ = std::move(other.route_match_path_);
     route_full_path_ = std::move(other.route_full_path_);
@@ -1386,6 +1386,9 @@ HttpResp::HttpResp(HttpResp&& other)
 
 HttpResp &HttpResp::operator=(HttpResp&& other)
 {
+    if (this == &other)
+        return *this;
+
     HttpResponse::operator=(std::move(other));
     headers = std::move(other.headers);
     user_data = other.user_data;
