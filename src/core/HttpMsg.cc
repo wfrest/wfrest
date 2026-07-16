@@ -15,6 +15,7 @@
 #include "FileUtil.h"
 #include "HttpServerTask.h"
 #include "CodeUtil.h"
+#include "HttpHeaderUtil.h"
 #include "PushWriteUtil.h"
 
 using namespace protocol;
@@ -1068,13 +1069,10 @@ void push_func(WFCounterTask *push_task)
 
 std::string HttpResp::construct_push_header()
 {
+    detail::sanitize_application_response_headers(&headers);
     std::string http_header;
     http_header.reserve(128);
     http_header.append("HTTP/1.1 200 OK\r\n");
-    if (headers.find("Transfer-Encoding") != headers.end())
-    {
-        headers.erase("Transfer-Encoding");
-    }
     for (auto it = headers.begin(); it != headers.end(); it++)
     {
         const auto &key = it->first;
@@ -1193,10 +1191,12 @@ void HttpResp::Save(const std::string &file_dst, std::string &&content,
 
 void HttpResp::Json(const wfrest::Json &json)
 {
-    if (this->headers.count("Content-Type") == 0)
+    const auto content_type = this->headers.find("Content-Type");
+    if (content_type == this->headers.end() ||
+        !detail::is_json_response_content_type(content_type->second))
+    {
         this->headers["Content-Type"] = "application/json";
-    else
-        this->headers["Content-Type"].insert(0, "application/json; ");
+    }
     this->String(json.dump());
 }
 
@@ -1207,10 +1207,12 @@ void HttpResp::Json(const std::string &str)
         this->Error(StatusJsonInvalid);
         return;
     }
-    if (this->headers.count("Content-Type") == 0)
+    const auto content_type = this->headers.find("Content-Type");
+    if (content_type == this->headers.end() ||
+        !detail::is_json_response_content_type(content_type->second))
+    {
         this->headers["Content-Type"] = "application/json";
-    else
-        this->headers["Content-Type"].insert(0, "application/json; ");
+    }
     this->String(str);
 }
 
@@ -1365,8 +1367,29 @@ void HttpResp::Redis(const std::string &url, const std::string &command,
 
 void HttpResp::Redirect(const std::string& location, int status_code)
 {
-    this->headers["Location"] = location;
+    this->headers.erase("Location");
+    this->add_header("Location", location);
     this->set_status(status_code);
+}
+
+void HttpResp::add_header(const std::string &key, const std::string &val)
+{
+    if (detail::is_application_response_header(key, val))
+        headers[key] = val;
+}
+
+bool HttpResp::add_header_pair(const std::string &key,
+                               const std::string &val)
+{
+    return detail::is_application_response_header(key, val) &&
+           protocol::HttpResponse::add_header_pair(key, val);
+}
+
+bool HttpResp::set_header_pair(const std::string &key,
+                               const std::string &val)
+{
+    return detail::is_application_response_header(key, val) &&
+           protocol::HttpResponse::set_header_pair(key, val);
 }
 
 void HttpResp::add_task(SubTask *task)

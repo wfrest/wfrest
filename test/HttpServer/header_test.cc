@@ -1,0 +1,134 @@
+#include <gtest/gtest.h>
+
+#include <string>
+#include <vector>
+
+#include "wfrest/HttpServer.h"
+#include "wfrest/Json.h"
+#include "workflow/WFFacilities.h"
+#include "../ClientUtil.h"
+
+using namespace protocol;
+using namespace wfrest;
+
+namespace
+{
+
+std::string response_body(WFHttpTask *task)
+{
+    const void *body = nullptr;
+    size_t size = 0;
+    if (!task->get_resp()->get_parsed_body(&body, &size) || size == 0)
+        return "";
+    return std::string(static_cast<const char *>(body), size);
+}
+
+} // namespace
+
+TEST(HttpServer, validates_response_headers_and_framing)
+{
+    HttpServer server;
+    WFFacilities::WaitGroup wait_group(5);
+
+    server.GET("/sanitize", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->add_header("X-Safe", "yes");
+        resp->add_header("X-User", "safe\r\nX-Injected: yes");
+        resp->add_header("Bad Name", "value");
+        resp->headers["X-Direct"] = "safe\r\nX-Direct-Injected: yes";
+        resp->headers["Bad:Direct"] = "value";
+        resp->String("body");
+    });
+    server.GET("/framing", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->headers["Content-Length"] = "1";
+        resp->headers["Transfer-Encoding"] = "chunked";
+        resp->String("abcdef");
+    });
+    server.GET("/redirect", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->add_header("Location", "/previous");
+        resp->Redirect("/safe\r\nX-Redirected: yes", 302);
+    });
+    server.GET("/json", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->add_header("Content-Type", "text/plain");
+        Json value;
+        value["ok"] = true;
+        resp->Json(value);
+    });
+    server.GET("/problem", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->add_header("Content-Type",
+                         "application/problem+json; charset=utf-8");
+        Json value;
+        value["problem"] = true;
+        resp->Json(value);
+    });
+    ASSERT_EQ(server.start("127.0.0.1", 8888), 0);
+
+    WFHttpTask *sanitize = ClientUtil::create_http_task("sanitize");
+    sanitize->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("X-Safe"), "yes");
+        EXPECT_TRUE(headers.get("X-Injected").empty());
+        EXPECT_TRUE(headers.get("X-Direct-Injected").empty());
+        EXPECT_TRUE(headers.get("Bad:Direct").empty());
+        EXPECT_EQ(response_body(task), "body");
+        wait_group.done();
+    });
+    sanitize->start();
+
+    WFHttpTask *framing = ClientUtil::create_http_task("framing");
+    framing->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("Content-Length"), "6");
+        EXPECT_TRUE(headers.get("Transfer-Encoding").empty());
+        EXPECT_EQ(response_body(task), "abcdef");
+        wait_group.done();
+    });
+    framing->start();
+
+    WFHttpTask *redirect = WFTaskFactory::create_http_task(
+        "http://127.0.0.1:8888/redirect", 0, 2, nullptr);
+    redirect->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_STREQ(task->get_resp()->get_status_code(), "302");
+        EXPECT_TRUE(headers.get("Location").empty());
+        EXPECT_TRUE(headers.get("X-Redirected").empty());
+        wait_group.done();
+    });
+    redirect->start();
+
+    WFHttpTask *json = ClientUtil::create_http_task("json");
+    json->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("Content-Type"), "application/json");
+        EXPECT_TRUE(Json::parse(response_body(task)).is_valid());
+        wait_group.done();
+    });
+    json->start();
+
+    WFHttpTask *problem = ClientUtil::create_http_task("problem");
+    problem->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("Content-Type"),
+                  "application/problem+json; charset=utf-8");
+        EXPECT_TRUE(Json::parse(response_body(task)).is_valid());
+        wait_group.done();
+    });
+    problem->start();
+
+    wait_group.wait();
+    server.stop();
+}

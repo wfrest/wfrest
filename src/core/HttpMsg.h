@@ -289,10 +289,11 @@ public:
 
     void add_task(SubTask *task);
 
-    void add_header(const std::string &key, const std::string &val)
-    {
-        headers[key] = val;
-    }
+    void add_header(const std::string &key, const std::string &val);
+
+    bool add_header_pair(const std::string &key, const std::string &val);
+
+    bool set_header_pair(const std::string &key, const std::string &val);
 
     void CachedFile(const std::string &path);
 

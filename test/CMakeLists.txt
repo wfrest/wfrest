@@ -71,6 +71,7 @@ set(UNIT_TEST_LIST
 	UriUtil_unittest
 	HttpContent_unittest
 	HttpMsg_unittest
+	HttpHeaderUtil_unittest
 	PushWriteUtil_unittest
 )
 
@@ -99,6 +100,7 @@ set(SERVER_UNIT_TEST_LIST
 	compute_test
 	send_form_test
 	multipart_test
+	header_test
 	push_test
 	cookie_test
 	blueprint_test
