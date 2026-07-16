@@ -1,6 +1,7 @@
 #include <strings.h>
 #include <utility>
 #include "HttpContent.h"
+#include "MultipartUtil.h"
 #include "StringPiece.h"
 #include "UriUtil.h"
 
@@ -10,50 +11,6 @@ const std::string MultiPartForm::k_default_boundary = "----WebKitFormBoundary7MA
 
 namespace
 {
-
-bool is_multipart_boundary_char(unsigned char ch)
-{
-    if ((ch >= '0' && ch <= '9') ||
-        (ch >= 'A' && ch <= 'Z') ||
-        (ch >= 'a' && ch <= 'z'))
-    {
-        return true;
-    }
-
-    switch (ch)
-    {
-        case ' ':
-        case '\'':
-        case '(':
-        case ')':
-        case '+':
-        case '_':
-        case ',':
-        case '-':
-        case '.':
-        case '/':
-        case ':':
-        case '=':
-        case '?':
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_valid_multipart_boundary(const std::string &boundary)
-{
-    if (boundary.empty() || boundary.size() > 70 || boundary.back() == ' ')
-        return false;
-
-    for (unsigned char ch : boundary)
-    {
-        if (!is_multipart_boundary_char(ch))
-            return false;
-    }
-
-    return true;
-}
 
 bool is_ows(char ch)
 {
@@ -354,7 +311,7 @@ MultiPartForm::MultiPartForm()
 
 void MultiPartForm::set_boundary(const std::string &boundary)
 {
-    if (is_valid_multipart_boundary(boundary))
+    if (detail::is_valid_multipart_boundary(boundary))
         boundary_ = boundary;
     else
         boundary_.clear();
@@ -362,7 +319,7 @@ void MultiPartForm::set_boundary(const std::string &boundary)
 
 void MultiPartForm::set_boundary(std::string &&boundary)
 {
-    if (is_valid_multipart_boundary(boundary))
+    if (detail::is_valid_multipart_boundary(boundary))
         boundary_ = std::move(boundary);
     else
         boundary_.clear();
@@ -465,10 +422,12 @@ void MultiPartEncoder::add_file(const std::string &file_name, const std::string 
 
 void MultiPartEncoder::set_boundary(const std::string &boundary)
 {
-    boundary_ = boundary;
+    if (detail::is_valid_multipart_boundary(boundary))
+        boundary_ = boundary;
 }
 
 void MultiPartEncoder::set_boundary(std::string &&boundary) 
 {
-    boundary_ = std::move(boundary);
+    if (detail::is_valid_multipart_boundary(boundary))
+        boundary_ = std::move(boundary);
 }

@@ -110,6 +110,27 @@ TEST(MultiPartForm, rejects_invalid_boundaries)
     EXPECT_TRUE(parser.parse_multipart(StringPiece(valid_body)).empty());
 }
 
+TEST(MultiPartEncoder, preserves_valid_boundary_on_invalid_assignment)
+{
+    MultiPartEncoder encoder;
+    EXPECT_EQ(encoder.boundary(), MultiPartForm::k_default_boundary);
+
+    encoder.set_boundary("a:b?c");
+    EXPECT_EQ(encoder.boundary(), "a:b?c");
+
+    encoder.set_boundary("");
+    EXPECT_EQ(encoder.boundary(), "a:b?c");
+
+    encoder.set_boundary(std::string("bad;boundary"));
+    EXPECT_EQ(encoder.boundary(), "a:b?c");
+
+    encoder.set_boundary("trailing ");
+    EXPECT_EQ(encoder.boundary(), "a:b?c");
+
+    encoder.set_boundary(std::string(71, 'a'));
+    EXPECT_EQ(encoder.boundary(), "a:b?c");
+}
+
 TEST(MultiPartForm, parses_structural_content_disposition)
 {
     MultiPartForm parser;
