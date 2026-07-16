@@ -47,4 +47,4 @@ void *multipart_parser_get_data(multipart_parser *p);
 } /* extern "C" */
 #endif
 
-#endif // WFREST_MULTIPARTPARSER_H_
+#endif /* WFREST_MULTIPARTPARSER_H_ */

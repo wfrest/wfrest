@@ -17,8 +17,24 @@ TEST(ContentType, to_str_by_suffix)
 
 TEST(ContentType, to_enum)
 {
-    std::string type_str = "application/javascript";
-    EXPECT_EQ(ContentType::to_enum(type_str), APPLICATION_JAVASCRIPT);
+    EXPECT_EQ(ContentType::to_enum("application/javascript"),
+              APPLICATION_JAVASCRIPT);
+    EXPECT_EQ(ContentType::to_enum(" Application/JSON\t; charset=utf-8"),
+              APPLICATION_JSON);
+    EXPECT_EQ(ContentType::to_enum("Multipart/Form-Data; Boundary=abc"),
+              MULTIPART_FORM_DATA);
+}
+
+TEST(ContentType, to_enum_rejects_prefixes_and_empty_tokens)
+{
+    EXPECT_EQ(ContentType::to_enum(""), CONTENT_TYPE_NONE);
+    EXPECT_EQ(ContentType::to_enum(" \t"), CONTENT_TYPE_NONE);
+    EXPECT_EQ(ContentType::to_enum("application/jsonp"),
+              CONTENT_TYPE_UNDEFINED);
+    EXPECT_EQ(ContentType::to_enum("multipart/form-datax; boundary=x"),
+              CONTENT_TYPE_UNDEFINED);
+    EXPECT_EQ(ContentType::to_enum("; charset=utf-8"),
+              CONTENT_TYPE_UNDEFINED);
 }
 
 TEST(ContentType, to_enum_by_suffix)

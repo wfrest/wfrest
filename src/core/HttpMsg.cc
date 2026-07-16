@@ -21,6 +21,185 @@ using namespace protocol;
 namespace wfrest
 {
 
+namespace
+{
+
+bool is_ows(char ch)
+{
+    return ch == ' ' || ch == '\t';
+}
+
+bool is_parameter_name_char(unsigned char ch)
+{
+    if ((ch >= '0' && ch <= '9') ||
+        (ch >= 'A' && ch <= 'Z') ||
+        (ch >= 'a' && ch <= 'z'))
+    {
+        return true;
+    }
+
+    switch (ch)
+    {
+        case '!':
+        case '#':
+        case '$':
+        case '%':
+        case '&':
+        case '\'':
+        case '*':
+        case '+':
+        case '-':
+        case '.':
+        case '^':
+        case '_':
+        case '`':
+        case '|':
+        case '~':
+            return true;
+        default:
+            return false;
+    }
+}
+
+unsigned char ascii_lower(unsigned char ch)
+{
+    if (ch >= 'A' && ch <= 'Z')
+        return static_cast<unsigned char>(ch + ('a' - 'A'));
+
+    return ch;
+}
+
+bool ascii_iequal(const std::string &input,
+                  size_t begin,
+                  size_t end,
+                  const char *expected)
+{
+    const size_t expected_len = strlen(expected);
+    if (end - begin != expected_len)
+        return false;
+
+    for (size_t i = 0; i < expected_len; ++i)
+    {
+        if (ascii_lower(static_cast<unsigned char>(input[begin + i])) !=
+            ascii_lower(static_cast<unsigned char>(expected[i])))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool extract_multipart_boundary(const std::string &content_type,
+                                std::string *boundary)
+{
+    boundary->clear();
+    size_t cursor = content_type.find(';');
+    bool found = false;
+
+    while (cursor != std::string::npos)
+    {
+        ++cursor;
+        while (cursor < content_type.size() && is_ows(content_type[cursor]))
+            ++cursor;
+        if (cursor == content_type.size())
+            return false;
+
+        const size_t name_begin = cursor;
+        while (cursor < content_type.size() &&
+               is_parameter_name_char(
+                   static_cast<unsigned char>(content_type[cursor])))
+        {
+            ++cursor;
+        }
+        const size_t name_end = cursor;
+        if (name_begin == name_end)
+            return false;
+
+        while (cursor < content_type.size() && is_ows(content_type[cursor]))
+            ++cursor;
+        if (cursor == content_type.size() || content_type[cursor] != '=')
+            return false;
+
+        ++cursor;
+        while (cursor < content_type.size() && is_ows(content_type[cursor]))
+            ++cursor;
+
+        std::string value;
+        if (cursor < content_type.size() && content_type[cursor] == '"')
+        {
+            ++cursor;
+            bool closed = false;
+            while (cursor < content_type.size())
+            {
+                const char ch = content_type[cursor++];
+                if (ch == '\r' || ch == '\n')
+                    return false;
+                if (ch == '"')
+                {
+                    closed = true;
+                    break;
+                }
+                if (ch == '\\')
+                {
+                    if (cursor == content_type.size())
+                        return false;
+                    const char escaped = content_type[cursor++];
+                    if (escaped == '\r' || escaped == '\n')
+                        return false;
+                    value.push_back(escaped);
+                }
+                else
+                {
+                    value.push_back(ch);
+                }
+            }
+            if (!closed)
+                return false;
+
+            while (cursor < content_type.size() && is_ows(content_type[cursor]))
+                ++cursor;
+            if (cursor < content_type.size() && content_type[cursor] != ';')
+                return false;
+        }
+        else
+        {
+            const size_t value_begin = cursor;
+            while (cursor < content_type.size() && content_type[cursor] != ';')
+            {
+                if (content_type[cursor] == '\r' || content_type[cursor] == '\n')
+                    return false;
+                ++cursor;
+            }
+
+            size_t value_end = cursor;
+            while (value_end > value_begin && is_ows(content_type[value_end - 1]))
+                --value_end;
+            for (size_t i = value_begin; i < value_end; ++i)
+            {
+                if (is_ows(content_type[i]))
+                    return false;
+            }
+            value.assign(content_type, value_begin, value_end - value_begin);
+        }
+
+        if (ascii_iequal(content_type, name_begin, name_end, "boundary"))
+        {
+            if (found)
+                return false;
+            found = true;
+            *boundary = std::move(value);
+        }
+
+        if (cursor == content_type.size())
+            break;
+    }
+
+    return found;
+}
+
+} // namespace
+
 struct ReqData
 {
     std::string body;
@@ -401,20 +580,13 @@ void HttpReq::fill_content_type()
 {
     const std::string &content_type_str = header("Content-Type");
     content_type_ = ContentType::to_enum(content_type_str);
+    multi_part_.set_boundary(std::string());
 
     if (content_type_ == MULTIPART_FORM_DATA)
     {
-        // if type is multipart form, we reserve the boudary first
-        const char *boundary = strstr(content_type_str.c_str(), "boundary=");
-        if (boundary == nullptr)
-        {
-            return;
-        }
-        boundary += strlen("boundary=");
-        StringPiece boundary_piece(boundary);
-
-        StringPiece boundary_str = StrUtil::trim_pairs(boundary_piece, R"(""'')");
-        multi_part_.set_boundary(boundary_str.as_string());
+        std::string boundary;
+        if (extract_multipart_boundary(content_type_str, &boundary))
+            multi_part_.set_boundary(std::move(boundary));
     }
 }
 

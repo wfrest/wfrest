@@ -1,19 +1,62 @@
-#include "workflow/StringUtil.h"
-#include "workflow/WFFacilities.h"
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <fcntl.h>
+#include <strings.h>
+#include <utility>
 #include "StrUtil.h"
 #include "HttpContent.h"
 #include "StringPiece.h"
-#include "PathUtil.h"
 #include "UriUtil.h"
-#include "HttpDef.h"
 
 using namespace wfrest;
 
 const std::string MultiPartForm::k_default_boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+
+namespace
+{
+
+bool is_multipart_boundary_char(unsigned char ch)
+{
+    if ((ch >= '0' && ch <= '9') ||
+        (ch >= 'A' && ch <= 'Z') ||
+        (ch >= 'a' && ch <= 'z'))
+    {
+        return true;
+    }
+
+    switch (ch)
+    {
+        case ' ':
+        case '\'':
+        case '(':
+        case ')':
+        case '+':
+        case '_':
+        case ',':
+        case '-':
+        case '.':
+        case '/':
+        case ':':
+        case '=':
+        case '?':
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_valid_multipart_boundary(const std::string &boundary)
+{
+    if (boundary.empty() || boundary.size() > 70 || boundary.back() == ' ')
+        return false;
+
+    for (unsigned char ch : boundary)
+    {
+        if (!is_multipart_boundary_char(ch))
+            return false;
+    }
+
+    return true;
+}
+
+} // namespace
 
 std::map<std::string, std::string> Urlencode::parse_post_kv(const StringPiece &body)
 {
@@ -97,15 +140,29 @@ void multipart_parser_userdata::handle_data()
 
 MultiPartForm::MultiPartForm()
 {
-    settings_ = {
-            .on_header_field = header_field_cb,
-            .on_header_value = header_value_cb,
-            .on_part_data = part_data_cb,
-            .on_part_data_begin = part_data_begin_cb,
-            .on_headers_complete = headers_complete_cb,
-            .on_part_data_end = part_data_end_cb,
-            .on_body_end = body_end_cb
-    };
+    settings_.on_header_field = header_field_cb;
+    settings_.on_header_value = header_value_cb;
+    settings_.on_part_data = part_data_cb;
+    settings_.on_part_data_begin = part_data_begin_cb;
+    settings_.on_headers_complete = headers_complete_cb;
+    settings_.on_part_data_end = part_data_end_cb;
+    settings_.on_body_end = body_end_cb;
+}
+
+void MultiPartForm::set_boundary(const std::string &boundary)
+{
+    if (is_valid_multipart_boundary(boundary))
+        boundary_ = boundary;
+    else
+        boundary_.clear();
+}
+
+void MultiPartForm::set_boundary(std::string &&boundary)
+{
+    if (is_valid_multipart_boundary(boundary))
+        boundary_ = std::move(boundary);
+    else
+        boundary_.clear();
 }
 
 int MultiPartForm::header_field_cb(multipart_parser *parser, const char *buf, size_t len)
@@ -166,14 +223,24 @@ int MultiPartForm::body_end_cb(multipart_parser *parser)
 Form MultiPartForm::parse_multipart(const StringPiece &body) const
 {
     Form form;
+    if (boundary_.empty() || body.empty())
+        return form;
+
     std::string boundary = "--" + boundary_;
     multipart_parser *parser = multipart_parser_init(boundary.c_str(), &settings_);
+    if (parser == nullptr)
+        return form;
+
     multipart_parser_userdata userdata;
     userdata.state = MP_START;
     userdata.mp = &form;
     multipart_parser_set_data(parser, &userdata);
-    multipart_parser_execute(parser, body.data(), body.size());
+    const size_t parsed = multipart_parser_execute(parser, body.data(), body.size());
     multipart_parser_free(parser);
+
+    if (parsed != body.size() || userdata.state != MP_BODY_END)
+        form.clear();
+
     return form;
 }
 
