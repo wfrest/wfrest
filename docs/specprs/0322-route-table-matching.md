@@ -37,16 +37,20 @@ Finally, route enumeration emits only leaves, so an endpoint disappears from
 ## Route storage ownership
 
 `RouteTable` owns unique complete routes in `std::set<std::string>`. Node-based
-set storage keeps each string buffer stable for the table's lifetime. A route
-is inserted into this store before parsing, and the `StringPiece` passed to the
-tree watches the stored string rather than the caller buffer.
+set storage keeps each string buffer stable while registration parses it and
+deduplicates repeated complete patterns.
 
-Member declaration order places the owning store before the root node. Reverse
-destruction then destroys the tree and its `StringPiece` keys before destroying
-the strings they observe.
+Each `RouteTableNode` additionally owns the unique text of its direct child
+segments in a node-local `std::set<std::string>`. Its `StringPiece` map keys
+watch that local stable storage. This makes the public low-level
+`RouteTableNode::find_or_create(StringPiece)` safe even when the caller's full
+route buffer is temporary.
 
-Child maps retain `StringPiece` keys for allocation-free lookup but own nodes
-through `std::unique_ptr<RouteTableNode>`. Manual recursive deletion is removed.
+Member declaration order places each owning string set before the map that
+watches it, and places the complete route store before the root. Reverse
+destruction therefore destroys observers before their storage. Child maps keep
+allocation-free `StringPiece` lookup and own nodes through
+`std::unique_ptr<RouteTableNode>`. Manual recursive deletion is removed.
 
 ## Registration parsing
 
@@ -163,8 +167,9 @@ Behavior changes where old results were unsafe or iteration-dependent:
 
 ### Ownership and sanitizer tests
 
-- register from scoped and overwritten heap strings, churn the allocator, then
-  find and enumerate routes;
+- register through both `RouteTable` and direct `RouteTableNode` calls from
+  scoped and overwritten heap strings, churn the allocator, then find and
+  enumerate routes;
 - repeat insertion and destruction under ASan/UBSan;
 - verify unique child ownership under LSan.
 
