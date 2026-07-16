@@ -1,5 +1,7 @@
 #include "StrUtil.h"
 
+#include <cctype>
+
 using namespace wfrest;
 
 const std::string wfrest::string_not_found = "";
@@ -7,6 +9,9 @@ const std::string StrUtil::k_pairs_ = R"({}[]()<>""''``)";
 
 StringPiece StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
 {
+    if (str.size() < 2)
+        return str;
+
     const char *lhs = str.begin();
     const char *rhs = str.begin() + str.size() - 1;
     const char *p = pairs;
@@ -26,7 +31,7 @@ StringPiece StrUtil::trim_pairs(const StringPiece &str, const char *pairs)
 StringPiece StrUtil::ltrim(const StringPiece &str)
 {
     const char *lhs = str.begin();
-    while (lhs != str.end() && std::isspace(*lhs)) lhs++;
+    while (lhs != str.end() && std::isspace(static_cast<unsigned char>(*lhs))) lhs++;
     if (lhs == str.end()) return {};
     StringPiece res(str);
     res.remove_prefix(lhs - str.begin());
@@ -37,8 +42,8 @@ StringPiece StrUtil::rtrim(const StringPiece &str)
 {
     if (str.empty()) return str;
     const char *rhs = str.end() - 1;
-    while (rhs != str.begin() && std::isspace(*rhs)) rhs--;
-    if (rhs == str.begin() && std::isspace(*rhs)) return {};
+    while (rhs != str.begin() && std::isspace(static_cast<unsigned char>(*rhs))) rhs--;
+    if (rhs == str.begin() && std::isspace(static_cast<unsigned char>(*rhs))) return {};
     StringPiece res(str.begin(), rhs - str.begin() + 1);
     return res;
 }

@@ -43,6 +43,11 @@ std::string PathUtil::suffix(const std::string& filepath)
 
 std::string PathUtil::concat_path(const std::string &lhs, const std::string &rhs)
 {
+    if (lhs.empty())
+        return rhs;
+    if (rhs.empty())
+        return lhs;
+
     std::string res;
     // /v1/ /v2
     // remove one '/' -> /v1/v2
