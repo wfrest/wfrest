@@ -6,6 +6,12 @@ You need to fill in the required headers, call the Push interface, and fill in t
 
 We will use chunked encoding to send the data by default.
 
+Each non-empty callback result is sent as one chunk. Leave the callback output
+empty to send the terminal zero chunk; the stream then stops listening for the
+named condition, so later signals do not invoke that callback. The optional
+error callback is invoked at most once if the header, a data chunk, or a retry
+cannot be written. Partial and temporarily blocked writes are retried in order.
+
 You can see example/27_sse.cc for more detail.
 
 Here's the simple usage:
@@ -29,7 +35,7 @@ svr.GET("/sse", [](const HttpReq *req, HttpResp *resp)
         body.append("message");
         body.append("\n");
         body.append("data: ");
-        body.append("price);
+        body.append("price");
         body.append("\n\n");
     });
 });

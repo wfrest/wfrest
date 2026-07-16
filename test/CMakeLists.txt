@@ -70,6 +70,7 @@ set(UNIT_TEST_LIST
 	PathUtil_unittest
 	UriUtil_unittest
 	HttpContent_unittest
+	PushWriteUtil_unittest
 )
 
 foreach(src ${UNIT_TEST_LIST})
@@ -97,6 +98,7 @@ set(SERVER_UNIT_TEST_LIST
 	compute_test
 	send_form_test
 	multipart_test
+	push_test
 	blueprint_test
 	cn_url_test
 )
