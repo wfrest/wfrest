@@ -55,3 +55,9 @@ int main()
     return 0;
 }
 ```
+
+Query names and values are decoded as URL-encoded fields after `&` and the
+first `=` establish field boundaries. Percent escapes such as `%26` and `%3D`
+therefore remain inside the value before decoding, `+` becomes a space, and
+additional `=` bytes are preserved. Malformed percent escapes remain literal.
+When decoded names repeat, the first value is retained.

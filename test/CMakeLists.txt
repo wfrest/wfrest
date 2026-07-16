@@ -68,6 +68,8 @@ set(UNIT_TEST_LIST
 	FileUtil_unittest
 	FileCache_unittest
 	PathUtil_unittest
+	UriUtil_unittest
+	HttpContent_unittest
 )
 
 foreach(src ${UNIT_TEST_LIST})

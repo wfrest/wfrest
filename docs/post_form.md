@@ -68,6 +68,11 @@ int main()
 
 ## MultiPartEncoder
 
+URL-encoded form names and values follow the same decoding rules as query
+parameters: `+` is a space, valid `%xx` escapes are decoded after field
+splitting, embedded `=` bytes are preserved, malformed escapes remain literal,
+and the first decoded duplicate name wins.
+
 Use MultiPartEncoder to encode the multi/part data format content and send.
 
 ```cpp

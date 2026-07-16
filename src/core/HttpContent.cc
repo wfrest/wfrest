@@ -8,6 +8,7 @@
 #include "HttpContent.h"
 #include "StringPiece.h"
 #include "PathUtil.h"
+#include "UriUtil.h"
 #include "HttpDef.h"
 
 using namespace wfrest;
@@ -16,42 +17,7 @@ const std::string MultiPartForm::k_default_boundary = "----WebKitFormBoundary7MA
 
 std::map<std::string, std::string> Urlencode::parse_post_kv(const StringPiece &body)
 {
-    std::map<std::string, std::string> map;
-
-    if (body.empty())
-        return map;
-
-    std::vector<StringPiece> arr = StrUtil::split_piece<StringPiece>(body, '&');
-
-    if (arr.empty())
-        return map;
-
-    for (const auto &ele: arr)
-    {
-        if (ele.empty())
-            continue;
-
-        std::vector<std::string> kv = StrUtil::split_piece<std::string>(ele, '=');
-        size_t kv_size = kv.size();
-        std::string &key = kv[0];
-
-        if (key.empty() || map.count(key) > 0)
-            continue;
-
-        if (kv_size == 1)
-        {
-            map.emplace(std::move(key), "");
-            continue;
-        }
-
-        std::string &val = kv[1];
-
-        if (val.empty())
-            map.emplace(std::move(key), "");
-        else
-            map.emplace(std::move(key), std::move(val));
-    }
-    return map;
+    return UriUtil::split_query(body);
 }
 
 enum multipart_parser_state_e
