@@ -3,10 +3,10 @@
 #ifndef WFREST_ROUTETABLE_H_
 #define WFREST_ROUTETABLE_H_
 
-#include <vector>
+#include <map>
 #include <memory>
-#include <cassert>
-#include <unordered_map>
+#include <set>
+#include <string>
 
 #include "StringPiece.h"
 #include "VerbHandler.h"
@@ -17,7 +17,7 @@ namespace wfrest
 class RouteTableNode : public Noncopyable
 {
 public:
-    ~RouteTableNode();
+    ~RouteTableNode() = default;
 
     struct iterator
     {
@@ -26,6 +26,9 @@ public:
         VerbHandler second;
 
         iterator *operator->()
+        { return this; }
+
+        const iterator *operator->() const
         { return this; }
 
         bool operator==(const iterator &other) const
@@ -51,17 +54,26 @@ public:
     void print_node_arch();  // for test
     
 private:
+    RouteTableNode *find_or_create_child(const StringPiece &segment);
+
+    iterator find_impl(const StringPiece &route,
+                       size_t cursor,
+                       std::map<std::string, std::string> &route_params,
+                       std::string &route_match_path) const;
+
+private:
     VerbHandler verb_handler_;
-    std::map<StringPiece, RouteTableNode *> children_;
+    std::set<std::string> child_keys_;
+    std::map<StringPiece, std::unique_ptr<RouteTableNode>> children_;
 };
 
 template<typename Func>
 void RouteTableNode::all_routes(const Func &func, std::string prefix) const
 {
-    if (children_.empty())
-    {
+    if (!verb_handler_.verb_handler_map.empty())
         func(prefix, verb_handler_);
-    } else
+
+    if (!children_.empty())
     {
         if (!prefix.empty() && prefix.back() != '/')
             prefix += '/';
@@ -95,8 +107,8 @@ public:
     void print_node_arch() { root_.print_node_arch(); }  // for test
     
 private:
+    std::set<std::string> routes_;
     RouteTableNode root_;
-    std::set<StringPiece> string_pieces_;  // check if exists
 };
 
 } // namespace wfrest

@@ -1,198 +1,263 @@
 #include <queue>
+#include <utility>
 #include "RouteTable.h"
 
 using namespace wfrest;
 
-RouteTableNode::~RouteTableNode()
+namespace
 {
-    for (auto &child: children_)
+
+bool parameter_name(const StringPiece &pattern, std::string *name)
+{
+    if (pattern.size() <= 2 || pattern.data()[0] != '{' ||
+        pattern.data()[pattern.size() - 1] != '}')
     {
-        delete child.second;
+        return false;
     }
+
+    size_t begin = 1;
+    size_t end = pattern.size() - 1;
+    while (begin < end &&
+           (pattern.data()[begin] == ' ' || pattern.data()[begin] == '\t'))
+    {
+        ++begin;
+    }
+    while (end > begin &&
+           (pattern.data()[end - 1] == ' ' || pattern.data()[end - 1] == '\t'))
+    {
+        --end;
+    }
+
+    if (begin == end)
+        return false;
+
+    name->assign(pattern.data() + begin, end - begin);
+    return true;
 }
 
-VerbHandler &RouteTableNode::find_or_create(const StringPiece &route, size_t cursor)
+bool wildcard_prefix(const StringPiece &pattern, StringPiece *prefix)
 {
-    if (cursor == route.size())
-        return verb_handler_;
+    if (pattern.empty() || pattern.data()[pattern.size() - 1] != '*')
+        return false;
 
-    // store GET("/", ...)
-    if(cursor == 0 && route.as_string() == "/")
-    {
-        auto *new_node = new RouteTableNode();
-        children_.insert({route, new_node});
-        return new_node->find_or_create(route, ++cursor);
-    }
-    // ignore the last '/'
-    if (cursor == route.size() - 1 && route[cursor] == '/')
-    {
-        return verb_handler_;
-    }
-
-    if (route[cursor] == '/')
-        cursor++; // skip the /
-    int anchor = cursor;
-    while (cursor < route.size() && route[cursor] != '/')
-        cursor++;
-    // get the '/ {mid} /' part
-    StringPiece mid(route.begin() + anchor, cursor - anchor);
-    auto it = children_.find(mid);
-    if (it != children_.end())
-    {
-        return it->second->find_or_create(route, cursor);
-    } else
-    {
-        auto *new_node = new RouteTableNode();
-        children_.insert({mid, new_node});
-        return new_node->find_or_create(route, cursor);
-    }
+    prefix->set(pattern.data(), pattern.size() - 1);
+    return true;
 }
 
-RouteTableNode::iterator RouteTableNode::find(const StringPiece &route, size_t cursor,
-                                              std::map<std::string, std::string> &route_params,
-                                              std::string &route_match_path) const
+} // namespace
+
+RouteTableNode *RouteTableNode::find_or_create_child(const StringPiece &segment)
 {
-    assert(cursor >= 0);
-    // We found the route
+    auto child = children_.find(segment);
+    if (child != children_.end())
+        return child->second.get();
+
+    const auto stored = child_keys_.insert(segment.as_string()).first;
+    std::unique_ptr<RouteTableNode> node(new RouteTableNode);
+    RouteTableNode *node_ptr = node.get();
+    children_.emplace(StringPiece(*stored), std::move(node));
+    return node_ptr;
+}
+
+VerbHandler &RouteTableNode::find_or_create(const StringPiece &route,
+                                            size_t cursor)
+{
+    if (cursor >= route.size())
+        return verb_handler_;
+
+    if (cursor == 0 && route.size() == 1 && route.data()[0] == '/')
+    {
+        RouteTableNode *child = find_or_create_child(route);
+        return child->find_or_create(route, 1);
+    }
+
+    if (route.data()[cursor] == '/')
+        ++cursor;
+    if (cursor >= route.size())
+        return verb_handler_;
+
+    const size_t anchor = cursor;
+    while (cursor < route.size() && route.data()[cursor] != '/')
+        ++cursor;
+
+    const StringPiece segment(route.data() + anchor, cursor - anchor);
+    RouteTableNode *child = find_or_create_child(segment);
+    return child->find_or_create(route, cursor);
+}
+
+RouteTableNode::iterator RouteTableNode::find(
+    const StringPiece &route,
+    size_t cursor,
+    std::map<std::string, std::string> &route_params,
+    std::string &route_match_path) const
+{
+    const auto original_params = route_params;
+    const std::string original_match_path = route_match_path;
+    iterator result = find_impl(route, cursor, route_params, route_match_path);
+    if (result == end())
+    {
+        route_params = original_params;
+        route_match_path = original_match_path;
+    }
+    return result;
+}
+
+RouteTableNode::iterator RouteTableNode::find_impl(
+    const StringPiece &route,
+    size_t cursor,
+    std::map<std::string, std::string> &route_params,
+    std::string &route_match_path) const
+{
+    if (cursor > route.size())
+        return end();
+
     if (cursor == route.size())
     {
-        if (!verb_handler_.verb_handler_map.empty() || children_.empty())
-        {
+        if (!verb_handler_.verb_handler_map.empty())
             return iterator{this, route, verb_handler_};
-        }
-    }
-    // /*
-    if(cursor == route.size() && !children_.empty())
-    {
-        auto it = children_.find(StringPiece("*"));
-        if(it != children_.end())
+
+        const auto wildcard = children_.find(StringPiece("*"));
+        if (wildcard != children_.end() &&
+            !wildcard->second->verb_handler_.verb_handler_map.empty())
         {
-            if(it->second->verb_handler_.verb_handler_map.empty())
-                fprintf(stderr, "handler nullptr");
-            return iterator{it->second, route, it->second->verb_handler_};
+            route_match_path.clear();
+            return iterator{wildcard->second.get(), route,
+                            wildcard->second->verb_handler_};
         }
+        return end();
     }
 
-    // route does not match any.
-    if (cursor == route.size() && verb_handler_.verb_handler_map.empty())
-        return iterator{nullptr, route, verb_handler_};
-
-    // find GET("/", ...)
-    if(cursor == 0 && route.as_string() == "/")
+    if (cursor == 0 && route.size() == 1 && route.data()[0] == '/')
     {
-        // look for "/" in the children.
-        auto it = children_.find(route);
-        // it == <StringPiece: path level part, RouteTableNode* >
-        if (it != children_.end())
+        const auto root = children_.find(route);
+        if (root != children_.end())
         {
-            // it2 == RouteTableNode::iterator
-            // search in the corresponding child.
-            auto it2 = it->second->find(route, ++cursor, route_params, route_match_path);
-            if (it2 != it->second->end())
-                return it2;
+            iterator result = root->second->find_impl(
+                route, 1, route_params, route_match_path);
+            if (result != end())
+                return result;
         }
     }
 
-    if (route[cursor] == '/')
-        cursor++; // skip the first /
-    // Find the next /.
-    // mark an anchor here
-    int anchor = cursor;
-    while (cursor < route.size() && route[cursor] != '/')
-        cursor++;
+    if (route.data()[cursor] == '/')
+        ++cursor;
 
-    // mid is the string between the 2 /.
-    // / {mid} /
-    StringPiece mid(route.begin() + anchor, cursor - anchor);
+    const size_t anchor = cursor;
+    while (cursor < route.size() && route.data()[cursor] != '/')
+        ++cursor;
+    const StringPiece segment(route.data() + anchor, cursor - anchor);
 
-    // look for mid in the children.
-    auto it = children_.find(mid);
-    // it == <StringPiece: path level part, RouteTableNode* >
-    if (it != children_.end())
+    const auto exact = children_.find(segment);
+    std::string exact_parameter;
+    StringPiece exact_wildcard;
+    if (exact != children_.end() &&
+        !parameter_name(exact->first, &exact_parameter) &&
+        !wildcard_prefix(exact->first, &exact_wildcard))
     {
-        // it2 == RouteTableNode::iterator
-        auto it2 = it->second->find(route, cursor, route_params, route_match_path); // search in the corresponding child.
-        if (it2 != it->second->end())
-            return it2;
+        const auto saved_params = route_params;
+        const std::string saved_match_path = route_match_path;
+        iterator result = exact->second->find_impl(
+            route, cursor, route_params, route_match_path);
+        if (result != end())
+            return result;
+        route_params = saved_params;
+        route_match_path = saved_match_path;
     }
 
-    // if one child is an url param {name}, choose it
-    for (auto &kv: children_)
+    if (!segment.empty())
     {
-        StringPiece param(kv.first);
-        if (!param.empty() && param[param.size() - 1] == '*')
+        for (const auto &entry : children_)
         {
-            StringPiece match(param);
-            match.remove_suffix(1);
-            if (mid.starts_with(match))
-            {
-                StringPiece match_path(route.data() + cursor);
-                route_match_path = mid.as_string() + match_path.as_string();
-                return iterator{kv.second, route, kv.second->verb_handler_};
-            }
-        }
+            std::string name;
+            if (!parameter_name(entry.first, &name))
+                continue;
 
-        if (param.size() > 2 && param[0] == '{' && param[param.size() - 1] == '}')
-        {
-            int i = 1;
-            int j = param.size() - 2;
-            while (param[i] == ' ') i++;
-            while (param[j] == ' ') j--;
+            const auto previous = route_params.find(name);
+            const bool had_previous = previous != route_params.end();
+            const std::string previous_value = had_previous
+                                                   ? previous->second
+                                                   : std::string();
+            const std::string saved_match_path = route_match_path;
+            route_params[name] = segment.as_string();
 
-            param.shrink(i, param.size() - 1 - j);
-            route_params[param.as_string()] = mid.as_string();
-            return kv.second->find(route, cursor, route_params, route_match_path);
+            iterator result = entry.second->find_impl(
+                route, cursor, route_params, route_match_path);
+            if (result != end())
+                return result;
+
+            if (had_previous)
+                route_params[name] = previous_value;
+            else
+                route_params.erase(name);
+            route_match_path = saved_match_path;
         }
     }
+
+    const RouteTableNode *best_node = nullptr;
+    size_t best_prefix_size = 0;
+    bool found_wildcard = false;
+    for (const auto &entry : children_)
+    {
+        StringPiece prefix;
+        if (!wildcard_prefix(entry.first, &prefix) ||
+            !segment.starts_with(prefix) ||
+            entry.second->verb_handler_.verb_handler_map.empty())
+        {
+            continue;
+        }
+
+        if (!found_wildcard || prefix.size() > best_prefix_size)
+        {
+            found_wildcard = true;
+            best_prefix_size = prefix.size();
+            best_node = entry.second.get();
+        }
+    }
+
+    if (best_node != nullptr)
+    {
+        route_match_path = segment.as_string();
+        route_match_path.append(route.data() + cursor, route.size() - cursor);
+        return iterator{best_node, route, best_node->verb_handler_};
+    }
+
     return end();
 }
 
 void RouteTableNode::print_node_arch()
 {
     std::queue<std::pair<StringPiece, RouteTableNode *>> node_queue;
-    StringPiece root("/");
+    const StringPiece root("/");
     node_queue.push({root, this});
     int level = 0;
-    while(!node_queue.empty())
+    while (!node_queue.empty())
     {
         fprintf(stderr, "level %d:\t", level);
-        size_t queue_size = node_queue.size();
+        const size_t queue_size = node_queue.size();
         fprintf(stderr, "(size : %zu)\t", queue_size);
-        for(size_t i = 0; i < queue_size; i++)
+        for (size_t i = 0; i < queue_size; ++i)
         {
-            std::pair<StringPiece, RouteTableNode *> node = node_queue.front();
+            const auto node = node_queue.front();
             node_queue.pop();
 
             fprintf(stderr, "[%s :", node.first.as_string().c_str());
-            const std::map<StringPiece, RouteTableNode *> &children = node.second->children_;
-
-            if(children.empty())
+            const auto &children = node.second->children_;
+            if (children.empty())
                 fprintf(stderr, "\tNULL");
-            for (const auto &pair: children)
+            for (const auto &child : children)
             {
-                fprintf(stderr, "\t%s", pair.first.as_string().c_str());
-                node_queue.push(pair);
+                fprintf(stderr, "\t%s", child.first.as_string().c_str());
+                node_queue.push({child.first, child.second.get()});
             }
             fprintf(stderr, "]");
         }
-        level++;
+        ++level;
         fprintf(stderr, "\n");
     }
 }
 
 VerbHandler &RouteTable::find_or_create(const char *route)
 {
-    // Use pointer to prevent iterator invalidation
-    // StringPiece is only a watcher, so we should store the string.
-    StringPiece route_piece(route);
-    auto it = string_pieces_.find(route_piece);
-    if(it != string_pieces_.end())
-    {
-        return root_.find_or_create(*it, 0);
-    }
-    string_pieces_.insert(route_piece);
-    return root_.find_or_create(route_piece, 0);
+    const auto stored = routes_.insert(route == nullptr ? "" : route).first;
+    return root_.find_or_create(StringPiece(*stored), 0);
 }
-
-
-
