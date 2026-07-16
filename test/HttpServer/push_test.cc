@@ -21,6 +21,9 @@ TEST(HttpServer, push_stops_after_terminal_chunk)
         resp->add_header("Content-Type", "text/event-stream");
         resp->add_header("Cache-Control", "no-cache");
         resp->add_header("Connection", "keep-alive");
+        resp->headers["X-Push"] = "safe\r\nX-Push-Injected: yes";
+        resp->headers["Content-Length"] = "1";
+        resp->headers["Transfer-Encoding"] = "identity";
         resp->Push(condition, [&](std::string &body)
         {
             if (++push_calls == 1)
@@ -37,6 +40,17 @@ TEST(HttpServer, push_stops_after_terminal_chunk)
     client->set_callback([&](WFHttpTask *task)
     {
         EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_TRUE(headers.get("X-Push").empty());
+        EXPECT_TRUE(headers.get("X-Push-Injected").empty());
+        EXPECT_TRUE(headers.get("Content-Length").empty());
+        const auto transfer_encodings =
+            headers.get_strict("Transfer-Encoding");
+        EXPECT_EQ(transfer_encodings.size(), 1U);
+        if (!transfer_encodings.empty())
+        {
+            EXPECT_EQ(transfer_encodings.front(), "chunked");
+        }
         const void *body = nullptr;
         size_t body_size = 0;
         const bool parsed = task->get_resp()->get_parsed_body(&body, &body_size);

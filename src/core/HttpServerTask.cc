@@ -5,6 +5,7 @@
 
 #include "HttpServerTask.h"
 #include "HttpServer.h"
+#include "HttpHeaderUtil.h"
 #include "StrUtil.h"
 
 using namespace protocol;
@@ -59,6 +60,7 @@ CommMessageOut *HttpServerTask::message_out()
     HttpResp *resp = this->get_resp();
 
     std::map<std::string, std::string, MapStringCaseLess> &headers = resp->headers;
+    detail::sanitize_application_response_headers(&headers);
     // content type
     if(headers.find("Content-Type") == headers.end())
     {
