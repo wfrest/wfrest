@@ -64,9 +64,9 @@ including `filename*`, are parsed and ignored.
 ### Quoted values
 
 A quoted value begins and ends with `"`. Semicolon and equals bytes inside the
-quotes are data, not separators. A backslash followed by a printable byte,
-space, or horizontal tab removes the backslash and retains the following byte.
-This includes escaped quote and backslash bytes.
+quotes are data, not separators. A backslash followed by an ASCII visible
+byte, an `obs-text` byte, space, or horizontal tab removes the backslash and
+retains the following byte. This includes escaped quote and backslash bytes.
 
 Carriage return, line feed, NUL, DEL, another control byte, a trailing
 backslash, or a missing closing quote makes the disposition invalid. After the
