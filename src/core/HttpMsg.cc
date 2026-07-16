@@ -626,18 +626,25 @@ void HttpReq::fill_header_map()
 
 const std::map<std::string, std::string> &HttpReq::cookies() const
 {
-    if (cookies_.empty() && this->has_header("Cookie"))
+    if (!cookies_parsed_)
     {
-        const std::string &cookie = this->header("Cookie");
-        StringPiece cookie_piece(cookie);
-        cookies_ = HttpCookie::split(cookie_piece);
+        cookies_parsed_ = true;
+        const auto header_it = headers_.find("Cookie");
+        if (header_it != headers_.end())
+        {
+            for (const std::string &header_value : header_it->second)
+            {
+                const auto parsed = HttpCookie::split(StringPiece(header_value));
+                cookies_.insert(parsed.begin(), parsed.end());
+            }
+        }
     }
     return cookies_;
 }
 
 const std::string &HttpReq::cookie(const std::string &key) const
 {
-    if(cookies_.empty())
+    if (!cookies_parsed_)
     {
         this->cookies();
     }
@@ -656,6 +663,7 @@ HttpReq::HttpReq(HttpReq&& other)
     route_params_(std::move(other.route_params_)),
     query_params_(std::move(other.query_params_)),
     cookies_(std::move(other.cookies_)),
+    cookies_parsed_(other.cookies_parsed_),
     multi_part_(std::move(other.multi_part_)),
     headers_(std::move(other.headers_)),
     parsed_uri_(std::move(other.parsed_uri_))
@@ -677,6 +685,7 @@ HttpReq &HttpReq::operator=(HttpReq&& other)
     route_params_ = std::move(other.route_params_);
     query_params_ = std::move(other.query_params_);
     cookies_ = std::move(other.cookies_);
+    cookies_parsed_ = other.cookies_parsed_;
     multi_part_ = std::move(other.multi_part_);
     headers_ = std::move(other.headers_);
     parsed_uri_ = std::move(other.parsed_uri_);

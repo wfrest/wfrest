@@ -10,13 +10,13 @@ int main()
 {
     HttpServer svr;
 
-    // curl --cookie "name=chanchan, passwd=123" "http://ip:port/cookie"
+    // curl --cookie "name=chanchan; passwd=123" "http://ip:port/cookie"
     svr.GET("/cookie", [](const HttpReq *req, HttpResp *resp)
     {
         const std::map<std::string, std::string> &cookie = req->cookies();
         if(cookie.empty())  // no cookie
         {
-            HttpCookie cookie;
+            HttpCookie cookie("name", "chanchan");
             // What you can set :
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
             cookie.set_path("/").set_http_only(true);
@@ -42,6 +42,15 @@ int main()
     return 0;
 }
 ```
+
+Request cookie pairs are separated by semicolons. wfrest preserves `=` bytes
+after the first separator, accepts empty values, and keeps the first duplicate
+name across all `Cookie` header fields. Malformed names or values are skipped.
+
+Response cookie names and values must already follow cookie syntax; unsafe
+control or delimiter bytes cause that `Set-Cookie` field to be skipped. To
+delete a cookie, use an empty value with an explicit non-positive age, for
+example `HttpCookie("session", "").set_max_age(0).set_path("/")`.
 
 Here is a more specific example, you can see the the [tutorial](https://github.com/wfrest/wfrest/discussions/60)
 

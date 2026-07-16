@@ -83,6 +83,9 @@ CommMessageOut *HttpServerTask::message_out()
     for(auto &cookie : resp->cookies())
     {
         std::string cookie_str = cookie.dump();
+        if (cookie_str.empty())
+            continue;
+
         header.name = "Set-Cookie";
         header.name_len = 10;
         header.value = cookie_str.c_str();

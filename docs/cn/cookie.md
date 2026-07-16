@@ -10,13 +10,13 @@ int main()
 {
     HttpServer svr;
 
-    // curl --cookie "name=chanchan, passwd=123" "http://ip:port/cookie"
+    // curl --cookie "name=chanchan; passwd=123" "http://ip:port/cookie"
     svr.GET("/cookie", [](const HttpReq *req, HttpResp *resp)
     {
         const std::map<std::string, std::string> &cookie = req->cookies();
         if(cookie.empty())  // 没有cookie
         {
-            HttpCookie cookie;
+            HttpCookie cookie("name", "chanchan");
             // 您可以设置的内容：
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
             cookie.set_path("/").set_http_only(true);
@@ -42,6 +42,13 @@ int main()
     return 0;
 }
 ```
+
+请求 Cookie 使用分号分隔。wfrest 会保留第一个 `=` 之后的全部内容，接受空值，
+并在所有 `Cookie` 请求头中保留第一个重复字段名；格式错误的名称或值会被跳过。
+
+响应 Cookie 的名称和值必须已经符合 Cookie 语法；包含控制字符或危险分隔符时，
+对应的 `Set-Cookie` 不会发送。删除 Cookie 时可使用空值和明确的非正有效期，例如
+`HttpCookie("session", "").set_max_age(0).set_path("/")`。
 
 以下是一个更具体的示例，您可以查看[教程](https://github.com/wfrest/wfrest/discussions/60)
 
@@ -139,4 +146,4 @@ svr.GET("/multi", [](const HttpReq *req, HttpResp *resp)
     resp->set_status(HttpStatusOK);
     resp->String("登录成功");
 });
-``` 
+```

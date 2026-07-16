@@ -37,8 +37,7 @@ class HttpCookie : public Copyable
 {
 public:
     // Check if the cookie is empty
-    explicit operator bool() const
-    { return (!key_.empty()) && (!value_.empty()); }
+    explicit operator bool() const;
 
     std::string dump() const;
 
@@ -102,6 +101,7 @@ public:
     HttpCookie &set_max_age(int max_age)
     {
         max_age_ = max_age;
+        has_max_age_ = true;
         return *this;
     }
 
@@ -142,6 +142,9 @@ public:
     int max_age() const
     { return max_age_; }
 
+    bool has_max_age() const
+    { return has_max_age_; }
+
     bool is_secure() const
     { return secure_; }
 
@@ -170,6 +173,7 @@ private:
 
     Timestamp expires_;
     int max_age_ = 0;
+    bool has_max_age_ = false;
     bool secure_ = false;
     bool http_only_ = false;
 

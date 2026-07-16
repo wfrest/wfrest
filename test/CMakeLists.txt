@@ -99,6 +99,7 @@ set(SERVER_UNIT_TEST_LIST
 	send_form_test
 	multipart_test
 	push_test
+	cookie_test
 	blueprint_test
 	cn_url_test
 )

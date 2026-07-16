@@ -130,6 +130,7 @@ private:
     std::map<std::string, std::string> route_params_;
     std::map<std::string, std::string> query_params_;
     mutable std::map<std::string, std::string> cookies_;
+    mutable bool cookies_parsed_ = false;
 
     MultiPartForm multi_part_;
     HeaderMap headers_;
