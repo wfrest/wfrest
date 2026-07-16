@@ -60,4 +60,15 @@ int main()
     }
     return 0;
 }
-``` 
+```
+
+## 范围语义
+
+`File(path, start, end)` 和 `CachedFile(path, start, end)` 使用左闭右开区间：
+包含 `start`，不包含 `end`。将 `end` 设为 `-1` 表示读取到文件末尾；负数
+`start` 表示从文件尾部倒数，例如 `File(path, -5, -1)` 返回最后 5 个字节。
+
+完整文件响应使用 `200`，不包含 `Content-Range`。部分文件响应使用 `206`，
+并按照 RFC 9110 生成末字节位置为闭区间的 `Content-Range`。超过文件末尾的
+`end` 会被截断；无效范围或空的部分范围返回 `416`，同时包含
+`Content-Range: bytes */<file-size>`。

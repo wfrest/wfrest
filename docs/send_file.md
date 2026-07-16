@@ -61,3 +61,15 @@ int main()
     return 0;
 }
 ```
+
+## Range semantics
+
+`File(path, start, end)` and `CachedFile(path, start, end)` use a half-open
+range: `start` is included and `end` is excluded. Passing `-1` as `end` reads
+through EOF. A negative `start` selects a suffix, so `File(path, -5, -1)`
+returns the final five bytes.
+
+Full-file responses use status `200` without a `Content-Range` header. Partial
+responses use status `206` and an RFC 9110 `Content-Range` header whose final
+byte position is inclusive. Ends beyond EOF are clamped. Invalid or empty
+partial ranges return status `416` with `Content-Range: bytes */<file-size>`.
