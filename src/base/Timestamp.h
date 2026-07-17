@@ -32,6 +32,10 @@ public:
 
     std::string to_format_str(const char *fmt) const;
 
+    std::string to_utc_format_str() const;
+
+    std::string to_utc_format_str(const char *fmt) const;
+
     uint64_t micro_sec_since_epoch() const;
 
     bool valid() const

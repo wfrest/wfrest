@@ -154,7 +154,8 @@ std::string HttpCookie::dump() const
     else if (expires_.valid())
     {
         ret.append("Expires=")
-                .append(expires_.to_format_str("%a, %d %b %Y %H:%M:%S GMT"))
+                .append(expires_.to_utc_format_str(
+                    "%a, %d %b %Y %H:%M:%S GMT"))
                 .append("; ");
     }
     if (!domain_.empty())

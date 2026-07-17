@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <cstdlib>
+#include <ctime>
 #include <string>
 #include <vector>
 
 #include "wfrest/HttpServer.h"
 #include "wfrest/Json.h"
+#include "wfrest/Timestamp.h"
 #include "workflow/WFFacilities.h"
 #include "../ClientUtil.h"
 
@@ -13,6 +16,54 @@ using namespace wfrest;
 
 namespace
 {
+
+class ScopedTimezone
+{
+public:
+    explicit ScopedTimezone(const char *timezone)
+    {
+        const char *current = std::getenv("TZ");
+        if (current != nullptr)
+        {
+            had_value_ = true;
+            value_ = current;
+        }
+
+        (void)setenv("TZ", timezone, 1);
+        tzset();
+    }
+
+    ~ScopedTimezone()
+    {
+        if (had_value_)
+            (void)setenv("TZ", value_.c_str(), 1);
+        else
+            (void)unsetenv("TZ");
+        tzset();
+    }
+
+private:
+    bool had_value_ = false;
+    std::string value_;
+};
+
+bool is_recent_utc_http_date(const std::string& value)
+{
+    const uint64_t now = Timestamp::now().micro_sec_since_epoch() /
+                         Timestamp::k_micro_sec_per_sec;
+    const uint64_t first = now > 5 ? now - 5 : 0;
+    for (uint64_t second = first; second <= now + 5; ++second)
+    {
+        const Timestamp candidate(
+            second * Timestamp::k_micro_sec_per_sec);
+        if (candidate.to_utc_format_str(
+                "%a, %d %b %Y %H:%M:%S GMT") == value)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 std::string response_body(WFHttpTask *task)
 {
@@ -27,6 +78,7 @@ std::string response_body(WFHttpTask *task)
 
 TEST(HttpServer, validates_response_headers_and_framing)
 {
+    ScopedTimezone timezone("EST5");
     HttpServer server;
     WFFacilities::WaitGroup wait_group(5);
 
@@ -73,6 +125,7 @@ TEST(HttpServer, validates_response_headers_and_framing)
         EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
         HttpHeaderMap headers(task->get_resp());
         EXPECT_EQ(headers.get("X-Safe"), "yes");
+        EXPECT_TRUE(is_recent_utc_http_date(headers.get("Date")));
         EXPECT_TRUE(headers.get("X-Injected").empty());
         EXPECT_TRUE(headers.get("X-Direct-Injected").empty());
         EXPECT_TRUE(headers.get("Bad:Direct").empty());

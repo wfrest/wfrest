@@ -68,7 +68,8 @@ CommMessageOut *HttpServerTask::message_out()
     }
     if(headers.find("Date") == headers.end())
     {
-        headers["Date"] = Timestamp::now().to_format_str("%a, %d %b %Y %H:%M:%S GMT");
+        headers["Date"] = Timestamp::now().to_utc_format_str(
+            "%a, %d %b %Y %H:%M:%S GMT");
     }
     struct HttpMessageHeader header;
 
