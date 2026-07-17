@@ -5,6 +5,8 @@
 #include <limits>
 #include <new>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <gtest/gtest.h>
 #include "wfrest/HttpMsg.h"
 #include "wfrest/HttpServerTask.h"
@@ -76,6 +78,23 @@ private:
 };
 
 } // namespace
+
+static_assert(std::is_same<
+    decltype(std::declval<const HttpReq&>().default_query(
+        std::declval<const std::string&>(), std::declval<std::string&>())),
+    const std::string&>::value,
+    "lvalue query fallbacks must keep reference semantics");
+
+static_assert(std::is_same<
+    decltype(std::declval<const HttpReq&>().default_query(
+        std::declval<const std::string&>(), std::declval<std::string&&>())),
+    std::string>::value,
+    "temporary query fallbacks must return owned strings");
+
+static_assert(std::is_same<
+    decltype(std::declval<const HttpReq&>().default_query("key", "fallback")),
+    std::string>::value,
+    "literal query fallbacks must return owned strings");
 
 TEST(HttpServerTaskPeer, rejects_unavailable_or_truncated_addresses)
 {
@@ -289,6 +308,37 @@ TEST(HttpReqAccessors, converts_typed_params_without_exceptions)
     EXPECT_DOUBLE_EQ(request.param<double>("double_underflow"), 0.0);
     EXPECT_DOUBLE_EQ(request.param<double>("embedded"), 0.0);
     EXPECT_EQ(errno, ENOENT);
+}
+
+TEST(HttpReqAccessors, owns_temporary_default_query_fallbacks)
+{
+    HttpReq request;
+    request.set_query_params({{"present", "stored"}});
+
+    std::string fallback = "caller-owned";
+    const std::string& missing_lvalue =
+        request.default_query("missing", fallback);
+    EXPECT_EQ(&missing_lvalue, &fallback);
+
+    const std::string& present_lvalue =
+        request.default_query("present", fallback);
+    EXPECT_EQ(&present_lvalue, &request.query("present"));
+    EXPECT_EQ(present_lvalue, "stored");
+
+    const std::string& missing_temporary = request.default_query(
+        "missing", std::string(4096, 'x'));
+    EXPECT_EQ(missing_temporary.size(), 4096U);
+    EXPECT_EQ(missing_temporary.front(), 'x');
+    EXPECT_EQ(missing_temporary.back(), 'x');
+
+    const std::string& missing_literal =
+        request.default_query("missing", "literal");
+    EXPECT_EQ(missing_literal, "literal");
+
+    std::string present_owned = request.default_query(
+        "present", std::string("unused"));
+    request.set_query_params({{"present", "changed"}});
+    EXPECT_EQ(present_owned, "stored");
 }
 
 TEST(HttpReqAccessors, current_path_is_safe_across_move_states)

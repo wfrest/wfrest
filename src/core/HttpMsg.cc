@@ -650,10 +650,14 @@ const std::string &HttpReq::query(const std::string &key) const
 
 const std::string &HttpReq::default_query(const std::string &key, const std::string &default_val) const
 {
-    if (query_params_.count(key))
-        return query_params_.at(key);
-    else
-        return default_val;
+    auto it = query_params_.find(key);
+    return it == query_params_.end() ? default_val : it->second;
+}
+
+std::string HttpReq::default_query(const std::string &key, std::string &&default_val) const
+{
+    auto it = query_params_.find(key);
+    return it == query_params_.end() ? std::move(default_val) : it->second;
 }
 
 bool HttpReq::has_query(const std::string &key) const
