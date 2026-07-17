@@ -2,6 +2,8 @@
 #define WFREST_TIMESTAMP_H_
 
 #include <chrono>
+#include <cmath>
+#include <limits>
 #include <string>
 #include <sstream>
 #include <iomanip> // put_time
@@ -81,32 +83,66 @@ inline bool operator!=(Timestamp lhs, Timestamp rhs)
     return lhs.micro_sec_since_epoch() != rhs.micro_sec_since_epoch();
 }
 
-inline Timestamp operator+(Timestamp lhs, uint64_t ms)
+inline Timestamp operator+(Timestamp lhs, uint64_t microseconds)
 {
-    return Timestamp(lhs.micro_sec_since_epoch() + ms);
+    const uint64_t current = lhs.micro_sec_since_epoch();
+    const uint64_t maximum = std::numeric_limits<uint64_t>::max();
+    if (microseconds > maximum - current)
+        return Timestamp(maximum);
+    return Timestamp(current + microseconds);
 }
 
 inline Timestamp operator+(Timestamp lhs, double seconds)
 {
-    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_micro_sec_per_sec);
-    return Timestamp(lhs.micro_sec_since_epoch() + delta);
+    if (std::isnan(seconds) || seconds == 0.0)
+        return lhs;
+
+    const bool add = seconds > 0.0;
+    const long double magnitude =
+        (add ? static_cast<long double>(seconds) :
+               -static_cast<long double>(seconds)) *
+        Timestamp::k_micro_sec_per_sec;
+    const uint64_t current = lhs.micro_sec_since_epoch();
+
+    if (add)
+    {
+        const uint64_t maximum = std::numeric_limits<uint64_t>::max();
+        const uint64_t room = maximum - current;
+        if (magnitude >= static_cast<long double>(room))
+            return Timestamp(maximum);
+        return Timestamp(current + static_cast<uint64_t>(magnitude));
+    }
+
+    if (magnitude >= static_cast<long double>(current))
+        return Timestamp();
+    return Timestamp(current - static_cast<uint64_t>(magnitude));
 }
 
-inline Timestamp operator-(Timestamp lhs, uint64_t ms)
+inline Timestamp operator-(Timestamp lhs, uint64_t microseconds)
 {
-    return Timestamp(lhs.micro_sec_since_epoch() - ms);
+    const uint64_t current = lhs.micro_sec_since_epoch();
+    if (microseconds > current)
+        return Timestamp();
+    return Timestamp(current - microseconds);
 }
 
 inline Timestamp operator-(Timestamp lhs, double seconds)
 {
-    uint64_t delta = static_cast<uint64_t>(seconds * Timestamp::k_micro_sec_per_sec);
-    return Timestamp(lhs.micro_sec_since_epoch() - delta);
+    return lhs + -seconds;
 }
 
 inline double operator-(Timestamp high, Timestamp low)
 {
-    uint64_t diff = high.micro_sec_since_epoch() - low.micro_sec_since_epoch();
-    return static_cast<double>(diff) / Timestamp::k_micro_sec_per_sec;
+    if (high >= low)
+    {
+        const uint64_t diff =
+            high.micro_sec_since_epoch() - low.micro_sec_since_epoch();
+        return static_cast<double>(diff) / Timestamp::k_micro_sec_per_sec;
+    }
+
+    const uint64_t diff =
+        low.micro_sec_since_epoch() - high.micro_sec_since_epoch();
+    return -static_cast<double>(diff) / Timestamp::k_micro_sec_per_sec;
 }
 
 }  // namespace wfrest

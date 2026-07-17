@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <locale>
+#include <limits>
 #include <string>
 #include <thread>
 #include <vector>
@@ -79,6 +80,76 @@ private:
 };
 
 } // namespace
+
+TEST(Timestamp, serializes_exact_microsecond_fraction)
+{
+    EXPECT_EQ(Timestamp(0).to_str(), "0.000000");
+    EXPECT_EQ(Timestamp(1).to_str(), "0.000001");
+    EXPECT_EQ(Timestamp(1000001).to_str(), "1.000001");
+    EXPECT_EQ(Timestamp(1100000).to_str(), "1.100000");
+}
+
+TEST(Timestamp, saturates_integer_timepoint_arithmetic)
+{
+    const uint64_t maximum = std::numeric_limits<uint64_t>::max();
+
+    EXPECT_EQ((Timestamp(10) + static_cast<uint64_t>(5))
+                  .micro_sec_since_epoch(), 15U);
+    EXPECT_EQ((Timestamp(maximum - 1) + static_cast<uint64_t>(1))
+                  .micro_sec_since_epoch(), maximum);
+    EXPECT_EQ((Timestamp(maximum - 1) + static_cast<uint64_t>(2))
+                  .micro_sec_since_epoch(), maximum);
+
+    EXPECT_EQ((Timestamp(10) - static_cast<uint64_t>(5))
+                  .micro_sec_since_epoch(), 5U);
+    EXPECT_EQ((Timestamp(5) - static_cast<uint64_t>(5))
+                  .micro_sec_since_epoch(), 0U);
+    EXPECT_EQ((Timestamp(5) - static_cast<uint64_t>(6))
+                  .micro_sec_since_epoch(), 0U);
+}
+
+TEST(Timestamp, applies_floating_seconds_without_invalid_casts)
+{
+    const Timestamp base(2000000);
+    EXPECT_EQ((base + 1.5).micro_sec_since_epoch(), 3500000U);
+    EXPECT_EQ((base - 1.5).micro_sec_since_epoch(), 500000U);
+    EXPECT_EQ((base + -1.5).micro_sec_since_epoch(), 500000U);
+    EXPECT_EQ((base - -1.5).micro_sec_since_epoch(), 3500000U);
+    EXPECT_EQ((base + 0.0000009).micro_sec_since_epoch(), 2000000U);
+    EXPECT_EQ((base + 0.0000019).micro_sec_since_epoch(), 2000001U);
+
+    const double infinity = std::numeric_limits<double>::infinity();
+    const double maximum = std::numeric_limits<double>::max();
+    const uint64_t max_timestamp = std::numeric_limits<uint64_t>::max();
+    EXPECT_EQ((base + infinity).micro_sec_since_epoch(), max_timestamp);
+    EXPECT_EQ((base + -infinity).micro_sec_since_epoch(), 0U);
+    EXPECT_EQ((base - infinity).micro_sec_since_epoch(), 0U);
+    EXPECT_EQ((base - -infinity).micro_sec_since_epoch(), max_timestamp);
+    EXPECT_EQ((base + maximum).micro_sec_since_epoch(), max_timestamp);
+    EXPECT_EQ((base + -maximum).micro_sec_since_epoch(), 0U);
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_EQ((base + nan).micro_sec_since_epoch(),
+              base.micro_sec_since_epoch());
+    EXPECT_EQ((base - nan).micro_sec_since_epoch(),
+              base.micro_sec_since_epoch());
+}
+
+TEST(Timestamp, computes_signed_duration_differences)
+{
+    const Timestamp early(1000000);
+    const Timestamp late(2000000);
+    EXPECT_DOUBLE_EQ(late - early, 1.0);
+    EXPECT_DOUBLE_EQ(early - late, -1.0);
+    EXPECT_DOUBLE_EQ(early - early, 0.0);
+
+    const Timestamp maximum(std::numeric_limits<uint64_t>::max());
+    const double forward = maximum - Timestamp();
+    const double reverse = Timestamp() - maximum;
+    EXPECT_GT(forward, 0.0);
+    EXPECT_LT(reverse, 0.0);
+    EXPECT_DOUBLE_EQ(forward, -reverse);
+}
 
 TEST(Timestamp, separates_local_and_utc_formatting)
 {
