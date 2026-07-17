@@ -14,6 +14,9 @@ namespace wfrest
 class StringPiece
 {
 private:
+    static const char *empty_data()
+    { return ""; }
+
     const char *ptr_;
     size_t length_;
 
@@ -22,23 +25,27 @@ public:
     // in a "const char*" or a "std::string" wherever a "StringPiece" is
     // expected.
     StringPiece()
-            : ptr_(nullptr), length_(0)
+            : ptr_(empty_data()), length_(0)
     {}
 
     StringPiece(const char *str)
-            : ptr_(str), length_(strlen(ptr_))
+            : ptr_(str == nullptr ? empty_data() : str),
+              length_(str == nullptr ? 0 : strlen(str))
     {}
 
     StringPiece(const std::string &str)
-            : ptr_(str.data()), length_(str.size())
+            : ptr_(str.c_str()), length_(str.size())
     {}
 
     StringPiece(const char *offset, size_t len)
-            : ptr_(offset), length_(len)
+            : ptr_(offset == nullptr ? empty_data() : offset),
+              length_(offset == nullptr ? 0 : len)
     {}
 
     StringPiece(const void *str, size_t len)
-            : ptr_(static_cast<const char *>(str)), length_(len)
+            : ptr_(str == nullptr ? empty_data() :
+                   static_cast<const char *>(str)),
+              length_(str == nullptr ? 0 : len)
     {}
 
     // data() may return a pointer to a buffer with embedded NULs, and the
@@ -64,30 +71,53 @@ public:
 
     void clear()
     {
-        ptr_ = nullptr;
+        ptr_ = empty_data();
         length_ = 0;
     }
 
     void set(const char *buffer, int len)
     {
-        ptr_ = buffer;
-        length_ = len;
+        if (len < 0)
+        {
+            clear();
+            return;
+        }
+
+        set(buffer, static_cast<size_t>(len));
     }
 
     void set(const char *str)
     {
+        if (str == nullptr)
+        {
+            clear();
+            return;
+        }
+
         ptr_ = str;
         length_ = strlen(str);
     }
 
     void set(const char *buffer, size_t len)
     {
+        if (buffer == nullptr)
+        {
+            clear();
+            return;
+        }
+
         ptr_ = buffer;
         length_ = len;
     }
 
     void set(const void *buffer, size_t len)
     {
+        if (buffer == nullptr)
+        {
+            clear();
+            return;
+        }
+
         ptr_ = static_cast<const char *>(buffer);
         length_ = len;
     }
@@ -97,20 +127,21 @@ public:
 
     void remove_prefix(size_t n)
     {
-        ptr_ += n;
-        length_ -= n;
+        const size_t removed = n < length_ ? n : length_;
+        ptr_ += removed;
+        length_ -= removed;
     }
 
     void remove_suffix(size_t n)
     {
-        length_ -= n;
+        const size_t removed = n < length_ ? n : length_;
+        length_ -= removed;
     }
 
     void shrink(size_t prefix, size_t suffix)
     {
-        ptr_ += prefix;
-        length_ -= prefix;
-        length_ -= suffix;
+        remove_prefix(prefix);
+        remove_suffix(suffix);
     }
 
     bool operator==(const StringPiece &x) const
