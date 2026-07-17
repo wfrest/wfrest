@@ -80,7 +80,7 @@ TEST(HttpServer, validates_response_headers_and_framing)
 {
     ScopedTimezone timezone("EST5");
     HttpServer server;
-    WFFacilities::WaitGroup wait_group(5);
+    WFFacilities::WaitGroup wait_group(7);
 
     server.GET("/sanitize", [](const HttpReq *, HttpResp *resp)
     {
@@ -181,6 +181,35 @@ TEST(HttpServer, validates_response_headers_and_framing)
         wait_group.done();
     });
     problem->start();
+
+    WFHttpTask *keep_alive_max = ClientUtil::create_http_task("sanitize");
+    EXPECT_TRUE(keep_alive_max->get_req()->add_header_pair(
+        "Connection", "Keep-Alive"));
+    EXPECT_TRUE(keep_alive_max->get_req()->add_header_pair(
+        "Keep-Alive", "max=1"));
+    keep_alive_max->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("Connection"), "close");
+        wait_group.done();
+    });
+    keep_alive_max->start();
+
+    WFHttpTask *keep_alive_malformed =
+        ClientUtil::create_http_task("sanitize");
+    EXPECT_TRUE(keep_alive_malformed->get_req()->add_header_pair(
+        "Connection", "Keep-Alive"));
+    EXPECT_TRUE(keep_alive_malformed->get_req()->add_header_pair(
+        "Keep-Alive", "timeout=garbage"));
+    keep_alive_malformed->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_EQ(headers.get("Connection"), "Keep-Alive");
+        wait_group.done();
+    });
+    keep_alive_malformed->start();
 
     wait_group.wait();
     server.stop();
