@@ -6,12 +6,9 @@
 #include "HttpServerTask.h"
 #include "HttpServer.h"
 #include "HttpHeaderUtil.h"
-#include "StrUtil.h"
+#include "HttpKeepAliveUtil.h"
 
 using namespace protocol;
-
-#define HTTP_KEEPALIVE_DEFAULT    (60 * 1000)
-#define HTTP_KEEPALIVE_MAX        (300 * 1000)
 
 
 namespace wfrest
@@ -133,48 +130,12 @@ CommMessageOut *HttpServerTask::message_out()
         this->keep_alive_timeo = 0;
     else
     {
-        //req---Connection: Keep-Alive
-        //req---Keep-Alive: timeout=5,max=100
-
-        if (req_has_keep_alive_header_)
-        {
-            int flag = 0;
-            std::vector<std::string> params = StrUtil::split(req_keep_alive_, ',');
-
-            for (const auto &kv: params)
-            {
-                std::vector<std::string> arr = StrUtil::split(kv, '=');
-                if (arr.size() < 2)
-                    arr.emplace_back("0");
-
-                std::string key = StrUtil::strip(arr[0]);
-                std::string val = StrUtil::strip(arr[1]);
-                if (!(flag & 1) && strcasecmp(key.c_str(), "timeout") == 0)
-                {
-                    flag |= 1;
-                    // keep_alive_timeo = 5000ms when Keep-Alive: timeout=5
-                    this->keep_alive_timeo = 1000 * atoi(val.c_str());
-                    if (flag == 3)
-                        break;
-                } else if (!(flag & 2) && strcasecmp(key.c_str(), "max") == 0)
-                {
-                    flag |= 2;
-                    if (this->get_seq() >= atoi(val.c_str()))
-                    {
-                        this->keep_alive_timeo = 0;
-                        break;
-                    }
-
-                    if (flag == 3)
-                        break;
-                }
-            }
-        }
-
-        if ((unsigned int) this->keep_alive_timeo > HTTP_KEEPALIVE_MAX)
-            this->keep_alive_timeo = HTTP_KEEPALIVE_MAX;
-        //if (this->keep_alive_timeo < 0 || this->keep_alive_timeo > HTTP_KEEPALIVE_MAX)
-
+        static const std::string empty_keep_alive;
+        const std::string &keep_alive = req_has_keep_alive_header_
+                                            ? req_keep_alive_
+                                            : empty_keep_alive;
+        this->keep_alive_timeo = detail::resolve_keep_alive_timeout(
+            keep_alive, this->get_seq(), this->keep_alive_timeo);
     }
 
     if (!resp->has_connection_header())
