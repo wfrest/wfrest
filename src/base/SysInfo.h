@@ -16,12 +16,18 @@ extern thread_local int t_cached_tid;
 extern thread_local char t_tid_str[32];
 extern thread_local int t_tid_str_len;
 
+namespace detail
+{
+void register_tid_cache_atfork();
+}
+
 inline pid_t gettid() { return static_cast<pid_t>(::syscall(SYS_gettid)); }
 
 inline void cacheTid()
 {
     if (t_cached_tid == 0)
     {
+        detail::register_tid_cache_atfork();
         t_cached_tid = gettid();
         t_tid_str_len = snprintf(t_tid_str, sizeof t_tid_str, "%5d ", t_cached_tid);
     }
@@ -37,9 +43,17 @@ inline int tid()
 }
 
 // for logging
-inline const char *tid_str() { return t_tid_str; }
+inline const char *tid_str()
+{
+    cacheTid();
+    return t_tid_str;
+}
 // for logging
-inline int tid_str_len() { return t_tid_str_len; }
+inline int tid_str_len()
+{
+    cacheTid();
+    return t_tid_str_len;
+}
 
 }  // namespace CurrentThread
 
