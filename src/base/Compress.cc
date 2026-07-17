@@ -1,11 +1,52 @@
-
-#include <cassert>
 #include "Compress.h"
+
+#include <algorithm>
+#include <array>
+#include <limits>
+#include <utility>
+
 #include "ErrorCode.h"
 
 namespace wfrest
 {
-const char* compress_method_to_str(const Compress& compress_method)
+
+namespace
+{
+
+constexpr size_t kOutputBufferSize = 16 * 1024;
+
+int fail(std::string *dest, int status)
+{
+    if (dest != nullptr)
+        dest->clear();
+    return status;
+}
+
+void assign_input(z_stream *stream,
+                  const char *data,
+                  size_t len,
+                  size_t *offset)
+{
+    if (stream->avail_in != 0 || *offset == len)
+        return;
+
+    const size_t amount = std::min(
+        len - *offset,
+        static_cast<size_t>(std::numeric_limits<uInt>::max()));
+    stream->next_in = reinterpret_cast<Bytef *>(
+        const_cast<char *>(data + *offset));
+    stream->avail_in = static_cast<uInt>(amount);
+    *offset += amount;
+}
+
+size_t produced_size(const z_stream& stream)
+{
+    return kOutputBufferSize - stream.avail_out;
+}
+
+} // namespace
+
+const char *compress_method_to_str(const Compress& compress_method)
 {
     switch (compress_method)
     {
@@ -15,153 +56,123 @@ const char* compress_method_to_str(const Compress& compress_method)
             return "unsupport compression";
     }
 }
-}  // namespace wfrest
-
-using namespace wfrest;
 
 int Compressor::gzip(const std::string * const src, std::string *dest)
 {
-    const char *data = src->c_str();
-    const size_t len = src->size();
-    return gzip(data, len, dest);
+    if (dest == nullptr)
+        return StatusCompressError;
+    if (src == nullptr)
+        return fail(dest, StatusCompressError);
+    return gzip(src->c_str(), src->size(), dest);
 }
 
 int Compressor::gzip(const char *data, const size_t len, std::string *dest)
 {
-    dest->clear();
-    z_stream strm = {nullptr,
-                     0,
-                     0,
-                     nullptr,
-                     0,
-                     0,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     0,
-                     0,
-                     0};
-    if (data && len > 0)
+    if (dest == nullptr)
+        return StatusCompressError;
+    if (data == nullptr && len != 0)
+        return fail(dest, StatusCompressError);
+
+    z_stream stream{};
+    if (deflateInit2(&stream,
+                     Z_DEFAULT_COMPRESSION,
+                     Z_DEFLATED,
+                     MAX_WBITS + 16,
+                     8,
+                     Z_DEFAULT_STRATEGY) != Z_OK)
     {
-        if (deflateInit2(&strm,
-                         Z_DEFAULT_COMPRESSION,  
-                         Z_DEFLATED,
-                         MAX_WBITS + 16,
-                         8,
-                         Z_DEFAULT_STRATEGY) != Z_OK)
-        {
-            // fprintf(stderr, "deflateInit2 error!\n");
-            return StatusCompressError;
-        }
-        std::string outstr;
-        outstr.resize(compressBound(static_cast<uLong>(len)));
-        strm.next_in = (Bytef *)data;
-        strm.avail_in = static_cast<uInt>(len);
-        int ret;
+        return fail(dest, StatusCompressError);
+    }
+
+    std::array<char, kOutputBufferSize> buffer{};
+    std::string output;
+    size_t offset = 0;
+    int status = Z_OK;
+
+    while (status != Z_STREAM_END)
+    {
+        assign_input(&stream, data, len, &offset);
+        const int flush = offset == len && stream.avail_in == 0
+                          ? Z_FINISH
+                          : Z_NO_FLUSH;
+
         do
         {
-            if (strm.total_out >= outstr.size())
+            stream.next_out = reinterpret_cast<Bytef *>(buffer.data());
+            stream.avail_out = static_cast<uInt>(buffer.size());
+            status = deflate(&stream, flush);
+            if (status != Z_OK && status != Z_STREAM_END)
             {
-                outstr.resize(strm.total_out * 2);
+                (void)deflateEnd(&stream);
+                return fail(dest, StatusCompressError);
             }
-            assert(outstr.size() >= strm.total_out);
-            strm.avail_out = static_cast<uInt>(outstr.size() - strm.total_out);
-            strm.next_out = (Bytef *)outstr.data() + strm.total_out;
-            ret = deflate(&strm, Z_FINISH); /* no bad return value */
-            if (ret == Z_STREAM_ERROR)
-            {
-                (void)deflateEnd(&strm);
-                return StatusCompressError;
-            }
-        } while (strm.avail_out == 0);
-        assert(strm.avail_in == 0);
-        assert(ret == Z_STREAM_END); /* stream will be complete */
-        outstr.resize(strm.total_out);
-        /* clean up and return */
-        (void)deflateEnd(&strm);
-        *dest = std::move(outstr);
-        return StatusOK;
+
+            output.append(buffer.data(), produced_size(stream));
+        } while (stream.avail_out == 0);
     }
-    return StatusCompressError;
+
+    if (deflateEnd(&stream) != Z_OK)
+        return fail(dest, StatusCompressError);
+
+    *dest = std::move(output);
+    return StatusOK;
 }
+
 int Compressor::ungzip(const std::string * const src, std::string *dest)
 {
-    const char *data = src->c_str();
-    const size_t len = src->size();
-    return ungzip(data, len, dest);
+    if (dest == nullptr)
+        return StatusUncompressError;
+    if (src == nullptr)
+        return fail(dest, StatusUncompressError);
+    return ungzip(src->c_str(), src->size(), dest);
 }
 
 int Compressor::ungzip(const char *data, const size_t len, std::string *dest)
 {
-    dest->clear();
+    if (dest == nullptr)
+        return StatusUncompressError;
     if (len == 0)
+    {
+        dest->clear();
         return StatusOK;
-
-    auto full_length = len;
-
-    auto decompressed = std::string(full_length * 2, 0);
-    bool done = false;
-
-    z_stream strm = {nullptr,
-                     0,
-                     0,
-                     nullptr,
-                     0,
-                     0,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     nullptr,
-                     0,
-                     0,
-                     0};
-    strm.next_in = (Bytef *)data;
-    strm.avail_in = static_cast<uInt>(len);
-    strm.total_out = 0;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    if (inflateInit2(&strm, (15 + 32)) != Z_OK)
-    {
-        // fprintf(stderr, "inflateInit2 error!\n");
-        return StatusUncompressError;
     }
-    while (!done)
+    if (data == nullptr)
+        return fail(dest, StatusUncompressError);
+
+    z_stream stream{};
+    if (inflateInit2(&stream, 15 + 32) != Z_OK)
+        return fail(dest, StatusUncompressError);
+
+    std::array<char, kOutputBufferSize> buffer{};
+    std::string output;
+    size_t offset = 0;
+    int status = Z_OK;
+
+    while (status != Z_STREAM_END)
     {
-        // Make sure we have enough room and reset the lengths.
-        if (strm.total_out >= decompressed.length())
-        {
-            decompressed.resize(decompressed.length() * 2);
-        }
-        strm.next_out = (Bytef *)decompressed.data() + strm.total_out;
-        strm.avail_out =
-                static_cast<uInt>(decompressed.length() - strm.total_out);
-        // Inflate another chunk.
-        int status = inflate(&strm, Z_SYNC_FLUSH);
+        assign_input(&stream, data, len, &offset);
+        stream.next_out = reinterpret_cast<Bytef *>(buffer.data());
+        stream.avail_out = static_cast<uInt>(buffer.size());
+
+        status = inflate(&stream, Z_NO_FLUSH);
+        const size_t produced = produced_size(stream);
+        output.append(buffer.data(), produced);
+
         if (status == Z_STREAM_END)
-        {
-            done = true;
-        }
-        else if (status != Z_OK)
-        {
             break;
+        if (status != Z_OK ||
+            (produced == 0 && stream.avail_in == 0 && offset == len))
+        {
+            (void)inflateEnd(&stream);
+            return fail(dest, StatusUncompressError);
         }
     }
-    if (inflateEnd(&strm) != Z_OK)
-        return StatusUncompressError;
-    // Set real length.
-    int status = StatusOK;
-    if (done)
-    {
-        decompressed.resize(strm.total_out);
-        *dest = std::move(decompressed);
-    }
-    else
-    {
-        status = StatusUncompressError;
-    }
-    return status;
+
+    if (inflateEnd(&stream) != Z_OK)
+        return fail(dest, StatusUncompressError);
+
+    *dest = std::move(output);
+    return StatusOK;
 }
 
+} // namespace wfrest
