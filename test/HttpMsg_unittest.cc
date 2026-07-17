@@ -77,6 +77,38 @@ private:
     bool initialized_;
 };
 
+class RequestParseHarness : public HttpReq
+{
+public:
+    bool parse(const std::string& wire)
+    {
+        size_t size = wire.size();
+        return this->append(wire.data(), &size) == 1 && size == wire.size();
+    }
+};
+
+std::string request_wire(const std::string& content_type,
+                         const std::string& body)
+{
+    std::string wire = "POST / HTTP/1.1\r\nHost: example.test\r\n";
+    if (!content_type.empty())
+        wire += "Content-Type: " + content_type + "\r\n";
+    wire += "Content-Length: " + std::to_string(body.size()) +
+            "\r\n\r\n" + body;
+    return wire;
+}
+
+bool prepare_request(RequestParseHarness *request,
+                     const std::string& content_type,
+                     const std::string& body)
+{
+    if (!request->parse(request_wire(content_type, body)))
+        return false;
+    request->fill_header_map();
+    request->fill_content_type();
+    return true;
+}
+
 } // namespace
 
 static_assert(std::is_same<
@@ -392,6 +424,69 @@ TEST(HttpReqHeaders, refreshes_headers_and_cookie_cache)
     EXPECT_EQ(request.cookie("session"), "new");
     EXPECT_EQ(request.cookie("added"), "value");
     EXPECT_EQ(request.cookies().size(), 2U);
+}
+
+TEST(HttpReqCaches, keeps_empty_and_mutated_results_loaded)
+{
+    RequestParseHarness plain;
+    ASSERT_TRUE(prepare_request(&plain, "text/plain", "original"));
+    EXPECT_EQ(plain.body(), "original");
+    plain.body().clear();
+    EXPECT_TRUE(plain.body().empty());
+
+    HttpReq moved(std::move(plain));
+    EXPECT_TRUE(moved.body().empty());
+
+    RequestParseHarness encoded;
+    ASSERT_TRUE(prepare_request(&encoded,
+                                "application/x-www-form-urlencoded",
+                                "key=value"));
+    ASSERT_EQ(encoded.form_kv().at("key"), "value");
+    encoded.form_kv().clear();
+    EXPECT_TRUE(encoded.form_kv().empty());
+
+    RequestParseHarness json;
+    ASSERT_TRUE(prepare_request(&json, "application/json", "{\"key\":1}"));
+    ASSERT_TRUE(json.json().has("key"));
+    json.json().clear();
+    EXPECT_FALSE(json.json().has("key"));
+
+    RequestParseHarness multipart;
+    ASSERT_TRUE(prepare_request(
+        &multipart, "multipart/form-data; boundary=abc",
+        "--abc\r\nContent-Disposition: form-data; name=item\r\n"
+        "\r\nvalue\r\n--abc--\r\n"));
+    ASSERT_EQ(multipart.form().at("item").second, "value");
+    multipart.form().clear();
+    EXPECT_TRUE(multipart.form().empty());
+}
+
+TEST(HttpReqCaches, caches_empty_and_failed_parse_attempts)
+{
+    RequestParseHarness empty_form;
+    ASSERT_TRUE(prepare_request(
+        &empty_form, "application/x-www-form-urlencoded", ""));
+    EXPECT_TRUE(empty_form.form_kv().empty());
+    empty_form.body() = "late=value";
+    EXPECT_TRUE(empty_form.form_kv().empty());
+
+    RequestParseHarness invalid_json;
+    ASSERT_TRUE(prepare_request(
+        &invalid_json, "application/json", "not-json"));
+    EXPECT_FALSE(invalid_json.json().has("late"));
+    invalid_json.body() = "{\"late\":true}";
+    EXPECT_FALSE(invalid_json.json().has("late"));
+
+    RequestParseHarness incomplete_multipart;
+    ASSERT_TRUE(prepare_request(
+        &incomplete_multipart, "multipart/form-data; boundary=abc",
+        "--abc\r\nContent-Disposition: form-data; name=item\r\n"
+        "\r\nincomplete"));
+    EXPECT_TRUE(incomplete_multipart.form().empty());
+    incomplete_multipart.body() =
+        "--abc\r\nContent-Disposition: form-data; name=item\r\n"
+        "\r\nlate\r\n--abc--\r\n";
+    EXPECT_TRUE(incomplete_multipart.form().empty());
 }
 
 TEST(HttpReqMove, transfers_all_derived_state)
