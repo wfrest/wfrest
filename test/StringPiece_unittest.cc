@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <map>
 #include <unordered_map>
 #include "wfrest/StringPiece.h"
 
@@ -76,4 +77,105 @@ TEST(StringPiece, shrink)
     StringPiece str("1234567890");
     str.shrink(0, 2);
     EXPECT_EQ("12345678", str.as_string());
+}
+
+TEST(StringPiece, normalizes_null_and_default_views)
+{
+    StringPiece empty;
+    EXPECT_NE(empty.data(), nullptr);
+    EXPECT_EQ(empty.begin(), empty.end());
+    EXPECT_TRUE(empty.empty());
+    EXPECT_TRUE(empty.as_string().empty());
+
+    std::string copied = "not-empty";
+    empty.CopyToString(&copied);
+    EXPECT_TRUE(copied.empty());
+
+    const StringPiece literal_empty("");
+    EXPECT_EQ(empty, literal_empty);
+    EXPECT_EQ(empty.compare(literal_empty), 0);
+    EXPECT_TRUE(empty.starts_with(literal_empty));
+    EXPECT_EQ(StringPieceHash()(empty), StringPieceHash()(literal_empty));
+
+    size_t iterations = 0;
+    for (char value : empty)
+    {
+        static_cast<void>(value);
+        ++iterations;
+    }
+    EXPECT_EQ(iterations, 0U);
+
+    const StringPiece null_string(static_cast<const char *>(nullptr));
+    const StringPiece null_bytes(static_cast<const char *>(nullptr), 10);
+    const StringPiece null_void(static_cast<const void *>(nullptr), 10);
+    EXPECT_EQ(null_string, empty);
+    EXPECT_EQ(null_bytes, empty);
+    EXPECT_EQ(null_void, empty);
+    EXPECT_NE(null_string.data(), nullptr);
+    EXPECT_NE(null_bytes.data(), nullptr);
+    EXPECT_NE(null_void.data(), nullptr);
+
+    empty.clear();
+    EXPECT_NE(empty.data(), nullptr);
+    EXPECT_TRUE(empty.empty());
+}
+
+TEST(StringPiece, normalizes_setter_lengths)
+{
+    const char buffer[] = "abc";
+    StringPiece piece("value");
+
+    piece.set(static_cast<const char *>(nullptr));
+    EXPECT_NE(piece.data(), nullptr);
+    EXPECT_TRUE(piece.empty());
+
+    piece.set(static_cast<const char *>(nullptr), static_cast<size_t>(3));
+    EXPECT_NE(piece.data(), nullptr);
+    EXPECT_TRUE(piece.empty());
+
+    piece.set(static_cast<const void *>(nullptr), 3U);
+    EXPECT_NE(piece.data(), nullptr);
+    EXPECT_TRUE(piece.empty());
+
+    piece.set(buffer, -1);
+    EXPECT_NE(piece.data(), nullptr);
+    EXPECT_TRUE(piece.empty());
+
+    piece.set(buffer, 0);
+    EXPECT_EQ(piece.data(), buffer);
+    EXPECT_TRUE(piece.empty());
+
+    piece.set(buffer, 2);
+    EXPECT_EQ(piece.data(), buffer);
+    EXPECT_EQ(piece.as_string(), "ab");
+}
+
+TEST(StringPiece, saturates_removal_at_current_size)
+{
+    const char input[] = "abc";
+
+    StringPiece prefix(input);
+    prefix.remove_prefix(99);
+    EXPECT_TRUE(prefix.empty());
+    EXPECT_EQ(prefix.data(), input + 3);
+    prefix.remove_prefix(1);
+    EXPECT_EQ(prefix.data(), input + 3);
+    EXPECT_TRUE(prefix.as_string().empty());
+
+    StringPiece suffix(input);
+    suffix.remove_suffix(99);
+    EXPECT_TRUE(suffix.empty());
+    EXPECT_EQ(suffix.data(), input);
+    suffix.remove_suffix(1);
+    EXPECT_EQ(suffix.data(), input);
+
+    StringPiece both(input);
+    both.shrink(2, 99);
+    EXPECT_TRUE(both.empty());
+    EXPECT_EQ(both.data(), input + 2);
+
+    StringPiece oversized_prefix(input);
+    oversized_prefix.shrink(99, 99);
+    EXPECT_TRUE(oversized_prefix.empty());
+    EXPECT_EQ(oversized_prefix.data(), input + 3);
 }
