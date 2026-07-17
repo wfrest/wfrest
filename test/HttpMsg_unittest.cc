@@ -2,6 +2,7 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <new>
 #include <string>
 #include <gtest/gtest.h>
@@ -224,6 +225,90 @@ TEST(HttpReqMove, initializes_default_and_wrapped_requests)
     EXPECT_STREQ(wrapped->get_method(), "POST");
     EXPECT_STREQ(wrapped->get_request_uri(), "/wrapped");
     wrapped->~HttpReq();
+}
+
+TEST(HttpReqAccessors, converts_typed_params_without_exceptions)
+{
+    HttpReq request;
+    const std::string int_min =
+        std::to_string(std::numeric_limits<int>::min());
+    const std::string int_max =
+        std::to_string(std::numeric_limits<int>::max());
+    const std::string size_max =
+        std::to_string(std::numeric_limits<size_t>::max());
+    const std::string embedded("12\0tail", 7);
+    request.set_route_params({
+        {"int", " -42"},
+        {"int_min", int_min},
+        {"int_max", int_max},
+        {"size", "+17"},
+        {"size_max", size_max},
+        {"double", "1.25e2"},
+        {"empty", ""},
+        {"suffix", "12tail"},
+        {"trailing", "12 "},
+        {"overflow", "999999999999999999999999999999999"},
+        {"negative_size", " -1"},
+        {"size_overflow", size_max + "0"},
+        {"nan", "nan"},
+        {"infinity", "inf"},
+        {"double_overflow", "1e9999"},
+        {"double_underflow", "1e-9999"},
+        {"embedded", embedded}
+    });
+
+    errno = EDOM;
+    EXPECT_EQ(request.param<int>("int"), -42);
+    EXPECT_EQ(request.param<int>("int_min"),
+              std::numeric_limits<int>::min());
+    EXPECT_EQ(request.param<int>("int_max"),
+              std::numeric_limits<int>::max());
+    EXPECT_EQ(request.param<int>("missing"), 0);
+    EXPECT_EQ(request.param<int>("empty"), 0);
+    EXPECT_EQ(request.param<int>("suffix"), 0);
+    EXPECT_EQ(request.param<int>("trailing"), 0);
+    EXPECT_EQ(request.param<int>("overflow"), 0);
+    EXPECT_EQ(request.param<int>("embedded"), 0);
+    EXPECT_EQ(errno, EDOM);
+
+    errno = EAGAIN;
+    EXPECT_EQ(request.param<size_t>("size"), 17U);
+    EXPECT_EQ(request.param<size_t>("size_max"),
+              std::numeric_limits<size_t>::max());
+    EXPECT_EQ(request.param<size_t>("negative_size"), 0U);
+    EXPECT_EQ(request.param<size_t>("size_overflow"), 0U);
+    EXPECT_EQ(request.param<size_t>("embedded"), 0U);
+    EXPECT_EQ(errno, EAGAIN);
+
+    errno = ENOENT;
+    EXPECT_DOUBLE_EQ(request.param<double>("double"), 125.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("suffix"), 0.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("nan"), 0.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("infinity"), 0.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("double_overflow"), 0.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("double_underflow"), 0.0);
+    EXPECT_DOUBLE_EQ(request.param<double>("embedded"), 0.0);
+    EXPECT_EQ(errno, ENOENT);
+}
+
+TEST(HttpReqAccessors, current_path_is_safe_across_move_states)
+{
+    HttpReq request;
+    EXPECT_TRUE(request.current_path().empty());
+
+    ParsedURI parsed;
+    ASSERT_EQ(URIParser::parse("http://example.test/path?query=1", parsed), 0);
+    request.set_parsed_uri(std::move(parsed));
+    EXPECT_EQ(request.current_path(), "/path");
+
+    HttpReq moved(std::move(request));
+    EXPECT_EQ(moved.current_path(), "/path");
+    EXPECT_TRUE(request.current_path().empty());
+
+    HttpReq assigned;
+    assigned = std::move(moved);
+    EXPECT_EQ(assigned.current_path(), "/path");
+    EXPECT_TRUE(moved.current_path().empty());
 }
 
 TEST(HttpReqMove, transfers_all_derived_state)

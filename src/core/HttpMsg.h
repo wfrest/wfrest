@@ -4,9 +4,14 @@
 #include "workflow/HttpMessage.h"
 #include "workflow/WFTaskFactory.h"
 
+#include <cerrno>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
 #include <fcntl.h>
-#include <unordered_map>
+#include <limits>
 #include <memory>
+#include <unordered_map>
 
 #include "StringPiece.h"
 #include "HttpDef.h"
@@ -29,6 +34,77 @@ namespace wfrest
 
 struct ReqData;
 class MySQL;
+
+namespace detail
+{
+
+inline int parse_int_route_parameter(const std::string &text)
+{
+    const char *begin = text.c_str();
+    char *end = nullptr;
+    const int saved_errno = errno;
+    errno = 0;
+    const long parsed = std::strtol(begin, &end, 10);
+    const int parse_errno = errno;
+    errno = saved_errno;
+
+    if (end == begin || end != begin + text.size() || parse_errno != 0 ||
+        parsed < std::numeric_limits<int>::min() ||
+        parsed > std::numeric_limits<int>::max())
+    {
+        return 0;
+    }
+    return static_cast<int>(parsed);
+}
+
+inline size_t parse_size_route_parameter(const std::string &text)
+{
+    const char *begin = text.c_str();
+    const char *limit = begin + text.size();
+    const char *sign = begin;
+    while (sign != limit &&
+           std::isspace(static_cast<unsigned char>(*sign)) != 0)
+    {
+        ++sign;
+    }
+    if (sign != limit && *sign == '-')
+        return 0;
+
+    char *end = nullptr;
+    const int saved_errno = errno;
+    errno = 0;
+    const unsigned long long parsed = std::strtoull(begin, &end, 10);
+    const int parse_errno = errno;
+    errno = saved_errno;
+
+    if (end == begin || end != limit || parse_errno != 0 ||
+        parsed > static_cast<unsigned long long>(
+                     std::numeric_limits<size_t>::max()))
+    {
+        return 0;
+    }
+    return static_cast<size_t>(parsed);
+}
+
+inline double parse_double_route_parameter(const std::string &text)
+{
+    const char *begin = text.c_str();
+    char *end = nullptr;
+    const int saved_errno = errno;
+    errno = 0;
+    const double parsed = std::strtod(begin, &end);
+    const int parse_errno = errno;
+    errno = saved_errno;
+
+    if (end == begin || end != begin + text.size() || parse_errno != 0 ||
+        !std::isfinite(parsed))
+    {
+        return 0.0;
+    }
+    return parsed;
+}
+
+} // namespace detail
 
 class HttpReq : public protocol::HttpRequest, public Noncopyable
 {
@@ -74,7 +150,7 @@ public:
     { return route_full_path_; }
 
     std::string current_path() const
-    { return parsed_uri_.path; }
+    { return parsed_uri_.path == nullptr ? std::string() : parsed_uri_.path; }
 
     const std::map<std::string, std::string> &cookies() const;
 
@@ -140,7 +216,7 @@ template<>
 inline int HttpReq::param<int>(const std::string &key) const
 {
     if (route_params_.count(key))
-        return std::stoi(route_params_.at(key));
+        return detail::parse_int_route_parameter(route_params_.at(key));
     else
         return 0;
 }
@@ -149,7 +225,7 @@ template<>
 inline size_t HttpReq::param<size_t>(const std::string &key) const
 {
     if (route_params_.count(key))
-        return static_cast<size_t>(std::stoul(route_params_.at(key)));
+        return detail::parse_size_route_parameter(route_params_.at(key));
     else
         return 0;
 }
@@ -158,7 +234,7 @@ template<>
 inline double HttpReq::param<double>(const std::string &key) const
 {
     if (route_params_.count(key))
-        return std::stod(route_params_.at(key));
+        return detail::parse_double_route_parameter(route_params_.at(key));
     else
         return 0.0;
 }
