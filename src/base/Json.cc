@@ -22,7 +22,7 @@ Json::Json(const char* str)
 {
 }
 
-Json::Json(std::nullptr_t null)
+Json::Json(std::nullptr_t)
     : node_(json_value_create(JSON_VALUE_NULL)), parent_(nullptr),
       allocated_(true)
 {
@@ -47,10 +47,14 @@ Json::Json(const std::vector<std::string>& val)
 }
 
 // for parse
-Json::Json(const std::string& str, bool parse_flag) : parent_(nullptr)
+Json::Json(const std::string& str, bool)
+    : node_(nullptr), parent_(nullptr), allocated_(false)
 {
+    if (str.find('\0') != std::string::npos)
+        return;
+
     node_ = json_value_parse(str.c_str());
-    allocated_ = node_ == nullptr ? false : true;
+    allocated_ = node_ != nullptr;
 }
 
 Json::~Json()
@@ -146,26 +150,31 @@ Json Json::parse(const std::ifstream& stream)
 Json Json::parse(FILE* fp)
 {
     if (fp == nullptr)
+        return Json(std::string(), true);
+
+    clearerr(fp);
+    if (fseek(fp, 0, SEEK_SET) != 0)
+        clearerr(fp);
+
+    std::string input;
+    char buffer[8192];
+    while (true)
     {
-        return Json();
+        const size_t size = fread(buffer, 1, sizeof(buffer), fp);
+        if (size != 0)
+            input.append(buffer, size);
+
+        if (size == sizeof(buffer))
+            continue;
+        if (ferror(fp))
+            return Json(std::string(), true);
+        if (feof(fp))
+            break;
+        if (size == 0)
+            return Json(std::string(), true);
     }
-    fseek(fp, 0, SEEK_END);
-    long length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-    char* buffer = (char*)malloc(length + 1);
-    buffer[length] = '\0';
-    long ret = fread(buffer, 1, length, fp);
-    Json js;
-    if (ret != length)
-    {
-        js = Json();
-    }
-    else
-    {
-        js = Json(buffer, true);
-    }
-    free(buffer);
-    return js;
+
+    return Json(input, true);
 }
 
 std::string Json::dump() const
@@ -435,7 +444,7 @@ void Json::placeholder_push_back(const std::string& key, bool val)
     }
 }
 
-void Json::placeholder_push_back(const std::string& key, std::nullptr_t val)
+void Json::placeholder_push_back(const std::string& key, std::nullptr_t)
 {
     json_object_t* obj = json_value_object(parent_);
     destroy_node(&node_);
@@ -493,7 +502,7 @@ void Json::normal_push_back(const std::string& key, bool val)
     json_value_destroy(remove_val);
 }
 
-void Json::normal_push_back(const std::string& key, std::nullptr_t val)
+void Json::normal_push_back(const std::string& key, std::nullptr_t)
 {
     json_object_t* obj = json_value_object(parent_);
     const json_value_t* find = json_object_find(key.c_str(), obj);
@@ -663,7 +672,7 @@ void Json::update_arr(bool val)
     json_value_destroy(remove_val);
 }
 
-void Json::update_arr(std::nullptr_t val)
+void Json::update_arr(std::nullptr_t)
 {
     json_array_t* arr = json_value_array(parent_);
     json_array_insert_before(node_, arr, JSON_VALUE_NULL);

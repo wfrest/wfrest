@@ -58,6 +58,7 @@ set(UNIT_TEST_LIST
 	TimeStamp_unittest
 	StrUtil_unittest
 	StringPiece_unittest
+	Json_unittest
 	Compress_unittest
 	Router_unittest
 	base64_unittest
