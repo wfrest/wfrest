@@ -704,6 +704,7 @@ void HttpReq::fill_header_map()
 {
     http_header_cursor_t cursor;
     struct protocol::HttpMessageHeader header;
+    HeaderMap refreshed_headers;
 
     http_header_cursor_init(&cursor, this->get_parser());
     while (http_header_cursor_next(&header.name, &header.name_len,
@@ -712,10 +713,14 @@ void HttpReq::fill_header_map()
     {
         std::string key(static_cast<const char *>(header.name), header.name_len);
 
-        headers_[key].emplace_back(static_cast<const char *>(header.value), header.value_len);
+        refreshed_headers[key].emplace_back(
+            static_cast<const char *>(header.value), header.value_len);
     }
 
     http_header_cursor_deinit(&cursor);
+    headers_.swap(refreshed_headers);
+    cookies_.clear();
+    cookies_parsed_ = false;
 }
 
 const std::map<std::string, std::string> &HttpReq::cookies() const
