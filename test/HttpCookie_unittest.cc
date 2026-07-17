@@ -1,8 +1,48 @@
-#include <vector>
 #include <gtest/gtest.h>
+
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <vector>
+
 #include "wfrest/HttpCookie.h"
 
 using namespace wfrest;
+
+namespace
+{
+
+class ScopedTimezone
+{
+public:
+    explicit ScopedTimezone(const char *timezone)
+    {
+        const char *current = std::getenv("TZ");
+        if (current != nullptr)
+        {
+            had_value_ = true;
+            value_ = current;
+        }
+
+        (void)setenv("TZ", timezone, 1);
+        tzset();
+    }
+
+    ~ScopedTimezone()
+    {
+        if (had_value_)
+            (void)setenv("TZ", value_.c_str(), 1);
+        else
+            (void)unsetenv("TZ");
+        tzset();
+    }
+
+private:
+    bool had_value_ = false;
+    std::string value_;
+};
+
+} // namespace
 
 TEST(HttpCookie, dump)
 {
@@ -24,6 +64,16 @@ TEST(HttpCookie, same_site)
             .set_same_site(SameSite::NONE);
 
     EXPECT_EQ(cookie.dump(), "user=wfrest; Max-Age=1000; Domain=/; SameSite=None; Secure");
+}
+
+TEST(HttpCookie, expires_uses_utc_when_process_timezone_does_not)
+{
+    ScopedTimezone timezone("EST5");
+    HttpCookie cookie("session", "value");
+    cookie.set_expires(Timestamp(1000000));
+
+    EXPECT_EQ(cookie.dump(),
+              "session=value; Expires=Thu, 01 Jan 1970 00:00:01 GMT");
 }
 
 TEST(HttpCookie, split)
