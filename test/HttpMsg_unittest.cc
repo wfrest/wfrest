@@ -1,9 +1,12 @@
+#include <arpa/inet.h>
+#include <cerrno>
 #include <cstdint>
 #include <cstring>
 #include <new>
 #include <string>
 #include <gtest/gtest.h>
 #include "wfrest/HttpMsg.h"
+#include "wfrest/HttpServerTask.h"
 
 using namespace wfrest;
 
@@ -17,7 +20,116 @@ std::string output_body(const protocol::HttpMessage &message)
     return body;
 }
 
+class PeerTestTask : public HttpServerTask
+{
+public:
+    explicit PeerTestTask(ProcFunc& process) :
+        HttpServerTask(nullptr, process)
+    {}
+
+    ~PeerTestTask()
+    {
+        this->target = nullptr;
+    }
+
+    void use_peer(CommTarget *peer)
+    {
+        this->target = peer;
+    }
+};
+
+class ScopedCommTarget
+{
+public:
+    ScopedCommTarget(const struct sockaddr *addr, socklen_t addr_len) :
+        initialized_(target_.init(addr, addr_len, 0, 0) == 0)
+    {}
+
+    ~ScopedCommTarget()
+    {
+        if (initialized_)
+            target_.deinit();
+    }
+
+    bool initialized() const
+    {
+        return initialized_;
+    }
+
+    CommTarget *get()
+    {
+        return &target_;
+    }
+
+private:
+    ScopedCommTarget(const ScopedCommTarget&) = delete;
+    ScopedCommTarget& operator=(const ScopedCommTarget&) = delete;
+
+    CommTarget target_;
+    bool initialized_;
+};
+
 } // namespace
+
+TEST(HttpServerTaskPeer, rejects_unavailable_or_truncated_addresses)
+{
+    struct sockaddr truncated{};
+    truncated.sa_family = AF_INET;
+    ScopedCommTarget short_target(
+        &truncated, sizeof(truncated.sa_family));
+    ASSERT_TRUE(short_target.initialized());
+
+    HttpServerTask::ProcFunc process = [](HttpTask *) {};
+    PeerTestTask task(process);
+
+    struct sockaddr_storage untouched;
+    std::memset(&untouched, 0xA5, sizeof untouched);
+    struct sockaddr_storage expected = untouched;
+    socklen_t untouched_len = sizeof untouched;
+    errno = 0;
+    EXPECT_EQ(task.get_peer_addr(
+        reinterpret_cast<struct sockaddr *>(&untouched), &untouched_len), -1);
+    EXPECT_EQ(errno, ENOTCONN);
+    EXPECT_EQ(untouched_len, sizeof untouched);
+    EXPECT_EQ(std::memcmp(&untouched, &expected, sizeof untouched), 0);
+
+    EXPECT_EQ(task.peer_addr(), "Unknown");
+    EXPECT_EQ(task.peer_port(), 0);
+
+    task.use_peer(short_target.get());
+    EXPECT_EQ(task.peer_addr(), "Unknown");
+    EXPECT_EQ(task.peer_port(), 0);
+}
+
+TEST(HttpServerTaskPeer, formats_ipv4_and_ipv6_addresses)
+{
+    struct sockaddr_in ipv4{};
+    ipv4.sin_family = AF_INET;
+    ipv4.sin_port = htons(8080);
+    ASSERT_EQ(inet_pton(AF_INET, "127.0.0.1", &ipv4.sin_addr), 1);
+    ScopedCommTarget ipv4_target(
+        reinterpret_cast<const struct sockaddr *>(&ipv4), sizeof ipv4);
+    ASSERT_TRUE(ipv4_target.initialized());
+
+    struct sockaddr_in6 ipv6{};
+    ipv6.sin6_family = AF_INET6;
+    ipv6.sin6_port = htons(8443);
+    ASSERT_EQ(inet_pton(AF_INET6, "::1", &ipv6.sin6_addr), 1);
+    ScopedCommTarget ipv6_target(
+        reinterpret_cast<const struct sockaddr *>(&ipv6), sizeof ipv6);
+    ASSERT_TRUE(ipv6_target.initialized());
+
+    HttpServerTask::ProcFunc process = [](HttpTask *) {};
+    PeerTestTask task(process);
+
+    task.use_peer(ipv4_target.get());
+    EXPECT_EQ(task.peer_addr(), "127.0.0.1");
+    EXPECT_EQ(task.peer_port(), 8080);
+
+    task.use_peer(ipv6_target.get());
+    EXPECT_EQ(task.peer_addr(), "::1");
+    EXPECT_EQ(task.peer_port(), 8443);
+}
 
 TEST(HttpReqMove, initializes_default_and_wrapped_requests)
 {

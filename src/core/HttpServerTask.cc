@@ -159,43 +159,56 @@ CommMessageOut *HttpServerTask::message_out()
 
 std::string HttpServerTask::peer_addr() const
 {
-    struct sockaddr_storage addr;
+    struct sockaddr_storage addr{};
     socklen_t addr_len = sizeof addr;
-    this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr),
+                            &addr_len) != 0)
+        return "Unknown";
 
-    static const int ADDR_STR_LEN = 128;
-    char addrstr[ADDR_STR_LEN];
-    if (addr.ss_family == AF_INET)
+    const void *binary_addr = nullptr;
+    int family = addr.ss_family;
+    if (family == AF_INET && addr_len >= sizeof(struct sockaddr_in))
     {
-        auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
-        inet_ntop(AF_INET, &sin->sin_addr, addrstr, ADDR_STR_LEN);
-    } else if (addr.ss_family == AF_INET6)
+        const auto *sin = reinterpret_cast<const struct sockaddr_in *>(&addr);
+        binary_addr = &sin->sin_addr;
+    } else if (family == AF_INET6 &&
+               addr_len >= sizeof(struct sockaddr_in6))
     {
-        auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
-        inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, ADDR_STR_LEN);
+        const auto *sin6 =
+            reinterpret_cast<const struct sockaddr_in6 *>(&addr);
+        binary_addr = &sin6->sin6_addr;
     } else
-        strcpy(addrstr, "Unknown");
+        return "Unknown";
 
+    char addrstr[INET6_ADDRSTRLEN];
+    if (inet_ntop(family, binary_addr, addrstr, sizeof addrstr) == nullptr)
+        return "Unknown";
     return addrstr;
 }
 
 unsigned short HttpServerTask::peer_port() const
 {
-    struct sockaddr_storage addr;
+    struct sockaddr_storage addr{};
     socklen_t addr_len = sizeof addr;
-    this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr), &addr_len);
+    if (this->get_peer_addr(reinterpret_cast<struct sockaddr *>(&addr),
+                            &addr_len) != 0)
+        return 0;
 
-    unsigned short port = 0;
-    if (addr.ss_family == AF_INET)
+    if (addr.ss_family == AF_INET &&
+        addr_len >= sizeof(struct sockaddr_in))
     {
-        auto *sin = reinterpret_cast<struct sockaddr_in *>(&addr);
-        port = ntohs(sin->sin_port);
+        const auto *sin = reinterpret_cast<const struct sockaddr_in *>(&addr);
+        return ntohs(sin->sin_port);
     } else if (addr.ss_family == AF_INET6)
     {
-        auto *sin6 = reinterpret_cast<struct sockaddr_in6 *>(&addr);
-        port = ntohs(sin6->sin6_port);
+        if (addr_len >= sizeof(struct sockaddr_in6))
+        {
+            const auto *sin6 =
+                reinterpret_cast<const struct sockaddr_in6 *>(&addr);
+            return ntohs(sin6->sin6_port);
+        }
     }
-    return port;
+    return 0;
 }
 
 
