@@ -12,6 +12,7 @@
 #include <limits>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 #include "StringPiece.h"
 #include "HttpDef.h"
@@ -136,6 +137,9 @@ public:
 
     const std::string &default_query(const std::string &key,
                                      const std::string &default_val) const;
+
+    std::string default_query(const std::string &key,
+                              std::string &&default_val) const;
 
     const std::map<std::string, std::string> &query_list() const
     { return query_params_; }
