@@ -20,14 +20,14 @@ std::string output_body(const protocol::HttpMessage &message)
     return body;
 }
 
-class PeerTestTask : public HttpServerTask
+class ServerTaskHarness : public HttpServerTask
 {
 public:
-    explicit PeerTestTask(ProcFunc& process) :
+    explicit ServerTaskHarness(ProcFunc& process) :
         HttpServerTask(nullptr, process)
     {}
 
-    ~PeerTestTask()
+    ~ServerTaskHarness()
     {
         this->target = nullptr;
     }
@@ -35,6 +35,11 @@ public:
     void use_peer(CommTarget *peer)
     {
         this->target = peer;
+    }
+
+    CommMessageOut *finalize_response()
+    {
+        return this->message_out();
     }
 };
 
@@ -80,7 +85,7 @@ TEST(HttpServerTaskPeer, rejects_unavailable_or_truncated_addresses)
     ASSERT_TRUE(short_target.initialized());
 
     HttpServerTask::ProcFunc process = [](HttpTask *) {};
-    PeerTestTask task(process);
+    ServerTaskHarness task(process);
 
     struct sockaddr_storage untouched;
     std::memset(&untouched, 0xA5, sizeof untouched);
@@ -120,7 +125,7 @@ TEST(HttpServerTaskPeer, formats_ipv4_and_ipv6_addresses)
     ASSERT_TRUE(ipv6_target.initialized());
 
     HttpServerTask::ProcFunc process = [](HttpTask *) {};
-    PeerTestTask task(process);
+    ServerTaskHarness task(process);
 
     task.use_peer(ipv4_target.get());
     EXPECT_EQ(task.peer_addr(), "127.0.0.1");
@@ -129,6 +134,76 @@ TEST(HttpServerTaskPeer, formats_ipv4_and_ipv6_addresses)
     task.use_peer(ipv6_target.get());
     EXPECT_EQ(task.peer_addr(), "::1");
     EXPECT_EQ(task.peer_port(), 8443);
+}
+
+TEST(HttpServerTaskStartLine, defaults_and_preserves_safe_custom_fields)
+{
+    HttpServerTask::ProcFunc process = [](HttpTask *) {};
+
+    ServerTaskHarness defaults(process);
+    ASSERT_NE(defaults.finalize_response(), nullptr);
+    EXPECT_STREQ(defaults.get_resp()->get_http_version(), "HTTP/1.1");
+    EXPECT_STREQ(defaults.get_resp()->get_status_code(), "200");
+    EXPECT_STREQ(defaults.get_resp()->get_reason_phrase(), "OK");
+
+    ServerTaskHarness custom(process);
+    std::string custom_phrase = "Custom\tStatus ";
+    custom_phrase.push_back(static_cast<char>(0x80));
+    ASSERT_TRUE(custom.get_resp()->set_http_version("HTTP/1.0"));
+    ASSERT_TRUE(custom.get_resp()->set_status_code("799"));
+    ASSERT_TRUE(custom.get_resp()->set_reason_phrase(custom_phrase));
+    ASSERT_NE(custom.finalize_response(), nullptr);
+    EXPECT_STREQ(custom.get_resp()->get_http_version(), "HTTP/1.0");
+    EXPECT_STREQ(custom.get_resp()->get_status_code(), "799");
+    EXPECT_EQ(std::string(custom.get_resp()->get_reason_phrase()),
+              custom_phrase);
+
+    ServerTaskHarness empty_phrase(process);
+    ASSERT_TRUE(empty_phrase.get_resp()->set_status_code("299"));
+    ASSERT_TRUE(empty_phrase.get_resp()->set_reason_phrase(""));
+    ASSERT_NE(empty_phrase.finalize_response(), nullptr);
+    EXPECT_STREQ(empty_phrase.get_resp()->get_status_code(), "299");
+    EXPECT_STREQ(empty_phrase.get_resp()->get_reason_phrase(), "");
+}
+
+TEST(HttpServerTaskStartLine, normalizes_invalid_start_line_fields)
+{
+    HttpServerTask::ProcFunc process = [](HttpTask *) {};
+
+    ServerTaskHarness injected(process);
+    ASSERT_TRUE(injected.get_resp()->set_http_version(
+        "HTTP/1.1\r\nX-Version: injected"));
+    ASSERT_TRUE(injected.get_resp()->set_status_code("299"));
+    ASSERT_TRUE(injected.get_resp()->set_reason_phrase(
+        "Custom\r\nX-Reason: injected"));
+    ASSERT_NE(injected.finalize_response(), nullptr);
+    EXPECT_STREQ(injected.get_resp()->get_http_version(), "HTTP/1.1");
+    EXPECT_STREQ(injected.get_resp()->get_status_code(), "299");
+    EXPECT_STREQ(injected.get_resp()->get_reason_phrase(), "Unknown");
+
+    ServerTaskHarness control(process);
+    ASSERT_TRUE(control.get_resp()->set_status_code("299"));
+    ASSERT_TRUE(control.get_resp()->set_reason_phrase("Custom\x7f"));
+    ASSERT_NE(control.finalize_response(), nullptr);
+    EXPECT_STREQ(control.get_resp()->get_status_code(), "299");
+    EXPECT_STREQ(control.get_resp()->get_reason_phrase(), "Unknown");
+
+    const char *invalid_codes[] = {
+        "99", "099", "+200", "200x", "200\r\nX-Code: injected",
+        "999999999999999999999999"
+    };
+    for (const char *invalid_code : invalid_codes)
+    {
+        ServerTaskHarness invalid(process);
+        ASSERT_TRUE(invalid.get_resp()->set_http_version("HTTP/2.0"));
+        ASSERT_TRUE(invalid.get_resp()->set_status_code(invalid_code));
+        ASSERT_TRUE(invalid.get_resp()->set_reason_phrase("Custom"));
+        ASSERT_NE(invalid.finalize_response(), nullptr);
+        EXPECT_STREQ(invalid.get_resp()->get_http_version(), "HTTP/1.1");
+        EXPECT_STREQ(invalid.get_resp()->get_status_code(), "500");
+        EXPECT_STREQ(invalid.get_resp()->get_reason_phrase(),
+                     "Internal Server Error");
+    }
 }
 
 TEST(HttpReqMove, initializes_default_and_wrapped_requests)
