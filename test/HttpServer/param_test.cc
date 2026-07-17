@@ -22,7 +22,7 @@ WFHttpTask *create_http_task(const std::string &path)
 TEST(HttpServer, param)
 {
     HttpServer svr;
-    WFFacilities::WaitGroup wait_group(3);
+    WFFacilities::WaitGroup wait_group(5);
 
     svr.GET("/user/{name}/match*", [](const HttpReq *req, HttpResp *resp)
     {
@@ -40,6 +40,14 @@ TEST(HttpServer, param)
         json["message"] = req->query("message");
         json["expr"] = req->query("expr");
         json["bad"] = req->query("bad");
+        resp->Json(json);
+    });
+    svr.GET("/number/{value}", [](const HttpReq *req, HttpResp *resp)
+    {
+        Json json;
+        json["int"] = req->param<int>("value");
+        json["size"] = req->param<size_t>("value");
+        json["double"] = req->param<double>("value");
         resp->Json(json);
     });
     EXPECT_TRUE(svr.start("127.0.0.1", 8888) == 0) << "http server start failed";
@@ -88,6 +96,38 @@ TEST(HttpServer, param)
         EXPECT_EQ(json["message"].get<std::string>(), "hello world");
         EXPECT_EQ(json["expr"].get<std::string>(), "a&b=c");
         EXPECT_EQ(json["bad"].get<std::string>(), "%ZZ");
+        wait_group.done();
+    });
+
+    WFHttpTask *invalid_number = create_http_task("/number/not-a-number");
+    series->push_back(invalid_number);
+    invalid_number->set_callback([&wait_group](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        const void *body = nullptr;
+        size_t body_len = 0;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        Json json = Json::parse(
+            std::string(static_cast<const char *>(body), body_len));
+        EXPECT_EQ(json["int"].get<int>(), 0);
+        EXPECT_EQ(json["size"].get<size_t>(), 0U);
+        EXPECT_DOUBLE_EQ(json["double"].get<double>(), 0.0);
+        wait_group.done();
+    });
+
+    WFHttpTask *valid_number = create_http_task("/number/42");
+    series->push_back(valid_number);
+    valid_number->set_callback([&wait_group](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        const void *body = nullptr;
+        size_t body_len = 0;
+        task->get_resp()->get_parsed_body(&body, &body_len);
+        Json json = Json::parse(
+            std::string(static_cast<const char *>(body), body_len));
+        EXPECT_EQ(json["int"].get<int>(), 42);
+        EXPECT_EQ(json["size"].get<size_t>(), 42U);
+        EXPECT_DOUBLE_EQ(json["double"].get<double>(), 42.0);
         wait_group.done();
     });
     series->start();
