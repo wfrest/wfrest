@@ -56,6 +56,7 @@ set(WFREST_LIB wfrest workflow pthread OpenSSL::SSL OpenSSL::Crypto z)
 
 set(UNIT_TEST_LIST
 	TimeStamp_unittest
+	SysInfo_unittest
 	StrUtil_unittest
 	StringPiece_unittest
 	Json_unittest
