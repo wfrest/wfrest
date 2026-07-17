@@ -80,7 +80,7 @@ TEST(HttpServer, validates_response_headers_and_framing)
 {
     ScopedTimezone timezone("EST5");
     HttpServer server;
-    WFFacilities::WaitGroup wait_group(7);
+    WFFacilities::WaitGroup wait_group(8);
 
     server.GET("/sanitize", [](const HttpReq *, HttpResp *resp)
     {
@@ -116,6 +116,12 @@ TEST(HttpServer, validates_response_headers_and_framing)
         Json value;
         value["problem"] = true;
         resp->Json(value);
+    });
+    server.GET("/start-line", [](const HttpReq *, HttpResp *resp)
+    {
+        resp->set_status_code("299");
+        resp->set_reason_phrase("Custom\r\nX-Start-Line-Injected: yes");
+        resp->String("safe");
     });
     ASSERT_EQ(server.start("127.0.0.1", 8888), 0);
 
@@ -181,6 +187,19 @@ TEST(HttpServer, validates_response_headers_and_framing)
         wait_group.done();
     });
     problem->start();
+
+    WFHttpTask *start_line = ClientUtil::create_http_task("start-line");
+    start_line->set_callback([&](WFHttpTask *task)
+    {
+        EXPECT_EQ(task->get_state(), WFT_STATE_SUCCESS);
+        EXPECT_STREQ(task->get_resp()->get_status_code(), "299");
+        EXPECT_STREQ(task->get_resp()->get_reason_phrase(), "Unknown");
+        HttpHeaderMap headers(task->get_resp());
+        EXPECT_TRUE(headers.get("X-Start-Line-Injected").empty());
+        EXPECT_EQ(response_body(task), "safe");
+        wait_group.done();
+    });
+    start_line->start();
 
     WFHttpTask *keep_alive_max = ClientUtil::create_http_task("sanitize");
     EXPECT_TRUE(keep_alive_max->get_req()->add_header_pair(

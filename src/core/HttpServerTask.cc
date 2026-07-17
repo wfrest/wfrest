@@ -2,6 +2,8 @@
 #include "workflow/HttpMessage.h"
 
 #include <arpa/inet.h>
+#include <cstdio>
+#include <cstring>
 
 #include "HttpServerTask.h"
 #include "HttpServer.h"
@@ -13,6 +15,79 @@ using namespace protocol;
 
 namespace wfrest
 {
+
+namespace
+{
+
+bool is_supported_http_version(const char *version)
+{
+    return version != nullptr &&
+           (std::strcmp(version, "HTTP/1.0") == 0 ||
+            std::strcmp(version, "HTTP/1.1") == 0);
+}
+
+bool parse_status_code(const char *text, int *status_code)
+{
+    if (text == nullptr)
+        return false;
+
+    int value = 0;
+    for (size_t i = 0; i < 3; ++i)
+    {
+        const unsigned char ch = static_cast<unsigned char>(text[i]);
+        if (ch < '0' || ch > '9')
+            return false;
+        value = value * 10 + (ch - '0');
+    }
+
+    if (text[3] != '\0' || value < 100)
+        return false;
+
+    *status_code = value;
+    return true;
+}
+
+bool is_valid_reason_phrase(const char *phrase)
+{
+    if (phrase == nullptr)
+        return false;
+
+    const auto *cursor = reinterpret_cast<const unsigned char *>(phrase);
+    while (*cursor != '\0')
+    {
+        const unsigned char ch = *cursor++;
+        const bool valid = ch == '\t' || ch == ' ' ||
+                           (ch >= 0x21 && ch <= 0x7e) || ch >= 0x80;
+        if (!valid)
+            return false;
+    }
+    return true;
+}
+
+void sanitize_response_start_line(HttpResp *resp)
+{
+    if (!is_supported_http_version(resp->get_http_version()))
+        resp->set_http_version("HTTP/1.1");
+
+    const char *status_text = resp->get_status_code();
+    if (status_text == nullptr)
+    {
+        HttpUtil::set_response_status(resp, HttpStatusOK);
+        return;
+    }
+
+    int status_code;
+    if (!parse_status_code(status_text, &status_code))
+    {
+        HttpUtil::set_response_status(resp, HttpStatusInternalServerError);
+        return;
+    }
+
+    if (!is_valid_reason_phrase(resp->get_reason_phrase()))
+        HttpUtil::set_response_status(resp, status_code);
+}
+
+} // namespace
 
 HttpServerTask::HttpServerTask(CommService *service,
                                ProcFunc& process) :
@@ -55,6 +130,7 @@ void HttpServerTask::handle(int state, int error)
 CommMessageOut *HttpServerTask::message_out()
 {
     HttpResp *resp = this->get_resp();
+    sanitize_response_start_line(resp);
 
     std::map<std::string, std::string, MapStringCaseLess> &headers = resp->headers;
     detail::sanitize_application_response_headers(&headers);
@@ -93,22 +169,6 @@ CommMessageOut *HttpServerTask::message_out()
         resp->protocol::HttpResponse::add_header(&header);
     }
 
-    if (!resp->get_http_version())
-        resp->set_http_version("HTTP/1.1");
-
-    const char *status_code_str = resp->get_status_code();
-    if (!status_code_str || !resp->get_reason_phrase())
-    {
-        int status_code;
-
-        if (status_code_str)
-            status_code = atoi(status_code_str);
-        else
-            status_code = HttpStatusOK;
-
-        HttpUtil::set_response_status(resp, status_code);
-    }
-    
     if (!resp->is_chunked() && !resp->has_content_length_header())
     {
         char buf[32];
