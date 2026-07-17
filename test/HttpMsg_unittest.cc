@@ -361,6 +361,39 @@ TEST(HttpReqAccessors, current_path_is_safe_across_move_states)
     EXPECT_TRUE(moved.current_path().empty());
 }
 
+TEST(HttpReqHeaders, refreshes_headers_and_cookie_cache)
+{
+    HttpReq request;
+    EXPECT_TRUE(request.cookies().empty());
+
+    ASSERT_TRUE(request.add_header_pair("X-Trace", "old"));
+    ASSERT_TRUE(request.add_header_pair(
+        "Cookie", "session=old; removed=value"));
+    request.fill_header_map();
+
+    EXPECT_EQ(request.header("x-trace"), "old");
+    EXPECT_EQ(request.cookie("session"), "old");
+    EXPECT_EQ(request.cookie("removed"), "value");
+
+    ASSERT_TRUE(request.set_header_pair("X-Trace", "new"));
+    ASSERT_TRUE(request.set_header_pair(
+        "Cookie", "session=new; added=value"));
+    request.fill_header_map();
+
+    EXPECT_EQ(request.header("X-TRACE"), "new");
+    EXPECT_EQ(request.header("Cookie"), "session=new; added=value");
+    EXPECT_EQ(request.cookie("session"), "new");
+    EXPECT_TRUE(request.cookie("removed").empty());
+    EXPECT_EQ(request.cookie("added"), "value");
+    EXPECT_EQ(request.cookies().size(), 2U);
+
+    request.fill_header_map();
+    EXPECT_EQ(request.header("X-Trace"), "new");
+    EXPECT_EQ(request.cookie("session"), "new");
+    EXPECT_EQ(request.cookie("added"), "value");
+    EXPECT_EQ(request.cookies().size(), 2U);
+}
+
 TEST(HttpReqMove, transfers_all_derived_state)
 {
     HttpReq source;
