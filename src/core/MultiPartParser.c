@@ -40,6 +40,31 @@ do {                                                                   \
 #define LF 10
 #define CR 13
 
+static int is_header_field_char(unsigned char c)
+{
+    if ((c >= '0' && c <= '9') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c >= 'a' && c <= 'z'))
+    {
+        return 1;
+    }
+
+    switch (c)
+    {
+        case '!': case '#': case '$': case '%': case '&': case '\'':
+        case '*': case '+': case '-': case '.': case '^': case '_':
+        case '`': case '|': case '~':
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+static int is_header_value_char(unsigned char c)
+{
+    return c == '\t' || (c >= 0x20 && c <= 0x7e) || c >= 0x80;
+}
+
 struct multipart_parser
 {
     void *data;
@@ -131,7 +156,7 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
 {
     size_t i = 0;
     size_t mark = 0;
-    char c, cl;
+    char c;
     int is_last = 0;
 
     if (p == NULL || (buf == NULL && len != 0))
@@ -180,30 +205,35 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
             case s_header_field_start:
                 multipart_log("s_header_field_start");
                 mark = i;
+                p->index = 0;
+                if (c == CR)
+                {
+                    p->state = s_headers_almost_done;
+                    break;
+                }
                 p->state = s_header_field;
 
                 /* fallthrough */
             case s_header_field:
                 multipart_log("s_header_field");
                 if (c == CR)
-                {
-                    p->state = s_headers_almost_done;
-                    break;
-                }
+                    return i;
 
                 if (c == ':')
                 {
+                    if (p->index == 0)
+                        return i;
                     EMIT_DATA_CB(header_field, buf + mark, i - mark);
                     p->state = s_header_value_start;
                     break;
                 }
 
-                cl = (char) tolower((unsigned char) c);
-                if ((c != '-') && (cl < 'a' || cl > 'z'))
+                if (!is_header_field_char((unsigned char) c))
                 {
                     multipart_log("invalid character in header name");
                     return i;
                 }
+                p->index++;
                 if (is_last)
                     EMIT_DATA_CB(header_field, buf + mark, (i - mark) + 1);
                 break;
@@ -220,7 +250,7 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
 
             case s_header_value_start:
                 multipart_log("s_header_value_start");
-                if (c == ' ')
+                if (c == ' ' || c == '\t')
                 {
                     break;
                 }
@@ -236,6 +266,11 @@ size_t multipart_parser_execute(multipart_parser *p, const char *buf, size_t len
                     EMIT_DATA_CB(header_value, buf + mark, i - mark);
                     p->state = s_header_value_almost_done;
                     break;
+                }
+                if (!is_header_value_char((unsigned char) c))
+                {
+                    multipart_log("invalid character in header value");
+                    return i;
                 }
                 if (is_last)
                     EMIT_DATA_CB(header_value, buf + mark, (i - mark) + 1);

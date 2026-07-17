@@ -31,6 +31,38 @@ std::string multipart_disposition_body(const std::string &boundary,
            "\r\n\r\n" + value + "\r\n--" + boundary + "--\r\n";
 }
 
+std::string multipart_extra_header_body(const std::string &boundary,
+                                        const std::string &header)
+{
+    return "--" + boundary +
+           "\r\nContent-Disposition: form-data; name=item\r\n" +
+           header + "\r\n\r\nvalue\r\n--" + boundary + "--\r\n";
+}
+
+struct MultipartCallbackState
+{
+    std::string header_field;
+    bool body_ended = false;
+};
+
+int collect_header_field(multipart_parser *parser,
+                         const char *data,
+                         size_t size)
+{
+    auto *state = static_cast<MultipartCallbackState *>(
+        multipart_parser_get_data(parser));
+    state->header_field.append(data, size);
+    return 0;
+}
+
+int mark_body_end(multipart_parser *parser)
+{
+    auto *state = static_cast<MultipartCallbackState *>(
+        multipart_parser_get_data(parser));
+    state->body_ended = true;
+    return 0;
+}
+
 } // namespace
 
 TEST(Urlencode, parse_post_kv)
@@ -199,6 +231,88 @@ TEST(MultiPartForm, rejects_invalid_content_disposition_metadata)
         "Content-Disposition: form-data; name=second\r\n"
         "\r\nvalue\r\n--abc--\r\n";
     EXPECT_TRUE(parser.parse_multipart(StringPiece(duplicate_header)).empty());
+}
+
+TEST(MultiPartForm, accepts_http_token_part_header_names)
+{
+    MultiPartForm parser;
+    parser.set_boundary("abc");
+
+    const std::vector<std::string> headers = {
+        "Content-MD5: digest",
+        "X-Trace_1: value",
+        "!#$%&'*+-.^_`|~: punctuation",
+        "X-Empty:\t ",
+        std::string("X-Bytes: visible\t") +
+            static_cast<char>(0x80) + static_cast<char>(0xff)
+    };
+
+    for (const std::string &header : headers)
+    {
+        const Form form = parser.parse_multipart(StringPiece(
+            multipart_extra_header_body("abc", header)));
+        ASSERT_EQ(form.size(), 1U) << header;
+        EXPECT_EQ(form.at("item").second, "value");
+    }
+}
+
+TEST(MultiPartForm, rejects_malformed_part_header_lines)
+{
+    MultiPartForm parser;
+    parser.set_boundary("abc");
+
+    std::vector<std::string> headers = {
+        ": empty",
+        "Missing-Colon",
+        "Bad Name: value",
+        "Bad\tName: value",
+        "Bad(Name): value",
+        "X-Test: ok\nInjected: yes"
+    };
+
+    std::string invalid_name = "X-Bad";
+    invalid_name.push_back(static_cast<char>(0x80));
+    invalid_name += ": value";
+    headers.push_back(invalid_name);
+
+    for (unsigned char byte : {0x00, 0x01, 0x08, 0x0b, 0x1f, 0x7f})
+    {
+        std::string invalid_value = "X-Test: before";
+        invalid_value.push_back(static_cast<char>(byte));
+        invalid_value += "after";
+        headers.push_back(invalid_value);
+    }
+
+    for (const std::string &header : headers)
+    {
+        EXPECT_TRUE(parser.parse_multipart(StringPiece(
+            multipart_extra_header_body("abc", header))).empty());
+    }
+}
+
+TEST(MultiPartParser, preserves_field_name_state_between_input_buffers)
+{
+    multipart_parser_settings settings = {};
+    settings.on_header_field = collect_header_field;
+    settings.on_body_end = mark_body_end;
+
+    multipart_parser *parser = multipart_parser_init("--abc", &settings);
+    ASSERT_NE(parser, nullptr);
+
+    MultipartCallbackState state;
+    multipart_parser_set_data(parser, &state);
+    const std::vector<std::string> chunks = {
+        "--abc\r\nX-Trace",
+        "_1",
+        ": value\r\n\r\ndata\r\n--abc--\r\n"
+    };
+    for (const std::string &chunk : chunks)
+        EXPECT_EQ(multipart_parser_execute(parser, chunk.data(), chunk.size()),
+                  chunk.size());
+
+    EXPECT_EQ(state.header_field, "X-Trace_1");
+    EXPECT_TRUE(state.body_ended);
+    multipart_parser_free(parser);
 }
 
 TEST(MultiPartForm, isolates_invalid_disposition_between_parts)
