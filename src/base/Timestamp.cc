@@ -88,8 +88,11 @@ void Timestamp::swap(Timestamp &that)
 
 std::string Timestamp::to_str() const
 {
-    return std::to_string(micro_sec_since_epoch_ / k_micro_sec_per_sec)
-           + "." + std::to_string(micro_sec_since_epoch_ % k_micro_sec_per_sec);
+    std::stringstream stream;
+    stream << micro_sec_since_epoch_ / k_micro_sec_per_sec << '.'
+           << std::setfill('0') << std::setw(6)
+           << micro_sec_since_epoch_ % k_micro_sec_per_sec;
+    return stream.str();
 }
 
 std::string Timestamp::to_format_str() const
