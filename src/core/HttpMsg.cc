@@ -296,6 +296,10 @@ struct ReqData
     std::map<std::string, std::string> form_kv;
     Form form;
     Json json;
+    bool body_loaded = false;
+    bool form_kv_attempted = false;
+    bool form_attempted = false;
+    bool json_attempted = false;
 };
 
 struct ProxyCtx
@@ -570,7 +574,7 @@ HttpReq::~HttpReq() = default;
 
 std::string &HttpReq::body() const
 {
-    if (req_data_->body.empty())
+    if (!req_data_->body_loaded)
     {
         std::string content = protocol::HttpUtil::decode_chunked_body(this);
 
@@ -588,34 +592,39 @@ std::string &HttpReq::body() const
         {
             req_data_->body = std::move(content);
         }
+        req_data_->body_loaded = true;
     }
     return req_data_->body;
 }
 
 std::map<std::string, std::string> &HttpReq::form_kv() const
 {
-    if (content_type_ == APPLICATION_URLENCODED && req_data_->form_kv.empty())
+    if (content_type_ == APPLICATION_URLENCODED &&
+        !req_data_->form_kv_attempted)
     {
         StringPiece body_piece(this->body());
         req_data_->form_kv = Urlencode::parse_post_kv(body_piece);
+        req_data_->form_kv_attempted = true;
     }
     return req_data_->form_kv;
 }
 
 Form &HttpReq::form() const
 {
-    if (content_type_ == MULTIPART_FORM_DATA && req_data_->form.empty())
+    if (content_type_ == MULTIPART_FORM_DATA &&
+        !req_data_->form_attempted)
     {
         StringPiece body_piece(this->body());
 
         req_data_->form = multi_part_.parse_multipart(body_piece);
+        req_data_->form_attempted = true;
     }
     return req_data_->form;
 }
 
 wfrest::Json &HttpReq::json() const
 {
-    if (content_type_ == APPLICATION_JSON && req_data_->json.empty())
+    if (content_type_ == APPLICATION_JSON && !req_data_->json_attempted)
     {
         const std::string &body_content = this->body();
         Json tmp = Json::parse(body_content);
@@ -623,6 +632,7 @@ wfrest::Json &HttpReq::json() const
         {
             req_data_->json = std::move(tmp);
         }
+        req_data_->json_attempted = true;
     }
     return req_data_->json;
 }
